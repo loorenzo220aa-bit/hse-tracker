@@ -297,17 +297,32 @@ let SB_CONNECTED = false;
 /* ============ LOAD / SAVE ============ */
 async function loadAll() {
   const [users, emp, rec] = await Promise.all([ sb('users'), sb('employees'), sb('records') ]);
-  if(users && users.length) D.users = users; // keep local users if SB empty
-  D.emp = emp || []; D.rec = rec || [];
+  if(users && users.length) {
+    D.users = users.map(u => ({
+      id: u.id, name: u.name, user: u.username || u.user, pass: u.password || u.pass, role: u.role
+    }));
+  }
+  D.emp = (emp || []).map(e => ({
+    id: e.id, ar: e.ar, en: e.en, num: e.num, dept: e.dept, phone: e.phone
+  }));
+  D.rec = (rec || []).map(r => ({
+    id: r.id, empId: r.emp_id || r.empId, type: r.type, date: r.date, note: r.note, by: r.by_user || r.by, ts: r.ts
+  }));
 }
 
-async function saveUser(u) { await sb('users', 'POST', u); }
+async function saveUser(u) { 
+  const payload = { id: u.id, name: u.name, username: u.user, password: u.pass, role: u.role };
+  await sb('users', 'POST', payload); 
+}
 async function delUser(id) { await sb('users', 'DELETE', null, '?id=eq.'+id); }
 async function updateUser(id, data) { await sb('users', 'PATCH', data, '?id=eq.'+id); }
 async function saveEmp(e) { await sb('employees', 'POST', e); }
 async function delEmp(id) { await sb('employees', 'DELETE', null, '?id=eq.'+id); await sb('records', 'DELETE', null, '?emp_id=eq.'+id); }
 async function updateEmp(id, data) { await sb('employees', 'PATCH', data, '?id=eq.'+id); }
-async function saveRec(r) { await sb('records', 'POST', r); }
+async function saveRec(r) { 
+  const payload = { id: r.id, emp_id: r.empId, type: r.type, date: r.date, note: r.note, by_user: r.by, ts: r.ts };
+  await sb('records', 'POST', payload); 
+}
 async function delRec(id) { await sb('records', 'DELETE', null, '?id=eq.'+id); }
 
 /* ============ I18N ============ */
@@ -492,7 +507,7 @@ async function doLogin(){
     ]);
     if(users && users.length){
       SESSION=user;
-      D.users=users;
+      D.users=users.map(u=>({id:u.id,name:u.name,user:u.username||u.user,pass:u.password||u.pass,role:u.role}));
       document.getElementById('lgPass').value='';
       btn.textContent=T().login; btn.disabled=false;
       SB_CONNECTED=true;
