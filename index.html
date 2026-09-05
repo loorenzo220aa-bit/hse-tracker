@@ -266,13 +266,43 @@
 
 <script>
 /* ============ STATE ============ */
-let D = { users:[], emp:[], rec:[] };   // users:[{id,name,user,pass,role}]
-let SESSION = null;                     // current logged-in username
-const LS='hse_tracker_v2';
-const store=()=>localStorage.setItem(LS, JSON.stringify(D));
-const load=()=>{ try{D=JSON.parse(localStorage.getItem(LS))||D;}catch(e){} };
+let D = { users:[], emp:[], rec:[] };
+let SESSION = null;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"\']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ============ SUPABASE CONFIG ============ */
+const SB_URL = 'https://xdmngrosmblrqoirjaai.supabase.co';
+const SB_KEY = 'sb_publishable_0yFEikxwbqcW0zaKK27E0w_pHP_InLj';
+const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+async function sb(table, method='GET', body=null, qs='') {
+  let url = SB_URL + '/rest/v1/' + table + qs;
+  let opts = { method, headers: Object.assign({}, SB_H) };
+  if (method === 'GET') delete opts.headers.Prefer;
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(url, opts);
+    if (!r.ok) { console.error('SB err', r.status, await r.text()); return null; }
+    const txt = await r.text();
+    return txt ? JSON.parse(txt) : null;
+  } catch(e) { console.error('SB fetch err:', e); return null; }
+}
+
+/* ============ LOAD / SAVE ============ */
+async function loadAll() {
+  const [users, emp, rec] = await Promise.all([ sb('users'), sb('employees'), sb('records') ]);
+  D.users = users || []; D.emp = emp || []; D.rec = rec || [];
+}
+
+async function saveUser(u) { await sb('users', 'POST', u); }
+async function delUser(id) { await sb('users', 'DELETE', null, '?id=eq.'+id); }
+async function updateUser(id, data) { await sb('users', 'PATCH', data, '?id=eq.'+id); }
+async function saveEmp(e) { await sb('employees', 'POST', e); }
+async function delEmp(id) { await sb('employees', 'DELETE', null, '?id=eq.'+id); await sb('records', 'DELETE', null, '?emp_id=eq.'+id); }
+async function updateEmp(id, data) { await sb('employees', 'PATCH', data, '?id=eq.'+id); }
+async function saveRec(r) { await sb('records', 'POST', r); }
+async function delRec(id) { await sb('records', 'DELETE', null, '?id=eq.'+id); }
 
 /* ============ I18N ============ */
 let LANG='ar';
@@ -288,15 +318,15 @@ const I18N={
     t_rec:'تسجيل حركة يومية (مخالفة / غياب / استئذان)', l_recEmp:'الموظف', l_type:'النوع',
     opt_vio:'🚫 مخالفة', opt_abs:'🚶 غياب', opt_per:'✅ استئذان', opt_oth:'📌 أخرى',
     l_date:'التاريخ', l_note:'الملاحظة / تفاصيل المخالفة', saveRec:'✓ حفظ الحركة', l_user:'اسم المستخدم', l_pass:'كلمة المرور', login:'دخول',
-    t_list:'سجل الحركات', l_filtEmp:'تصفية بالملوظف', l_filtType:'تصفية بالنوع', f_all:'الكل', clearF:'مسح التصفية',
+    t_list:'سجل الحركات', l_filtEmp:'تصفية بالموظف', l_filtType:'تصفية بالنوع', f_all:'الكل', clearF:'مسح التصفية',
     c_date:'التاريخ', c_emp:'الموظف', c_num:'الرقم الوظيفي', c_type:'النوع', c_note:'الملاحظة', c_by:'سجّله',
     t_sum:'ملخص شهري للموظفين', foot:'نظام متابعة HSE — هونداي الهندسة والإنشاء',
     toast_addEmp:'تم تسجيل الموظف', toast_del:'تم الحذف', toast_addRec:'تم حفظ الحركة', toast_xlsx:'تم تصدير ملف Excel',
     toast_addUser:'تمت إضافة الزميل', toast_delUser:'تم حذف الزميل', toast_cantSelf:'لا يمكن حذف نفسك',
     empty:'لا توجد سجلات مطابقة', emptyEmp:'لا يوجد موظفون بعد — أضف موظف أولاً', emptyUsers:'لا يوجد زملاء بعد',
     type_vio:'مخالفة', type_abs:'غياب', type_per:'استئذان', type_oth:'أخرى',
-    thisMonth:'الشهر الحالي', askDel:'هل تريد حذف هذا السجل؟', err_emp:'اختر الموظف', err_note:'اكتب ملاحظة',
-    emp_placeholder:'اختر الموظف...', admin:'مدير', logout:'خروج', err_login:'اسم المستخدم أو كلمة المرور غير صحيحة',
+    thisMonth:'الشهر الحالي', askDel:'حذف هذا السجل؟', err_emp:'اختر موظفاً', err_note:'اكتب ملاحظة',
+    emp_placeholder:'اختر موظف...', admin:'مدير', logout:'خروج', err_login:'اسم المستخدم أو كلمة المرور غير صحيحة',
     err_userExists:'اسم المستخدم موجود مسبقاً', err_fill:'أكمل جميع الحقول',
     welcome_admin:'مرحباً بك، مدير النظام', hello:'مرحباً',
     you:'أنت', u_del:'حذف',
@@ -307,19 +337,20 @@ const I18N={
     emp_deleted:'تم حذف الموظف', emp_updated:'تم حفظ التعديل', ask_del_emp:'حذف هذا الموظف وجميع سجلاته؟',
     emptyEmp:'لا يوجد موظفون بعد — أضف الموظف الأول',
     l_phone:'رقم الهاتف', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
-    no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف'
+    no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
+    sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة'
   },
   en:{
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
     title:'Violations, Absences & Permits Tracker', subtitle:'Hyundai Engineering & Construction | Daily Employee Log',
     lbl_month:'Report Month', export:'Export Excel',
     s_emp:'Registered Employees', s_vio:'Violations', s_abs:'Absences', s_per:'Permits', s_oth:'Others', s_users:'Users', c_total:'Total',
-    t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'＋ Add Colleague',
+    t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'+ Add Colleague',
     t_emp:'Add New Employee', l_empname:'Employee Name (Arabic)', l_empname2:'Name (English)', l_empnum:'Job Number',
-    l_dept:'Department / Job', addEmp:'➕ Add',
+    l_dept:'Department / Job', addEmp:'+ Add',
     t_rec:'Daily Entry (Violation / Absence / Permit)', l_recEmp:'Employee', l_type:'Type',
-    opt_vio:'🚫 Violation', opt_abs:'🚶 Absence', opt_per:'✅ Permit', opt_oth:'📌 Other',
-    l_date:'Date', l_note:'Note / Violation Details', saveRec:'✓ Save Entry', l_user:'Username', l_pass:'Password', login:'Sign In',
+    opt_vio:'Violation', opt_abs:'Absence', opt_per:'Permit', opt_oth:'Other',
+    l_date:'Date', l_note:'Note / Violation Details', saveRec:'Save Entry', l_user:'Username', l_pass:'Password', login:'Sign In',
     t_list:'Records Log', l_filtEmp:'Filter by Employee', l_filtType:'Filter by Type', f_all:'All', clearF:'Clear Filters',
     c_date:'Date', c_emp:'Employee', c_num:'Job No.', c_type:'Type', c_note:'Note', c_by:'Recorded by',
     t_sum:'Monthly Employee Summary', foot:'HSE Tracker — Hyundai Engineering & Construction',
@@ -339,7 +370,8 @@ const I18N={
     emp_deleted:'Employee deleted', emp_updated:'Changes saved', ask_del_emp:'Delete this employee and all their records?',
     emptyEmp:'No employees yet — add the first one',
     l_phone:'Phone Number', importEmp:'Import from Excel', exportEmp:'Export Employees',
-    no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file'
+    no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
+    sync_ok:'Synced', sync_err:'Sync error'
   }
 };
 const T=()=>I18N[LANG];
@@ -351,27 +383,21 @@ function isAdmin(){ const u=currentUser(); return !!u && u.role==='admin'; }
 function renderAuthUI(){
   const u=currentUser();
   const isAdminUser=isAdmin();
-  // show/hide app vs login
   document.getElementById('appWrap').classList.toggle('hide', !u);
   document.getElementById('loginScrim').classList.toggle('hide', !!u);
   if(!u) return;
-  // who box
   const who=document.getElementById('whoName');
-  const role=LANG==='ar'?'مدير':'Admin';
-  who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — '+(LANG==='ar'?'مدير':'Admin')) : u.name+' — Admin') : u.name;
-  // admin-only section (users card)
+  who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
   renderUsers();
   fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
 }
 
 function applyLang(){
-  // main labels
   document.querySelectorAll('#appWrap [data-i]').forEach(el=>{
     const k=el.getAttribute('data-i');
     if(T()[k]!==undefined) el.textContent=T()[k];
   });
-  // login labels
   document.querySelectorAll('#loginScrim [data-i]').forEach(el=>{
     const k=el.getAttribute('data-i');
     if(T()[k]!==undefined) el.textContent=T()[k];
@@ -380,12 +406,10 @@ function applyLang(){
   document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
   document.getElementById('langBtn').textContent=(LANG==='ar')?'English / الإنجليزية':'عربي';
   document.getElementById('lgBtn').textContent=T().login;
-  if(SESSION) renderAuthUI(); else renderStats && 0;
+  if(SESSION) renderAuthUI();
   refreshTypeLabels();
 }
-function refreshTypeLabels(){
-  // option labels
-}
+function refreshTypeLabels(){}
 
 /* ============ USERS (admin) ============ */
 function renderUsers(){
@@ -397,49 +421,54 @@ function renderUsers(){
   D.users.forEach(u=>{
     const tr=document.createElement('tr');
     const isSelf=u.user===SESSION;
-    const roleTag=u.role==='admin'?`<span class="tag t-admin">${T().admin}</span>`:`<span class="tag t-user">User</span>`;
-    tr.innerHTML=`<td>${esc(u.name)} ${isSelf?('<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>'):''}</td>
-      <td>${esc(u.user)}</td><td>${roleTag}</td>
-      <td>${isSelf?'':`<button class="del" data-u="${esc(u.user)}" title="${T().u_del}">🗑</button>`}</td>`;
+    const roleTag=u.role==='admin'?'<span class="tag t-admin">'+T().admin+'</span>':'<span class="tag t-user">User</span>';
+    tr.innerHTML='<td>'+esc(u.name)+' '+(isSelf?'<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>':'')+'</td>      <td>'+esc(u.user)+'</td><td>'+roleTag+'</td>      <td>'+(isSelf?'':'<button class="del" data-u="'+esc(u.user)+'" title="'+T().u_del+'">🗑</button>')+'</td>';
     es.appendChild(tr);
   });
 }
-document.getElementById('addUserBtn').onclick=()=>{
+
+document.getElementById('addUserBtn').onclick=async()=>{
   const name=document.getElementById('uName').value.trim();
   const user=document.getElementById('uUser').value.trim().toLowerCase();
   const pass=document.getElementById('uPass').value.trim();
   const role=document.getElementById('uRole').value;
   if(!name||!user||!pass){ toast(T().err_fill); return; }
   if(D.users.find(u=>u.user===user)){ toast(T().err_userExists); return; }
-  D.users.push({id:uid(),name,user,pass,role});
-  store(); renderAuthUI();
-  document.getElementById('uName').value='';document.getElementById('uUser').value='';
-  document.getElementById('uPass').value='';
+  const u={id:uid(),name,user,pass,role};
+  D.users.push(u);
+  await saveUser(u);
+  renderAuthUI();
+  document.getElementById('uName').value='';document.getElementById('uUser').value='';document.getElementById('uPass').value='';
   toast(T().toast_addUser);
 };
-document.getElementById('userBody').addEventListener('click',e=>{
+
+document.getElementById('userBody').addEventListener('click',async e=>{
   const btn=e.target.closest('.del'); if(!btn) return;
   if(btn.dataset.u===SESSION){ toast(T().toast_cantSelf); return; }
   if(!confirm(LANG==='ar'?'حذف هذا الزميل وجميع بياناته؟':'Delete this colleague and all their data?')) return;
+  const u=D.users.find(x=>x.user===btn.dataset.u);
   D.users=D.users.filter(u=>u.user!==btn.dataset.u);
-  store(); renderAuthUI(); toast(T().toast_delUser);
+  if(u) await delUser(u.id);
+  renderAuthUI(); toast(T().toast_delUser);
 });
 
 /* ============ LOGIN ============ */
-function doLogin(){
+async function doLogin(){
   const user=document.getElementById('lgUser').value.trim().toLowerCase();
   const pass=document.getElementById('lgPass').value;
-  const found=D.users.find(u=>u.user===user && u.pass===pass);
-  if(!found){ document.getElementById('lgErr').textContent=T().err_login; return; }
-  SESSION=user; document.getElementById('lgErr').textContent='';
+  // Fetch matching user from Supabase
+  const users = await sb('users', 'GET', null, '?username=eq.'+encodeURIComponent(user)+'&password=eq.'+encodeURIComponent(pass));
+  if(!users||!users.length){ document.getElementById('lgErr').textContent=T().err_login; return; }
+  SESSION=user;
+  document.getElementById('lgErr').textContent='';
   document.getElementById('lgPass').value='';
+  await loadAll(); // load all data after login
   renderAuthUI(); applyLang();
 }
 document.getElementById('lgBtn').onclick=doLogin;
 document.getElementById('lgPass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 document.getElementById('lgUser').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('lgPass').focus(); });
 function doLogout(){ SESSION=null; document.getElementById('lgPass').value=''; renderAuthUI(); applyLang(); }
-// logout button injected in header
 function buildLogout(){
   const hd=document.querySelector('.hd-actions');
   if(document.getElementById('logoutBtn')) return;
@@ -450,7 +479,7 @@ function buildLogout(){
 buildLogout();
 
 /* ============ CHANGE PASSWORD ============ */
-document.getElementById('chBtn').onclick=()=>{
+document.getElementById('chBtn').onclick=async()=>{
   const cur=document.getElementById('chCur').value;
   const nw=document.getElementById('chNew').value;
   const cf=document.getElementById('chConfirm').value;
@@ -459,11 +488,11 @@ document.getElementById('chBtn').onclick=()=>{
   if(u.pass!==cur){ toast(T().err_wrong); return; }
   if(nw.length<4){ toast(T().err_short); return; }
   if(nw!==cf){ toast(T().err_mismatch); return; }
-  u.pass=nw; store();
+  u.pass=nw;
+  await updateUser(u.id, {password: nw});
   document.getElementById('chCur').value=''; document.getElementById('chNew').value=''; document.getElementById('chConfirm').value='';
   toast(T().ch_ok);
 };
-// enter key
 ['chCur','chNew','chConfirm'].forEach(id=>{
   document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('chBtn').click(); });
 });
@@ -479,7 +508,6 @@ function fillEmpSel(){
       const nm=LANG==='ar'?(e.ar||e.en):(e.en||e.ar); o.textContent=nm+' — '+e.num; sel.appendChild(o);});
     if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
   });
-  // filter select
   const fs=document.getElementById('filtEmp'); if(!fs) return;
   const fc=fs.value; fs.innerHTML='';
   const a=document.createElement('option'); a.value=''; a.textContent=T().f_all; fs.appendChild(a);
@@ -488,7 +516,6 @@ function fillEmpSel(){
   if(fc) fs.value=fc;
 }
 
-/* ============ EMPLOYEE TABLE (manage) ============ */
 let editingEmpId=null;
 function renderEmps(){
   const body=document.getElementById('empBody'); if(!body) return;
@@ -499,31 +526,16 @@ function renderEmps(){
   D.emp.forEach(e=>{
     const tr=document.createElement('tr');
     if(editingEmpId===e.id){
-      tr.innerHTML=`
-        <td><input id="edAr" value="${esc(e.ar||'')}" placeholder="عربي"></td>
-        <td><input id="edEn" value="${esc(e.en||'')}" placeholder="English"></td>
-        <td><input id="edNum" value="${esc(e.num||'')}" style="width:110px"></td>
-        <td><input id="edPhone" value="${esc(e.phone||'')}" style="width:110px"></td>
-        <td><input id="edDept" value="${esc(e.dept||'')}"></td>
-        <td>
-          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 ${esc(T().save_edit)}</button>
-          <button class="btn btn-sm" id="cancelEditBtn">✖ ${esc(T().cancel_edit)}</button>
-        </td>`;
+      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
     } else {
       const nm=empName(e);
-      tr.innerHTML=`<td>${esc(nm)}</td><td>${esc(e.ar||'')}</td><td>${esc(e.num||'')}</td>
-        <td>${esc(e.phone||'')}</td><td>${esc(e.dept||'')}</td>
-        <td>
-          <button class="btn btn-sm" data-edit="${e.id}">✏️ ${esc(T().edit)}</button>
-          <button class="del" data-del="${e.id}">🗑</button>
-        </td>`;
+      tr.innerHTML='<td>'+esc(nm)+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del" data-del="'+e.id+'">🗑</button>        </td>';
     }
     body.appendChild(tr);
   });
 }
 
-// handle edit/save/cancel/delete buttons in employee table
-document.getElementById('empBody').addEventListener('click',e=>{
+document.getElementById('empBody').addEventListener('click',async e=>{
   const edBtn=e.target.closest('[data-edit]');
   const delBtn=e.target.closest('[data-del]');
   const saveBtn=e.target.closest('#saveEditBtn');
@@ -537,47 +549,51 @@ document.getElementById('empBody').addEventListener('click',e=>{
     em.num=document.getElementById('edNum').value.trim();
     em.phone=document.getElementById('edPhone').value.trim();
     em.dept=document.getElementById('edDept').value.trim();
-    store(); editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+    await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, dept:em.dept});
+    editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
     toast(T().emp_updated); return;
   }
   if(delBtn){
     if(!confirm(T().ask_del_emp)) return;
     const id=delBtn.dataset.del;
     D.emp=D.emp.filter(x=>x.id!==id);
-    D.rec=D.rec.filter(r=>r.empId!==id);   // remove their records too
-    store(); editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+    D.rec=D.rec.filter(r=>r.empId!==id);
+    await delEmp(id);
+    editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
     toast(T().emp_deleted);
   }
 });
 
 /* ============ IMPORT / EXPORT EMPLOYEES ============ */
-document.getElementById('importBtn').onclick=()=>{
-  document.getElementById('importFile').click();
-};
-document.getElementById('importFile').addEventListener('change',e=>{
+document.getElementById('importBtn').onclick=()=>{ document.getElementById('importFile').click(); };
+document.getElementById('importFile').addEventListener('change',async e=>{
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     try{
       const wb=XLSX.read(ev.target.result,{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{header:1});
       let added=0;
       const knownIds=new Set(D.emp.map(x=>(x.num||'').replace(/\s/g,'').toUpperCase()));
+      const newEmps=[];
       rows.forEach(r=>{
         const cells=(r||[]).map(c=>(c===null||c===undefined)?'':String(c).trim());
-        // find name (col 1 index) & id (col 2)
         const name=cells[1]; const id=cells[2];
-        if(!name || !name.match(/[A-Za-z]/)) return;   // skip headers/blanks
+        if(!name || !name.match(/[A-Za-z]/)) return;
         const cleanId=(id||'').replace(/\s/g,'').toUpperCase();
-        if(!cleanId || !/\d/.test(cleanId)) return;   // id must contain a digit
-        if(knownIds.has(cleanId)) return;   // skip duplicates
+        if(!cleanId || !/\d/.test(cleanId)) return;
+        if(knownIds.has(cleanId)) return;
         knownIds.add(cleanId);
-        D.emp.push({id:uid(),ar:'',en:name,num:cleanId,dept:'',phone:''});
+        const emp={id:uid(),ar:'',en:name,num:cleanId,dept:'',phone:''};
+        D.emp.push(emp);
+        newEmps.push(emp);
         added++;
       });
-      store(); fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
-      toast(added>0 ? T().import_ok+' ('+added+')' : T().s_emp); 
+      // Save all new employees to Supabase
+      if(newEmps.length) await Promise.all(newEmps.map(e=>saveEmp(e)));
+      fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+      toast(added>0 ? T().import_ok+' ('+added+')' : T().s_emp);
     }catch(err){ toast(T().err_parse); }
   };
   reader.readAsArrayBuffer(file);
@@ -595,6 +611,7 @@ document.getElementById('exportEmpBtn').onclick=()=>{
   XLSX.writeFile(wb,'Employees_list.xlsx');
   toast(T().export_emp_ok);
 };
+
 const TYPE_TAG={violation:'t-vio',absence:'t-abs',permission:'t-per',other:'t-oth'};
 function monthKey(dateStr){ return (dateStr||'').slice(0,7); }
 function curMonth(){ return document.getElementById('monthPicker').value; }
@@ -618,7 +635,7 @@ function renderRecs(){
   let recs=D.rec.filter(r=>monthKey(r.date)===m);
   if(fe) recs=recs.filter(r=>r.empId===fe);
   if(ft) recs=recs.filter(r=>r.type===ft);
-  recs.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  recs.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const body=document.getElementById('recBody'); body.innerHTML='';
   const emptyDiv=document.getElementById('recEmpty');
   if(!recs.length){ emptyDiv.textContent=T().empty; emptyDiv.classList.remove('hide'); return;}
@@ -627,11 +644,7 @@ function renderRecs(){
     const e=empById(r.empId); const tr=document.createElement('tr');
     const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',other:'أخرى'}[r.type]
                   :{violation:'Violation',absence:'Absence',permission:'Permit',other:'Other'}[r.type];
-    tr.innerHTML=`<td>${esc(r.date)}</td><td>${esc(empName(e))}</td><td>${esc(e.num||'')}</td>
-      <td><span class="tag ${TYPE_TAG[r.type]||'t-oth'}">${tn}</span></td>
-      <td>${esc(userNameBy(r.by))}</td>
-      <td style="white-space:normal;min-width:200px;">${esc(r.note)}</td>
-      <td>${isAdmin()?`<button class="del" data-id="${r.id}" title="🗑">🗑</button>`:''}</td>`;
+    tr.innerHTML='<td>'+esc(r.date)+'</td><td>'+esc(empName(e))+'</td><td>'+esc(e.num||'')+'</td>      <td><span class="tag '+(TYPE_TAG[r.type]||'t-oth')+'">'+tn+'</span></td>      <td>'+esc(userNameBy(r.by))+'</td>      <td style="white-space:normal;min-width:200px;">'+esc(r.note)+'</td>      <td>'+(isAdmin()?'<button class="del" data-id="'+r.id+'" title="🗑">🗑</button>':'')+'</td>';
     body.appendChild(tr);
   });
 }
@@ -648,30 +661,29 @@ function renderSum(){
   D.emp.forEach(e=>{
     const o=map[e.id]||{vio:0,abs:0,per:0,oth:0,tot:0};
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${esc(empName(e))}</td><td style="color:var(--red);font-weight:700">${o.vio}</td>
-      <td style="color:var(--blue);font-weight:700">${o.abs}</td><td style="color:var(--green);font-weight:700">${o.per}</td>
-      <td>${o.oth}</td><td style="font-weight:800">${o.tot}</td>`;
+    tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
     body.appendChild(tr);
   });
 }
 
 /* ============ EVENTS ============ */
-document.getElementById('addEmpBtn').onclick=()=>{
+document.getElementById('addEmpBtn').onclick=async()=>{
   const ar=document.getElementById('empNameAr').value.trim();
   const en=document.getElementById('empNameEn').value.trim();
   const num=document.getElementById('empNum').value.trim();
   const dept=document.getElementById('empDept').value.trim();
   const phone=document.getElementById('empPhone').value.trim();
   if(!ar && !en){ toast(T().err_emp); return; }
-  D.emp.push({id:uid(),ar,en,num,dept,phone});
-  store(); fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+  const emp={id:uid(),ar,en,num,dept,phone};
+  D.emp.push(emp);
+  await saveEmp(emp);
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
   document.getElementById('empNameAr').value='';document.getElementById('empNameEn').value='';
-  document.getElementById('empNum').value='';document.getElementById('empDept').value='';
-  document.getElementById('empPhone').value='';
+  document.getElementById('empNum').value='';document.getElementById('empDept').value='';document.getElementById('empPhone').value='';
   toast(T().toast_addEmp);
 };
 
-document.getElementById('addRecBtn').onclick=()=>{
+document.getElementById('addRecBtn').onclick=async()=>{
   const empId=document.getElementById('recEmp').value;
   const type=document.getElementById('recType').value;
   const date=document.getElementById('recDate').value;
@@ -679,17 +691,22 @@ document.getElementById('addRecBtn').onclick=()=>{
   if(!empId){ toast(T().err_emp); return; }
   if(!note){ toast(T().err_note); return; }
   if(!date){ toast(T().err_note); return; }
-  D.rec.push({id:uid(),empId,type,date,note,by:SESSION,ts:Date.now()});
-  store(); renderStats(); renderRecs(); renderSum();
+  const rec={id:uid(),empId,type,date,note,by:SESSION,ts:Date.now()};
+  D.rec.push(rec);
+  await saveRec(rec);
+  renderStats(); renderRecs(); renderSum();
   document.getElementById('recNote').value='';
   document.getElementById('recDate').value=today();
   toast(T().toast_addRec);
 };
 
-document.getElementById('recBody').addEventListener('click',e=>{
+document.getElementById('recBody').addEventListener('click',async e=>{
   const btn=e.target.closest('.del'); if(!btn) return;
   if(!confirm(T().askDel)) return;
-  D.rec=D.rec.filter(r=>r.id!==btn.dataset.id); store(); renderStats(); renderRecs(); renderSum(); toast(T().toast_del);
+  const id=btn.dataset.id;
+  D.rec=D.rec.filter(r=>r.id!==id);
+  await delRec(id);
+  renderStats(); renderRecs(); renderSum(); toast(T().toast_del);
 });
 
 document.getElementById('clearFilt').onclick=()=>{
@@ -701,9 +718,7 @@ document.getElementById('monthPicker').onchange=()=>{
   document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
   renderStats(); renderRecs(); renderSum(); };
 
-document.getElementById('langBtn').onclick=()=>{
-  LANG=LANG==='ar'?'en':'ar'; applyLang();
-};
+document.getElementById('langBtn').onclick=()=>{ LANG=LANG==='ar'?'en':'ar'; applyLang(); };
 
 function today(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
 
@@ -730,7 +745,7 @@ document.getElementById('exportBtn').onclick=()=>{
   const ws=XLSX.utils.aoa_to_sheet(a);
   ws['!cols']=[{wch:22},{wch:14},{wch:14},{wch:12},{wch:12},{wch:12},{wch:10},{wch:12}];
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Report');
-  XLSX.writeFile(wb,`HSE_Report_${m}.xlsx`);
+  XLSX.writeFile(wb,'HSE_Report_'+m+'.xlsx');
   toast(T().toast_xlsx);
 };
 
@@ -741,37 +756,52 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 
 const SEED_EMP = [["HUSSAIN ALL ALHOODAR", "SASL-0543", "OVERALL"], ["HADI HAMAD ALYAMI", "SASL-0527", "With CM Team"], ["ABDULLAH MOHAMMED AL QUSHAYM", "SASL-0387", "Brown Field"], ["SAEED MOSHWAT ALHAJRI", "SASL-0518", "Brown Field"], ["HUSSAIN IBRAHIM ALESSA", "SASL-0469", "Brown Field"], ["HUSSAM NAJIM ALSHARIF", "SASL-0449", "Brown Field"], ["RIDHA YOUSEF ALWABARI", "SASL-0475", "Brown Field"], ["MOHAMMED AYIDH ALHSAN", "SASL-0005", "Brown Field"], ["HAIF ALI ALQAHTANI", "SASL-0528", "K9 Area"], ["YASIR KHALID ALMEHIYAWI", "SASL-0397", "K9 Area"], ["ZIYAD ABDULLAH ALQAHTANI", "SASL-0508", "K9 Area"], ["ABDULLAH MOHSEN ALOTAIBI", "SASL-0526", "K9 Area"], ["ABDULLAH ABDULAZIZ AL NASHMI", "SASL-0481", "K9 Area"], ["HUSSAIN HAMED ALSHAMMARI", "SASL-0492", "K9 Area"], ["MABKHOOT ABDULLAH AL SAIARI", "HECL-0090", "K9 Area"], ["MOHAMMED E ALMINHALI", "HECL-0182", "K9 Area"], ["FAISAL FEHAID ALGETHAMI", "HECL-0188", "K9 Area"], ["MOHAMMED FAISAL ALSUHALI", "SASL-0450", "K9 Area"], ["FARIS MESHAL ALSAGOOR", "SASL-0514", "K9 Area"], ["OMAR IBRAHIM ALANAZI", "SASL-0499", "Chemical Storage"], ["MESHARI ABDULLAH ALBATI", "SASL-0476", "Chemical Storage"], ["SULTAN MOHAMMED ALMARRI", "HECL-0094", "Chemical Storage"], ["AHMED A ALSULTAN", "HECL-0102", "Chemical Storage"], ["AHMED ABDULRAHMAN ALSHEHRI", "SASL-0460", "Chemical Storage"], ["ABDULAZIZ ABDULLAH ALESSA", "SASL-0479", "Chemical Storage"], ["ABDULMAJEED SAAD AL BAKHAT", "SASL-0510", "Chemical Storage"], ["ABDULWAHAB MASTOUR ALALSHYKH", "SASL-0472", "Chemical Storage"], ["FAISAL ABDULKHALIQ ALQARNI", "SASL-0489", "Chemical Storage"], ["ABDULLAH SALAH BUDI", "HECL-0101", "Chemical Storage"], ["ALWAFI ABDULLAH SAAD ALRASHED", "SASL-0471", "GIS-02"], ["AHMED ALMUBARAK", "HECL-0196", "GIS-02"], ["ALI MOHAMMED ASIRI", "SASL-0448", "GIS-02"], ["HASSAN AMEER ALMUHANNA", "HECL-0187", "GIS-02"], ["HAMAD A ALDAWSARI", "HECL-0177", "GIS-02"], ["ALI MESHAL ALSAGOOR", "SASL-0482", "GIS-02"], ["ALI OBAID ALHARTHI", "SASL-0484", "GIS-02"], ["ALI MOHAMMED ALQARNI", "SASL-0483", "GIS-02"], ["MUSAAD ABDULAZIZ ALDHUWAIHI", "SASL-0557", "GIS-02"], ["AHMED SALAH ABDULAZIZ BUDI", "HECL-0103", "GIS-02"], ["ABDULLAH ADNAN ABDULLAH ALSHAALAN", "HECL-0190", "ASU"], ["FAISAL SAEED ALHADDAD", "SASL-0490", "ASU"], ["YOUSIF FAHAD ALISMAIL", "SASL-0507", "ASU"], ["MARWAN ABDULMALIK AL ISMAIL", "SASL-0493", "ASU"], ["FAHAD ABDULAZIZ ALWASMI", "SASL-0487", "ASU"], ["ABDULAZIZ GHAZI ALSUHAYMI", "SASL-0480", "ASU"], ["ABDULLAH KHALED ALTAMIMI", "HECL-0191", "ASU"], ["ABDULAZIZ I ALSULAYBI", "HECL-0176", "ASU"], ["ABDULLAH I ALSULAYBI", "HECL-0095", "ASU"], ["ANAS MUBARAK ALQAHTANI", "SASL-0486", "ASU"], ["AHMED YASIR ALSALEEM", "HECL-0178", "ASU"], ["ABDULKHALIQ MOHAMMED ASIRI", "SASL-0453", "ASU"], ["DYIA RIAD MOHAMED ALHUMAID", "HECL-0185", "ASU"], ["ABDULLAH MASTOUR AL ALSHAYKH", "SASL-0456", "ASU"], ["NAWAF RABEA AL SAAD", "SASL-0534", "SRU4"], ["NAWAF SAAD ALGHAMDI", "SASL-0497", "SRU4"], ["OBAID MOHAMMED ALDOSSARI", "HECL-0097", "SRU4"], ["NAYEF ABDULLAH AL NUWAIRAN", "SASL-0498", "SRU4"], ["BADER SAAD ALRABAH", "SASL-0512", "SRU4"], ["ANWAR M ALBISHI", "SASL-0549", "SRU4"], ["SALMAN ZIKRIYAA ALSALMAN", "SASL-0563", "SRU4"], ["SAUD HAMOUD SAULM", "HECL-0992", "SRU4"], ["SAUD ABDULAZIZ ALKHULAIF", "HECL-0175", "SRU4"], ["NAWAF HUSSAIN AL SHAIBAN", "SASL-0459", "SRU4"], ["SAUD MOHAMMED ALWADANI", "SASL-0520", "SRU5"], ["SULTAN SHULAYWIH ALHARBI", "SASL-0532", "SRU5"], ["RAKAN SAAD ALQAHTANI", "SASL-0517", "SRU5"], ["RAYAN MOHAMMED AL ZUHAYR", "SASL-0466", "SRU5"], ["SAUD MOHAMMED AL GMAL", "SASL-0530", "SRU5"], ["TALAL SAEED ALGHAMDI", "HECL-0184", "SRU5"], ["SAAD MOHAMMED ALSUBAIE", "SASL-0502", "SRU5"], ["HUSSAIN Ahmed ALWABARI", "HECL-0209", "SRU5"], ["WALEED MASOUD ALQAHTANI", "SASL-0392", "SRU5"], ["RAYAN SAAD ALRABAH", "SASL-0501", "SRU5"], ["RIDHA TAHER MOHAMMED ALKHAMIS", "HECL-0189", "SRU5"], ["TARIQ AHMED ALQARNI", "SASL-0505", "SRU5"], ["IBRAHIM ALI IBRAHIM", "HECL-0548", "Laydown B"], ["MOHAMMED M ALMARRI", "HECL-0098", "Laydown B"], ["MOHAMMED GHAZI ALSUHAYMI", "SASL-0455", "Laydown B"], ["FEHAID AOWIDAH AL AJMI", "SASL-0491", "Laydown B"], ["ABDULLAH KANAN ALKANAN", "HECL-0084", "Laydown B"], ["FAHAD ADEL ALSADUN", "HECL-0100", "Laydown B"], ["MUSAAD AHMED ALSULTAN", "HECL-0096", "Laydown B"], ["SALEH SAEED ALSAEED", "SASL-0503", "Laydown B"], ["GHAZI AMER ALBARQI", "SASL-0452", "Laydown B"], ["HAMAD MOHAMMED ALFEHAID", "SASL-0537", "Laydown B"], ["KHALED YAQOUB ALDOSSARY", "SASL-0464", "Laydown B"], ["OMAR ABDULLAH ALAHMARI", "SASL-0516", "Laydown C"], ["NASSER ABDULLAH ALSUBAIEI", "SASL-0561", "Laydown C"], ["MANA NASSER AL QAHTANI", "SASL-0515", "Laydown C"], ["ALI HASSAN ALBANNAY", "SASL-0473", "Laydown C"], ["FAHAD M ALDOSSARY", "HECL-0091", "Laydown C"], ["MANSOOR ALI ALGHAMDI", "SASL-0463", "Laydown C"], ["MOHAMMED ALI ALGHAMDI", "SASL-0494", "Laydown C"], ["RAYAN NAJIM ALSHARIF", "SASL-0462", "Laydown C"], ["SAAD HANDI M ALQAHTANI", "SASL-0021", "Laydown C"], ["HINDI FEHAID ALQAHTANI", "SASL-0461", "Laydown C"], ["MOHAMMED GAZI ALBARGA", "SASL-0495", "Laydown C"], ["NASSER ABDULLAH ALDAWSARI", "SASL-0560", "Laydown C"], ["MUTLIQ OMAR AL WADAANI", "SASL-0529", "Silver Area"], ["RASHED MOHAMMED A. ALDOSSARY", "HECL-0194", "Silver Area"], ["MOHAMMED KHALID ALBARQI", "SASL-0451", "Silver Area"], ["MUATH MANDR ALZAHRANI", "HECL-0181", "Silver Area"], ["MOHAMMED SAEED AL NASIM", "SASL-0465", "Silver Area"], ["NAWAF BADER ALAYADI", "SASL-0394", "Silver Area"], ["KHALID NAJIM ALSHARIF", "SASL-0474", "Silver Area"], ["FAHAD SALEH ALZAHRANI", "SASL-0488", "Silver Area"], ["SULTAN MUIDH ALQAHTANI", "HECL-0193", "Silver Area"], ["SALEH KHALID ALRUMAYH", "SASL-0562", "Silver Area"], ["TALAL SALAH BOODAI", "SASL-0531", "Water-bound Area"], ["THABIT ALI ALSUBAIE", "SASL-0506", "Water-bound Area"], ["SHAMAN M ALDOSSARY", "HECL-0104", "Water-bound Area"], ["TURKI SALEM ALJWHAR", "SASL-0523", "Water-bound Area"], ["YAZEED FAHAD ALMUTAIRI", "SASL-0566", "Water-bound Area"], ["YOUSEF MUBARAK ALHAMDAN", "SASL-0522", "Water-bound Area"], ["SULTAN ABDULLATIF ALHARBI", "SASL-0504", "Water-bound Area"], ["TURKI SULTAN ALSULTAN", "HECL-0093", "Water-bound Area"], ["SULTAN ABDULLAH ALSHAHRANI", "HECL-0197", "SSC"], ["ABDULLAH KHADEM ALNUWAYSIR", "SASL-0386", "SSC"], ["ALI SALEH ALSALEH", "SASL-0485", "SSC"], ["MUHANNAD KHUWAYLID ALANAZI", "SASL-0496", "SSC"], ["OMAR SAAD ALMAKHAYITAH", "SASL-0500", "SSC"], ["FAISAL AL QAHTANI", "SASL-0598", "SSC"], ["MAHMOUD ALI AL WABARI", "SASL-0003", "SSC"], ["FAHAD ABDULLAH ALYOUSIF", "SASL-0513", "SSC"], ["ABDULAZIZ NAJEA ALSUBEIA", "SASL-0458", "Training Room"], ["KHALID FEHAID ALQAHTANI", "SASL-0470", "Training Room"], ["MOHAMMED IBRAHIM ALANAZI", "SASL-0468", "Training Room"], ["SALEM FEHAID ALMARRI", "HECL-0203", "Training Room"], ["ABDULAZIZ ALI HARTHI", "SASL-0509", "Office"], ["ADI HAMAD ALHARTHI", "SASL-0389", "Office"], ["AHMED ABDULLATIF AL DOSSARI", "SASL-0396", "Office"], ["ALI AHMED ALHABIB", "SASL-0524", "Office"], ["ALI TAHER ALMUMTIN", "SASL-0374", "Office"], ["AMMAR HUSSAIN AL BELADI", "SASL-0467", "Office"], ["ABDULLAH ALI ALBAQSHI", "SASL-0533", "With CM Team"], ["AHMED MOHAMMED ALRASHIDI", "SASL-0521", "With CM Team"]];
 
-/* one-time: seed employees on first use (skips existing IDs, never deletes user data) */
-function seedEmployeesOnce(){
-  if(localStorage.getItem('hse_seeded_v1')==='1') return;
+/* ============ SEED EMPLOYEES TO SUPABASE ============ */
+async function seedEmployeesToSupabase(){
+  if(D.emp.length > 10) return; // already seeded
   const known=new Set(D.emp.map(x=>(x.num||'').replace(/\s/g,'').toUpperCase()));
-  let added=0;
+  const newEmps=[];
   SEED_EMP.forEach(s=>{
     const id=String(s[1]||'').replace(/\s/g,'').toUpperCase();
     if(!id || known.has(id)) return;
     known.add(id);
-    D.emp.push({id:uid(), ar:'', en:s[0], num:id, dept:s[2]||'', phone:''});
-    added++;
+    const emp={id:uid(), ar:'', en:s[0], num:id, dept:s[2]||'', phone:''};
+    D.emp.push(emp);
+    newEmps.push(emp);
   });
-  if(added){ store(); }
-  localStorage.setItem('hse_seeded_v1','1');
+  if(newEmps.length){
+    // Batch insert to Supabase
+    for(let i=0; i<newEmps.length; i+=50){
+      const batch=newEmps.slice(i, i+50);
+      await sb('employees', 'POST', batch);
+    }
+    toast('Seeded ' + newEmps.length + ' employees');
+  }
 }
 
 /* ============ INIT ============ */
-load();
-seedEmployeesOnce();
-// seed default admin if no users exist
-if(!D.users.length){
-  D.users.push({id:uid(), name:'علي', user:'admin', pass:'admin123', role:'admin'});
-  store();
-}
-const mp=document.getElementById('monthPicker');
-mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
-document.getElementById('recDate').value=today();
-document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
-applyLang();
-// start logged out (show login)
-renderAuthUI();
+(async function(){
+  try{
+    await loadAll();
+  }catch(e){
+    console.error('Failed to load from Supabase:', e);
+    toast('Connection error — check Supabase setup');
+  }
+  // seed default admin if no users exist
+  if(!D.users.length){
+    const admin={id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'};
+    D.users.push(admin);
+    await saveUser(admin);
+  }
+  // seed employees
+  await seedEmployeesToSupabase();
+  const mp=document.getElementById('monthPicker');
+  mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
+  document.getElementById('recDate').value=today();
+  document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
+  applyLang();
+  renderAuthUI();
+})();
 </script>
 </body>
 </html>
