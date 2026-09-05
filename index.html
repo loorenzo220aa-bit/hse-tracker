@@ -829,7 +829,7 @@ async function seedEmployeesToSupabase(){
 
 /* ============ INIT ============ */
 // IMMEDIATE: seed admin so login always works
-D.users.push({id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'});
+D.users.push({id:'admin-default', name:'علي', user:'علي', pass:'علي123', role:'admin'});
 
 const mp=document.getElementById('monthPicker');
 mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
