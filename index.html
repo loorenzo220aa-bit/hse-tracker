@@ -282,12 +282,17 @@ async function sb(table, method='GET', body=null, qs='') {
   if (method === 'GET') delete opts.headers.Prefer;
   if (body) opts.body = JSON.stringify(body);
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    opts.signal = controller.signal;
     const r = await fetch(url, opts);
+    clearTimeout(timeout);
     if (!r.ok) { console.error('SB err', r.status, await r.text()); return null; }
     const txt = await r.text();
     return txt ? JSON.parse(txt) : null;
   } catch(e) { console.error('SB fetch err:', e); return null; }
 }
+let SB_CONNECTED = false;
 
 /* ============ LOAD / SAVE ============ */
 async function loadAll() {
@@ -456,14 +461,39 @@ document.getElementById('userBody').addEventListener('click',async e=>{
 async function doLogin(){
   const user=document.getElementById('lgUser').value.trim().toLowerCase();
   const pass=document.getElementById('lgPass').value;
-  // Fetch matching user from Supabase
+  // Try Supabase first
   const users = await sb('users', 'GET', null, '?username=eq.'+encodeURIComponent(user)+'&password=eq.'+encodeURIComponent(pass));
-  if(!users||!users.length){ document.getElementById('lgErr').textContent=T().err_login; return; }
-  SESSION=user;
-  document.getElementById('lgErr').textContent='';
-  document.getElementById('lgPass').value='';
-  await loadAll(); // load all data after login
-  renderAuthUI(); applyLang();
+  if(users && users.length){
+    SESSION=user;
+    document.getElementById('lgErr').textContent='';
+    document.getElementById('lgPass').value='';
+    await loadAll();
+    SB_CONNECTED=true;
+    renderAuthUI(); applyLang();
+    return;
+  }
+  // Fallback: check seeded local admin
+  if(user==='admin' && pass==='admin123' && !D.users.find(u=>u.user==='admin')){
+    const admin={id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'};
+    D.users.push(admin);
+    SESSION=user;
+    document.getElementById('lgErr').textContent='';
+    document.getElementById('lgPass').value='';
+    // Try to save admin to Supabase in background
+    saveUser(admin).then(()=>{SB_CONNECTED=true;}).catch(()=>{});
+    renderAuthUI(); applyLang();
+    return;
+  }
+  // Check in-memory users (for fallback mode)
+  const found=D.users.find(u=>u.user===user && u.pass===pass);
+  if(found){
+    SESSION=user;
+    document.getElementById('lgErr').textContent='';
+    document.getElementById('lgPass').value='';
+    renderAuthUI(); applyLang();
+    return;
+  }
+  document.getElementById('lgErr').textContent=T().err_login;
 }
 document.getElementById('lgBtn').onclick=doLogin;
 document.getElementById('lgPass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
@@ -781,26 +811,30 @@ async function seedEmployeesToSupabase(){
 
 /* ============ INIT ============ */
 (async function(){
+  // Try loading from Supabase (with timeout)
   try{
-    await loadAll();
+    await Promise.race([loadAll(), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);
+    SB_CONNECTED=true;
   }catch(e){
-    console.error('Failed to load from Supabase:', e);
-    toast('Connection error — check Supabase setup');
+    console.warn('Supabase unavailable, using fallback mode:', e.message);
   }
   // seed default admin if no users exist
   if(!D.users.length){
-    const admin={id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'};
-    D.users.push(admin);
-    await saveUser(admin);
+    D.users.push({id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'});
   }
-  // seed employees
-  await seedEmployeesToSupabase();
+  // seed employees (only if DB is empty)
+  if(D.emp.length < 10){
+    await seedEmployeesToSupabase();
+  }
   const mp=document.getElementById('monthPicker');
   mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
   document.getElementById('recDate').value=today();
   document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
   applyLang();
   renderAuthUI();
+  if(!SB_CONNECTED){
+    toast('⚠️ وضع بديل — بيانات محلية فقط');
+  }
 })();
 </script>
 </body>
