@@ -461,39 +461,36 @@ document.getElementById('userBody').addEventListener('click',async e=>{
 async function doLogin(){
   const user=document.getElementById('lgUser').value.trim().toLowerCase();
   const pass=document.getElementById('lgPass').value;
-  // Try Supabase first
-  const users = await sb('users', 'GET', null, '?username=eq.'+encodeURIComponent(user)+'&password=eq.'+encodeURIComponent(pass));
-  if(users && users.length){
-    SESSION=user;
-    document.getElementById('lgErr').textContent='';
-    document.getElementById('lgPass').value='';
-    await loadAll();
-    SB_CONNECTED=true;
-    renderAuthUI(); applyLang();
-    return;
-  }
-  // Fallback: check seeded local admin
-  if(user==='admin' && pass==='admin123' && !D.users.find(u=>u.user==='admin')){
-    const admin={id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'};
-    D.users.push(admin);
-    SESSION=user;
-    document.getElementById('lgErr').textContent='';
-    document.getElementById('lgPass').value='';
-    // Try to save admin to Supabase in background
-    saveUser(admin).then(()=>{SB_CONNECTED=true;}).catch(()=>{});
-    renderAuthUI(); applyLang();
-    return;
-  }
-  // Check in-memory users (for fallback mode)
+  const errEl=document.getElementById('lgErr');
+  const btn=document.getElementById('lgBtn');
+  errEl.textContent=''; btn.textContent='⏳...'; btn.disabled=true;
+  // Check in-memory users FIRST (instant)
   const found=D.users.find(u=>u.user===user && u.pass===pass);
   if(found){
-    SESSION=user;
-    document.getElementById('lgErr').textContent='';
+    SESSION=user; btn.textContent=T().login; btn.disabled=false;
     document.getElementById('lgPass').value='';
+    await loadAll().catch(()=>{});
     renderAuthUI(); applyLang();
     return;
   }
-  document.getElementById('lgErr').textContent=T().err_login;
+  // Try Supabase as fallback
+  try{
+    const users = await Promise.race([
+      sb('users','GET',null,'?username=eq.'+encodeURIComponent(user)+'&password=eq.'+encodeURIComponent(pass)),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
+    ]);
+    if(users && users.length){
+      SESSION=user; btn.textContent=T().login; btn.disabled=false;
+      document.getElementById('lgPass').value='';
+      SB_CONNECTED=true;
+      await loadAll().catch(()=>{});
+      renderAuthUI(); applyLang();
+      return;
+    }
+  }catch(e){ console.warn('SB login fallback:', e.message); }
+  // Not found anywhere
+  btn.textContent=T().login; btn.disabled=false;
+  errEl.textContent=T().err_login;
 }
 document.getElementById('lgBtn').onclick=doLogin;
 document.getElementById('lgPass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
@@ -810,30 +807,26 @@ async function seedEmployeesToSupabase(){
 }
 
 /* ============ INIT ============ */
+// IMMEDIATE: seed admin so login always works
+D.users.push({id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'});
+
+const mp=document.getElementById('monthPicker');
+mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
+document.getElementById('recDate').value=today();
+document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
+applyLang();
+renderAuthUI();
+
+// BACKGROUND: try loading from Supabase (non-blocking)
 (async function(){
-  // Try loading from Supabase (with timeout)
   try{
-    await Promise.race([loadAll(), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000))]);
+    await Promise.race([loadAll(), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))]);
     SB_CONNECTED=true;
+    // Re-render with fresh data
+    if(SESSION) renderAuthUI();
+    toast('✅ تم الاتصال بقاعدة البيانات');
   }catch(e){
-    console.warn('Supabase unavailable, using fallback mode:', e.message);
-  }
-  // seed default admin if no users exist
-  if(!D.users.length){
-    D.users.push({id:'admin-default', name:'علي', user:'admin', pass:'admin123', role:'admin'});
-  }
-  // seed employees (only if DB is empty)
-  if(D.emp.length < 10){
-    await seedEmployeesToSupabase();
-  }
-  const mp=document.getElementById('monthPicker');
-  mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
-  document.getElementById('recDate').value=today();
-  document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
-  applyLang();
-  renderAuthUI();
-  if(!SB_CONNECTED){
-    toast('⚠️ وضع بديل — بيانات محلية فقط');
+    console.warn('Supabase unavailable:', e.message);
   }
 })();
 </script>
