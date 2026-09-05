@@ -297,7 +297,8 @@ let SB_CONNECTED = false;
 /* ============ LOAD / SAVE ============ */
 async function loadAll() {
   const [users, emp, rec] = await Promise.all([ sb('users'), sb('employees'), sb('records') ]);
-  D.users = users || []; D.emp = emp || []; D.rec = rec || [];
+  if(users && users.length) D.users = users; // keep local users if SB empty
+  D.emp = emp || []; D.rec = rec || [];
 }
 
 async function saveUser(u) { await sb('users', 'POST', u); }
@@ -467,9 +468,19 @@ async function doLogin(){
   // Check in-memory users FIRST (instant)
   const found=D.users.find(u=>u.user===user && u.pass===pass);
   if(found){
-    SESSION=user; btn.textContent=T().login; btn.disabled=false;
+    SESSION=user;
     document.getElementById('lgPass').value='';
-    await loadAll().catch(()=>{});
+    btn.textContent=T().login; btn.disabled=false;
+    // Load emp+rec from Supabase in background (don't wait)
+    (async()=>{
+      try{
+        const [emp,rec]=await Promise.all([sb('employees'),sb('records')]);
+        if(emp&&emp.length) D.emp=emp;
+        if(rec&&rec.length) D.rec=rec;
+        SB_CONNECTED=true;
+        fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+      }catch(e){}
+    })();
     renderAuthUI(); applyLang();
     return;
   }
@@ -480,15 +491,25 @@ async function doLogin(){
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
     ]);
     if(users && users.length){
-      SESSION=user; btn.textContent=T().login; btn.disabled=false;
+      SESSION=user;
+      D.users=users;
       document.getElementById('lgPass').value='';
+      btn.textContent=T().login; btn.disabled=false;
       SB_CONNECTED=true;
-      await loadAll().catch(()=>{});
+      // Load emp+rec in background
+      (async()=>{
+        try{
+          const [emp,rec]=await Promise.all([sb('employees'),sb('records')]);
+          if(emp&&emp.length) D.emp=emp;
+          if(rec&&rec.length) D.rec=rec;
+          fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+        }catch(e){}
+      })();
       renderAuthUI(); applyLang();
       return;
     }
   }catch(e){ console.warn('SB login fallback:', e.message); }
-  // Not found anywhere
+  // Not found
   btn.textContent=T().login; btn.disabled=false;
   errEl.textContent=T().err_login;
 }
