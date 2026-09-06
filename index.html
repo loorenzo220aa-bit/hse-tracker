@@ -235,6 +235,7 @@
       <div class="field"><label data-i="l_empnum">الرقم الوظيفي</label><input id="empNum" placeholder="SASL-0001"></div>
       <div class="field"><label data-i="l_dept">القسم / المهنة</label><input id="empDept" placeholder="مثال: سائق"></div>
       <div class="field"><label data-i="l_phone">رقم الهاتف</label><input id="empPhone" type="tel" placeholder="05xxxxxxxx"></div>
+      <div class="field"><label data-i="l_plate">رقم لوحة المركبة</label><input id="empPlate" placeholder="أ ب ج 1234"></div>
       <div><button class="btn btn-acc" id="addEmpBtn" data-i="addEmp">➕ إضافة</button></div>
     </div>
     <div class="frow" style="margin-top:14px;">
@@ -246,7 +247,7 @@
       <table>
         <thead><tr>
           <th data-i="c_emp">الموظف</th><th data-i="c_ar">الاسم العربي</th><th data-i="c_num">الرقم الوظيفي</th>
-          <th data-i="l_phone">الرقم الهاتف</th><th data-i="l_dept">القسم / المهنة</th><th data-i="c_act">إجراءات</th>
+          <th data-i="l_phone">الرقم الهاتف</th><th data-i="l_plate">رقم اللوحة</th><th data-i="l_dept">القسم / المهنة</th><th data-i="c_act">إجراءات</th>
         </tr></thead>
         <tbody id="empBody"></tbody>
       </table>
@@ -366,7 +367,7 @@ async function loadAll() {
     }));
   }
   D.emp = (emp || []).map(e => ({
-    id: e.id, ar: e.ar, en: e.en, num: e.num, dept: e.dept, phone: e.phone
+    id: e.id, ar: e.ar, en: e.en, num: e.num, dept: e.dept, phone: e.phone, plate: e.plate
   }));
   D.rec = (rec || []).map(r => ({
     id: r.id, empId: r.emp_id || r.empId, type: r.type, date: r.date, note: r.note, by: r.by_user || r.by, ts: r.ts
@@ -379,9 +380,9 @@ async function saveUser(u) {
 }
 async function delUser(id) { await sb('users', 'DELETE', null, '?id=eq.'+id); }
 async function updateUser(id, data) { await sb('users', 'PATCH', data, '?id=eq.'+id); }
-async function saveEmp(e) { await sb('employees', 'POST', e); }
+async function saveEmp(e) { const r=await sb('employees', 'POST', e); if(!r&&'plate' in e){ const c=Object.assign({},e); delete c.plate; await sb('employees', 'POST', c); } }
 async function delEmp(id) { await sb('employees', 'DELETE', null, '?id=eq.'+id); await sb('records', 'DELETE', null, '?emp_id=eq.'+id); }
-async function updateEmp(id, data) { await sb('employees', 'PATCH', data, '?id=eq.'+id); }
+async function updateEmp(id, data) { const r=await sb('employees', 'PATCH', data, '?id=eq.'+id); if(!r&&'plate' in data){ const c=Object.assign({},data); delete c.plate; await sb('employees', 'PATCH', c, '?id=eq.'+id); } }
 async function saveRec(r) { 
   const payload = { id: r.id, emp_id: r.empId, type: r.type, date: r.date, note: r.note, by_user: r.by, ts: r.ts };
   await sb('records', 'POST', payload); 
@@ -420,7 +421,7 @@ const I18N={
     c_ar:'الاسم العربي', c_act:'إجراءات', edit:'تعديل', save_edit:'حفظ التعديل', cancel_edit:'إلغاء',
     emp_deleted:'تم حذف الموظف', emp_updated:'تم حفظ التعديل', ask_del_emp:'حذف هذا الموظف وجميع سجلاته؟',
     emptyEmp:'لا يوجد موظفون بعد — أضف الموظف الأول',
-    l_phone:'رقم الهاتف', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
+    l_phone:'رقم الهاتف', l_plate:'رقم لوحة المركبة', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
     settings:'الإعدادات', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅'
@@ -454,7 +455,7 @@ const I18N={
     c_ar:'Arabic Name', c_act:'Actions', edit:'Edit', save_edit:'Save Changes', cancel_edit:'Cancel',
     emp_deleted:'Employee deleted', emp_updated:'Changes saved', ask_del_emp:'Delete this employee and all their records?',
     emptyEmp:'No employees yet — add the first one',
-    l_phone:'Phone Number', importEmp:'Import from Excel', exportEmp:'Export Employees',
+    l_phone:'Phone Number', l_plate:'Vehicle Plate No.', importEmp:'Import from Excel', exportEmp:'Export Employees',
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
     settings:'Settings', set_new_pass:'New password', pwd_changed:'Password changed ✅'
@@ -691,10 +692,10 @@ function renderEmps(){
   D.emp.forEach(e=>{
     const tr=document.createElement('tr');
     if(editingEmpId===e.id){
-      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
+      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
     } else {
       const nm=empName(e);
-      tr.innerHTML='<td>'+esc(nm)+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del" data-del="'+e.id+'">🗑</button>        </td>';
+      tr.innerHTML='<td>'+esc(nm)+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.plate||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del" data-del="'+e.id+'">🗑</button>        </td>';
     }
     body.appendChild(tr);
   });
@@ -713,8 +714,9 @@ document.getElementById('empBody').addEventListener('click',async e=>{
     em.en=document.getElementById('edEn').value.trim();
     em.num=document.getElementById('edNum').value.trim();
     em.phone=document.getElementById('edPhone').value.trim();
+    em.plate=document.getElementById('edPlate').value.trim();
     em.dept=document.getElementById('edDept').value.trim();
-    await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, dept:em.dept});
+    await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, plate:em.plate, dept:em.dept});
     editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
     toast(T().emp_updated); return;
   }
@@ -767,10 +769,10 @@ document.getElementById('importFile').addEventListener('change',async e=>{
 
 document.getElementById('exportEmpBtn').onclick=()=>{
   const a=[[T().s_emp],['']];
-  const hh=LANG==='ar'?['الاسم العربي','الاسم الإنجليزي','الرقم الوظيفي','رقم الهاتف','القسم / المهنة']
-                      :['Arabic Name','English Name','Job No.','Phone','Department'];
+  const hh=LANG==='ar'?['الاسم العربي','الاسم الإنجليزي','الرقم الوظيفي','رقم الهاتف','رقم لوحة المركبة','القسم / المهنة']
+                      :['Arabic Name','English Name','Job No.','Phone','Vehicle Plate No.','Department'];
   a.push(hh);
-  D.emp.forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',e.phone||'',e.dept||'']));
+  D.emp.forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',e.phone||'',e.plate||'',e.dept||'']));
   const ws=XLSX.utils.aoa_to_sheet(a);
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Employees');
   XLSX.writeFile(wb,'Employees_list.xlsx');
@@ -847,13 +849,14 @@ document.getElementById('addEmpBtn').onclick=async()=>{
   const num=document.getElementById('empNum').value.trim();
   const dept=document.getElementById('empDept').value.trim();
   const phone=document.getElementById('empPhone').value.trim();
+  const plate=document.getElementById('empPlate').value.trim();
   if(!ar && !en){ toast(T().err_emp); return; }
-  const emp={id:uid(),ar,en,num,dept,phone};
+  const emp={id:uid(),ar,en,num,dept,phone,plate};
   D.emp.push(emp);
   await saveEmp(emp);
   fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
   document.getElementById('empNameAr').value='';document.getElementById('empNameEn').value='';
-  document.getElementById('empNum').value='';document.getElementById('empDept').value='';document.getElementById('empPhone').value='';
+  document.getElementById('empNum').value='';document.getElementById('empDept').value='';document.getElementById('empPhone').value='';document.getElementById('empPlate').value='';
   toast(T().toast_addEmp);
 };
 
