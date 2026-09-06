@@ -1059,102 +1059,107 @@ document.getElementById('tsSaveBtn').onclick=async()=>{
   toast(T().ts_saved);
 };
 
+/* ---- Timesheet export: user's own file is the single template ---- */
+let TS_TEMPLATE=null;
+function tsSerVal(v){
+  if(v===undefined||v===null) return null;
+  if(v instanceof Date) return {__d:v.toISOString()};
+  if(typeof v==='object'&&v.formula!==undefined) return {__f:v.formula};
+  if(typeof v==='object'&&v.text!==undefined) return {__t:v.text};
+  return {__v:v};
+}
+function tsUnserVal(o){
+  if(!o) return null;
+  if(o.__d!==undefined) return new Date(o.__d);
+  if(o.__f!==undefined) return {formula:o.__f};
+  if(o.__t!==undefined) return o.__t;
+  return o.__v;
+}
+async function loadTsTemplate(){
+  if(TS_TEMPLATE) return TS_TEMPLATE;
+  const resp=await fetch('Time_Sheet_Template.xlsx');
+  if(!resp.ok) throw new Error('template HTTP '+resp.status);
+  const buf=await resp.arrayBuffer();
+  const twb=new ExcelJS.Workbook();
+  await twb.xlsx.load(buf);
+  const ms=twb.worksheets[0];
+  const M={merges:[],widths:{},heights:{},cells:{},views:null,ps:null,pm:null};
+  try{ M.merges=(ms.model.merges||[]).slice(); }catch(e){}
+  try{ ms.columns.forEach((c,i)=>{ if(c.width) M.widths[i+1]=c.width; }); }catch(e){}
+  for(let r=1;r<=60;r++){ try{ const h=ms.getRow(r).height; if(h) M.heights[r]=h; }catch(e){} }
+  ms.eachRow({includeEmpty:true},(row,r)=>{ row.eachCell({includeEmpty:true},(c,cn)=>{
+    let s=null; try{ s=JSON.parse(JSON.stringify(c.style)); }catch(e){}
+    M.cells[r+','+cn]={v:tsSerVal(c.value),s:s,n:c.numFmt||null};
+  });});
+  try{ M.views=JSON.parse(JSON.stringify(ms.views)); }catch(e){}
+  try{ M.ps=JSON.parse(JSON.stringify(ms.pageSetup)); }catch(e){}
+  try{ M.pm=JSON.parse(JSON.stringify(ms.pageSetup&&ms.pageSetup.margins)); }catch(e){}
+  TS_TEMPLATE=M;
+  return M;
+}
+function tsApplyModel(ws,M){
+  Object.keys(M.widths).forEach(k=>{ ws.getColumn(+k).width=M.widths[k]; });
+  Object.keys(M.heights).forEach(k=>{ ws.getRow(+k).height=M.heights[k]; });
+  (M.merges||[]).forEach(r=>{ try{ws.mergeCells(r);}catch(e){} });
+  Object.keys(M.cells).forEach(k=>{
+    const p=k.split(','); const cell=M.cells[k];
+    const c=ws.getCell(+p[0],+p[1]);
+    const v=tsUnserVal(cell.v);
+    if(v!==null&&v!==undefined) c.value=v;
+    if(cell.s) c.style=cell.s;
+    if(cell.n) c.numFmt=cell.n;
+  });
+  if(M.views){ try{ws.views=M.views;}catch(e){} }
+  if(M.ps){ try{ Object.keys(M.ps).forEach(k=>{ if(k!=='margins') ws.pageSetup[k]=M.ps[k]; }); }catch(e){} }
+  if(M.pm){ try{ ws.pageSetup.margins=M.pm; }catch(e){} }
+}
+function tsFillSheet(ws,e,days,pos,nat,dd){
+  const S=(addr,v)=>{ const c=ws.getCell(addr); if(v===null||v===undefined) c.value=null; else c.value=v; };
+  const d0=days[0].split('-'), d1=days[days.length-1].split('-');
+  S('B2','( '+d0[2]+' '+TS_MON[+d0[1]-1]+' '+d0[0]+' -'+d1[2]+' '+TS_MON[+d1[1]-1]+' '+d1[0]+')');
+  S('C4',e.num||'');
+  let nm=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm)) nm=nm.toUpperCase();
+  S('H4',nm);
+  S('C6',pos||''); S('H6',nat||'');
+  const p0=days[0].split('-');
+  S('B12',new Date(Date.UTC(+p0[0],+p0[1]-1,+p0[2])));
+  let tot=0;
+  days.forEach((ds,i)=>{
+    const r=12+i; const o=dd[ds]||{};
+    const hasT=o.in1||o.out1||o.in2||o.out2||o.in3||o.out3;
+    const cols={D:o.in1,E:o.out1,F:o.in2,G:o.out2,H:o.in3,I:o.out3};
+    Object.keys(cols).forEach(col=>{ S(col+r,tsTimeVal(cols[col])); });
+    if(hasT){ const fr=tsDayTotal(o); tot+=fr;
+      ws.getCell('J'+r).value={formula:'E'+r+'-D'+r+'+G'+r+'-F'+r+'+I'+r+'-H'+r+'+K'+r,result:fr};
+    } else S('J'+r,null);
+    S('L'+r,o.remark||null);
+  });
+  ws.getCell('J43').value={formula:'SUM(J12:J42)',result:tot};
+}
 /* ---- Timesheet Excel export (ExcelJS, exact template replica) ---- */
 function tsTimeVal(s){ if(!s) return null; const p=s.split(':'); if(p.length<2) return null;
-  return new Date(1899,11,30,+p[0],+p[1]); }
+  return new Date(Date.UTC(1899,11,30,+p[0],+p[1])); }
 function tsFrac(s){ if(!s) return 0; const p=s.split(':'); return ((+p[0])*60+(+p[1]))/1440; }
 function tsSerial(y,mo,d){ return (Date.UTC(y,mo-1,d)-Date.UTC(1899,11,30))/86400000; }
 function tsDayTotal(o){ let h=0;
   [['in1','out1'],['in2','out2'],['in3','out3']].forEach(pr=>{ const a=tsFrac(o[pr[0]]), b=tsFrac(o[pr[1]]); if(b>a) h+=(b-a); });
   return h; }
 const TS_MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
-function buildTsSheet(wb, e, m, days, pos, nat, dd){
-  const ws=wb.addWorksheet((e.num||e.en||e.ar||'emp').toString().slice(0,31));
-  ws.columns=[{width:4.7},{width:12.7},{width:8.9},{width:9.7},{width:13},{width:13},{width:13},{width:13},{width:13},{width:10},{width:13.2},{width:20.1},{width:7.1}];
-  [4.7,12.7,8.9,9.7,13,13,13,13,13,10,13.2,20.1,7.1].forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
-  const RH={1:30,2:30,3:30,4:15,5:6,6:15,7:14.25,8:29.25,9:20.25,10:20.25,11:26.1,43:23.1,44:16.2,45:15,46:15,47:14.25,48:14.25,49:14.25,50:14.25,51:25.5,52:33,53:60};
-  for(let r=12;r<=42;r++) RH[r]=26.1;
-  Object.keys(RH).forEach(r=>{ ws.getRow(+r).height=RH[r]; });
-  const HDR='FFF2F2F2', DAYN='FFBFBFBF', WHT='FFFFFFFF';
-  const ctr={horizontal:'center',vertical:'middle'}, ctrW={horizontal:'center',vertical:'middle',wrapText:true};
-  const cCont={horizontal:'centerContinuous',vertical:'middle'};
-  const thin={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}};
-  const hTop={top:{style:'medium'},left:{style:'medium'},bottom:{style:'double'},right:{style:'thin'}};
-  const thick={top:{style:'thick'},left:{style:'thick'},bottom:{style:'thick'},right:{style:'thick'}};
-  const F=(n,s,b)=>({name:n||'Arial',size:s,bold:!!b});
-  const C=(addr,v,o)=>{ o=o||{}; const c=ws.getCell(addr); if(v!==undefined&&v!==null) c.value=v;
-    if(o.f)c.font=o.f; if(o.bg)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:o.bg}};
-    if(o.a)c.alignment=o.a; if(o.n)c.numFmt=o.n; if(o.b)c.border=o.b; return c; };
-  // merges
-  ['B9:C11','D10:E10','F10:G10','H10:I10','J9:J11','K9:K11','L9:L11','B45:C46','D45:E46','H45:I46','J45:K46','B47:C51','D47:E51','H47:I51','J47:K51'].forEach(r=>ws.mergeCells(r));
-  // titles
-  C('B1',' MONTHLY ATTENDANCE REPORT',{f:F('Arial',22,1),a:cCont});
-  const d0=days[0].split('-'), d1=days[days.length-1].split('-');
-  C('B2','( '+d0[2]+' '+TS_MON[+d0[1]-1]+' '+d0[0]+' -'+d1[2]+' '+TS_MON[+d1[1]-1]+' '+d1[0]+')',{f:F('Arial',14,1),a:cCont});
-  C('B4','JOB ID: ',{f:F('Arial',11,1),a:{vertical:'middle'}});
-  C('C4',e.num||'',{f:F('Arial',11,1),a:{vertical:'middle'}});
-  C('F4','NAME:',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
-  let nm=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm)) nm=nm.toUpperCase();
-  C('H4',nm,{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
-  C('B6','POSITION:',{f:F('Arial',11,1),a:{horizontal:'left',vertical:'middle'}});
-  C('C6',pos||'',{f:F('Arial',11,1),a:{horizontal:'left',vertical:'middle'}});
-  C('F6','Nationality:',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
-  C('H6',nat||'',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
-  C('B8','SAC2 PROJECT',{f:F('Arial',10,1),a:{horizontal:'left',vertical:'middle'}});
-  C('L8','HSE',{f:F('Arial',10,1),a:{vertical:'middle'}});
-  // header rows
-  const HH=(addr,v,fs)=>C(addr,v,{f:F('Arial',fs,fs<=10),bg:HDR,a:ctr,b:hTop});
-  HH('B9','DATE',10); C('D9','WORKING HOURS',{f:F('Arial',12,0),bg:HDR,a:cCont,b:hTop});
-  HH('J9','TOTAL',10); HH('K9','EMPLOYEE SIGNATURE',8); HH('L9','REMARKS',7);
-  ['D10','F10','H10'].forEach((a,i)=>C(a,['TIME 1','TIME 2','TIME 3'][i],{f:F('Arial',12,0),bg:HDR,a:ctr,b:hTop}));
-  ['D11|IN 1','E11|OUT 1','F11|IN 2','G11|OUT 2','H11|IN 3','I11|OUT 3'].forEach(s=>{ const p=s.split('|');
-    C(p[0],p[1],{f:F('Arial',12,0),bg:HDR,a:ctr,b:hTop}); });
-  // day rows
-  let totFrac=0;
-  days.forEach((ds,i)=>{
-    const r=12+i; const p=ds.split('-'); const y=+p[0], mo=+p[1], d=+p[2];
-    const o=dd[ds]||{};
-    const hasT=o.in1||o.out1||o.in2||o.out2||o.in3||o.out3;
-    if(i===0) C('B'+r,new Date(Date.UTC(y,mo-1,d)),{f:F('Arial',10,0),bg:WHT,a:ctr,n:'mm-dd-yy',b:thin});
-    else C('B'+r,{formula:'B'+(r-1)+'+1',result:tsSerial(y,mo,d)},{f:F('Arial',10,0),bg:WHT,a:ctr,n:'mm-dd-yy',b:thin});
-    C('C'+r,{formula:'B'+r,result:tsSerial(y,mo,d)},{f:F('Arial',10,0),bg:DAYN,a:ctr,n:'ddd',b:thin});
-    const tmap={D:o.in1,E:o.out1,F:o.in2,G:o.out2,H:o.in3,I:o.out3};
-    Object.keys(tmap).forEach(col=>{ C(col+r,tsTimeVal(tmap[col]),{f:F('Arial',10,0),bg:WHT,a:ctr,n:'h:mm;@',b:thin}); });
-    if(hasT){ const fr=tsDayTotal(o); totFrac+=fr;
-      C('J'+r,{formula:'E'+r+'-D'+r+'+G'+r+'-F'+r+'+I'+r+'-H'+r+'+K'+r,result:fr},{f:F('Arial',10,1),bg:WHT,a:ctr,n:'h:mm;@',b:thin});
-    } else C('J'+r,null,{bg:WHT,a:ctr,b:thin});
-    C('K'+r,null,{bg:WHT,a:ctrW,b:thin});
-    C('L'+r,o.remark||null,{f:F('Arial',10,0),bg:WHT,a:ctrW,b:thin});
-  });
-  C('B43','TOTAL ',{f:F('Arial',14,1),a:cCont,b:thin});
-  C('J43',{formula:'SUM(J12:J42)',result:totFrac},{f:F('Arial',12,1),bg:WHT,a:ctr,n:'[h]:mm',b:thin});
-  for(let col=2;col<=12;col++){ if(col===10) continue; C(colToL(col)+'43',null,{b:thin}); }
-  C('B44','PREPARED BY :',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
-  C('F44','                 CHECKED & APPROVED BY',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
-  C('B45','In-Charge',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
-  C('D45','Manger',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
-  C('H45',' HR In-Charge',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
-  C('J45','HR   Manager',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
-  ['B47','D47','H47','J47'].forEach(a=>C(a,null,{b:thick,a:ctr}));
-  ws.views=[{state:'frozen',ySplit:11}];
-  ws.pageSetup.orientation='portrait'; ws.pageSetup.paperSize=9;
-  ws.pageSetup.fitToPage=true; ws.pageSetup.fitToWidth=1; ws.pageSetup.fitToHeight=1;
-  ws.pageSetup.printArea='A1:M52';
-  ws.pageSetup.margins={left:0.2362,right:0.2362,top:0.3543,bottom:0.1575,header:0.3,footer:0.3};
-  return ws;
-}
-function colToL(n){ let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
 document.getElementById('tsExportBtn').onclick=async()=>{
   if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
   const m=tsMonth(); if(!m||!D.emp.length){ toast(T().ts_noemp); return; }
   try{
+    toast('⏳ جاري تجهيز الملف من القالب...');
+    const M=await loadTsTemplate();
     const wb=new ExcelJS.Workbook(); wb.creator='HSE Tracker'; wb.created=new Date();
     const days=tsPeriodDays();
     D.emp.forEach(e=>{
       const saved=tsEntry(e.id);
       const pos=(saved&&saved.position!=null)?saved.position:(e.dept||'');
       const nat=(saved&&saved.nationality!=null)?saved.nationality:'Saudi';
-      buildTsSheet(wb, e, m, days, pos, nat, (saved&&saved.days)?saved.days:{});
+      const ws=wb.addWorksheet(((e.num||e.en||e.ar||'emp').toString().slice(0,31)));
+      tsApplyModel(ws,M);
+      tsFillSheet(ws,e,days,pos,nat,(saved&&saved.days)?saved.days:{});
     });
     const buf=await wb.xlsx.writeBuffer();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
