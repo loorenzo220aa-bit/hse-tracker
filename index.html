@@ -68,15 +68,14 @@
       display:flex; align-items:center; justify-content:center; padding:8px 10px; box-shadow:0 2px 8px rgba(0,0,0,.08); border:1px solid var(--line);}
   .brand h1{font-size:19px; font-weight:900;}
   .brand p{font-size:12px; color:var(--mut);}
-  .hd-actions{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
-  .hd-actions{width:100%;}
-  .hd-actions{flex-direction:column;}
-  .hd-side-box{align-self:flex-start;}
-  .hd-btns{align-self:flex-end;}
-  .hd-btns{display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:190px;}
-  .hd-side-box{display:flex; flex-direction:column; gap:8px; background:var(--card2); border:2px solid var(--line); border-radius:14px; padding:10px 14px; min-width:190px;}
-  .hd-side-box .who{justify-content:center;}
-  .hd-side-box .field{min-width:0;}
+  .hd-actions{display:flex; gap:8px; align-items:end; flex-wrap:wrap;}
+
+  .btn.hbtn{padding:9px 13px; font-size:13px; border-radius:12px;}
+  .hdr-month{min-width:150px;}
+  .hdr-month input{min-width:140px;}
+  .hdr-sep{width:2px; align-self:stretch; background:var(--line); border-radius:2px; margin:4px 2px;}
+  @media(max-width:640px){ .hdr-sep{display:none;} .hd-actions{gap:6px;} }
+
 
   .who{font-size:13px; color:#0369a1; font-weight:800; background:#e0f2fe;
     padding:8px 14px; border-radius:99px; border:1px solid #bae6fd; display:flex; align-items:center; gap:7px;}
@@ -216,17 +215,14 @@
       </div>
     </div>
     <div class="hd-actions">
-      <div class="hd-btns">
-      <button class="btn" id="settingsBtn">⚙️ <span data-i="settings">الإعدادات</span></button>
-      <button class="btn" id="langBtn">English / الإنجليزية</button>
-      </div>
-      <div class="hd-side-box">
       <div class="who" id="whoBox">👤 <span id="whoName"></span></div>
-      <div class="field">
+      <div class="field hdr-month">
         <label data-i="lbl_month">الشهر التقريري</label>
         <input type="month" id="monthPicker">
       </div>
-      </div>
+      <span class="hdr-sep"></span>
+      <button class="btn hbtn" id="settingsBtn">⚙️ <span data-i="settings">الإعدادات</span></button>
+      <button class="btn hbtn" id="langBtn">English / الإنجليزية</button>
     </div>
   </header>
 
@@ -717,9 +713,9 @@ document.getElementById('lgPass').addEventListener('keydown',e=>{ if(e.key==='En
 document.getElementById('lgUser').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('lgPass').focus(); });
 function doLogout(){ SESSION=null; document.getElementById('lgPass').value=''; renderAuthUI(); applyLang(); }
 function buildLogout(){
-  const hd=document.querySelector('.hd-btns')||document.querySelector('.hd-actions');
+  const hd=document.querySelector('.hd-actions');
   if(document.getElementById('logoutBtn')) return;
-  const b=document.createElement('button'); b.id='logoutBtn'; b.className='btn btn-sm';
+  const b=document.createElement('button'); b.id='logoutBtn'; b.className='btn btn-sm hbtn';
   b.style.cssText='background:var(--red);color:#fff;border:none;';
   b.textContent='⇥ '+T().logout; b.onclick=doLogout; hd.appendChild(b);
 }
