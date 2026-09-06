@@ -215,17 +215,6 @@
     </div>
   </div>
 
-  <!-- CHANGE PASSWORD (all users) -->
-  <div class="card" id="changepwCard">
-    <h2><span class="ic">🔑</span><span data-i="ch_title">تغيير كلمة المرور</span></h2>
-    <div class="frow">
-      <div class="field"><label data-i="ch_cur">كلمة المرور الحالية</label><input type="password" id="chCur" autocomplete="current-password"></div>
-      <div class="field"><label data-i="ch_new">كلمة المرور الجديدة</label><input type="password" id="chNew" autocomplete="new-password"></div>
-      <div class="field"><label data-i="ch_confirm">تأكيد كلمة المرور</label><input type="password" id="chConfirm" autocomplete="new-password"></div>
-      <div><button class="btn btn-green" id="chBtn" data-i="ch_btn">تحديث كلمة المرور</button></div>
-    </div>
-    <div style="margin-top:8px;color:var(--mut);font-size:12px;" data-i="ch_newst">أقل من 4 أحرف</div>
-  </div>
 
   <div class="card">
     <h2><span class="ic">👷</span><span data-i="t_emp">إدارة الموظفين (إضافة / تعديل / حذف)</span></h2>
@@ -635,7 +624,6 @@ buildLogout();
   const dr=document.getElementById('settingsDrawer'), ov=document.getElementById('drawerOverlay');
   const db=document.getElementById('drawerBody');
   db.appendChild(document.getElementById('usersCard'));
-  db.appendChild(document.getElementById('changepwCard'));
   window.openSettings=()=>{dr.classList.add('open');ov.classList.add('show');};
   window.closeSettings=()=>{dr.classList.remove('open');ov.classList.remove('show');};
   document.getElementById('settingsBtn').onclick=openSettings;
@@ -644,24 +632,7 @@ buildLogout();
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSettings(); });
 })();
 
-/* ============ CHANGE PASSWORD ============ */
-document.getElementById('chBtn').onclick=async()=>{
-  const cur=document.getElementById('chCur').value;
-  const nw=document.getElementById('chNew').value;
-  const cf=document.getElementById('chConfirm').value;
-  const u=D.users.find(x=>x.user===SESSION);
-  if(!u){ return; }
-  if(u.pass!==cur){ toast(T().err_wrong); return; }
-  if(nw.length<4){ toast(T().err_short); return; }
-  if(nw!==cf){ toast(T().err_mismatch); return; }
-  u.pass=nw;
-  await updateUser(u.id, {password: nw});
-  document.getElementById('chCur').value=''; document.getElementById('chNew').value=''; document.getElementById('chConfirm').value='';
-  toast(T().ch_ok);
-};
-['chCur','chNew','chConfirm'].forEach(id=>{
-  document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('chBtn').click(); });
-});
+
 
 /* ============ EMPLOYEES ============ */
 function fillEmpSel(){
