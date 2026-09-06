@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>متابعة المخالفات والغيابات | HSE Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
   :root{
@@ -116,6 +117,13 @@
   .filters{display:flex; gap:12px; flex-wrap:wrap; align-items:end; margin-bottom:14px;}
   .filters .field{flex:1; min-width:140px;}
   .hide{display:none !important;}
+  .tabs{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .tabs .tab{flex:1;min-width:180px;padding:13px;font-size:15px;background:rgba(255,255,255,.7);}
+  .tabs .tab.active{background:linear-gradient(135deg,#0ea5e9,#10b981);color:#fff;border:none;box-shadow:0 6px 18px rgba(16,185,129,.35);}
+  #tsBody input{padding:7px 8px;font-size:13px;border-radius:9px;}
+  #tsBody input[type=time]{min-width:95px;}
+  #tsBody td.fri{background:#fef3c7;}
+  .mut{}
   footer{text-align:center; color:var(--mut); font-size:12px; padding:20px 0;}
   .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#065f46; color:#fff;
     padding:13px 24px; border-radius:99px; font-size:14px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; transition:.3s; z-index:99;}
@@ -185,6 +193,13 @@
       <button class="btn btn-green" id="exportBtn">📥 <span data-i="export">تصدير Excel</span></button>
     </div>
   </header>
+
+  <div class="tabs">
+    <button class="btn tab active" id="tabVio">🦺 <span data-i="tab_vio">المخالفات والغيابات</span></button>
+    <button class="btn tab" id="tabTs">🗓️ <span data-i="tab_ts">التايم شيت</span></button>
+  </div>
+
+  <div id="viewVio">
 
   <div class="grid">
     <div class="stat"><div class="k" data-i="s_emp">الموظفون المسجلون</div><div class="v" id="statEmp">0</div></div>
@@ -307,6 +322,34 @@
     </div>
   </div>
 
+  </div><!-- /viewVio -->
+
+  <div id="viewTs" class="hide">
+  <div class="card">
+    <h2><span class="ic">🗓️</span><span data-i="ts_title">التايم شيت الشهري</span> <span class="mut" id="tsPeriodLabel" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="frow">
+      <div class="field"><label data-i="l_recEmp">الموظف</label><select id="tsEmp"></select></div>
+      <div class="field"><label data-i="ts_position">المسمى الوظيفي</label><input id="tsPosition" placeholder="SAFETY OFFICER"></div>
+      <div class="field"><label data-i="ts_nationality">الجنسية</label><input id="tsNationality" placeholder="Saudi"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-acc" id="tsFillBtn">🪄 <span data-i="ts_fill">تعبئة افتراضية</span></button>
+      <button class="btn btn-green" id="tsSaveBtn">💾 <span data-i="ts_save">حفظ التايم شيت</span></button></div>
+    </div>
+    <div class="frow" style="margin-top:12px;">
+      <div><button class="btn btn-green" id="tsExportBtn">📥 <span data-i="ts_export">تصدير التايم شيت Excel</span></button></div>
+    </div>
+    <div class="tbl-holder" style="margin-top:16px;">
+      <table>
+        <thead><tr>
+          <th data-i="c_date">التاريخ</th><th data-i="ts_day">اليوم</th>
+          <th>IN 1</th><th>OUT 1</th><th>IN 2</th><th>OUT 2</th><th>IN 3</th><th>OUT 3</th>
+          <th data-i="c_note">الملاحظة</th>
+        </tr></thead>
+        <tbody id="tsBody"></tbody>
+      </table>
+    </div>
+  </div>
+  </div><!-- /viewTs -->
+
   <div id="drawerOverlay"></div>
   <aside id="settingsDrawer">
     <div class="dr-head"><h2>⚙️ <span data-i="settings">الإعدادات</span></h2><button class="del" id="drawerClose">✖</button></div>
@@ -351,7 +394,7 @@ let SB_CONNECTED = false;
 function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate}; }
 function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
 async function loadAll() {
-  const [users, emp, rec] = await Promise.all([ sb('users'), sb('employees'), sb('records') ]);
+  const [users, emp, rec, tsl] = await Promise.all([ sb('users'), sb('employees'), sb('records'), sb('timesheets') ]);
   if(users && users.length) {
     D.users = users.map(u => ({
       id: u.id, name: u.name, user: u.username || u.user, pass: u.password || u.pass, role: u.role
@@ -359,6 +402,7 @@ async function loadAll() {
   }
   D.emp = (emp || []).map(mapEmp);
   D.rec = (rec || []).map(mapRec);
+  D.ts = tsl || [];
 }
 
 async function saveUser(u) { 
@@ -411,7 +455,10 @@ const I18N={
     l_phone:'رقم الهاتف', l_plate:'رقم لوحة المركبة', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
-    settings:'الإعدادات', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅'
+    settings:'الإعدادات',
+    tab_vio:'المخالفات والغيابات', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
+    ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
+    ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅'
   },
   en:{
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
@@ -445,7 +492,10 @@ const I18N={
     l_phone:'Phone Number', l_plate:'Vehicle Plate No.', importEmp:'Import from Excel', exportEmp:'Export Employees',
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
-    settings:'Settings', set_new_pass:'New password', pwd_changed:'Password changed ✅'
+    settings:'Settings',
+    tab_vio:'Violations & Absences', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
+    ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
+    ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅'
   }
 };
 const T=()=>I18N[LANG];
@@ -464,7 +514,7 @@ function renderAuthUI(){
   who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
   renderUsers();
-  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs();
 }
 
 function applyLang(){
@@ -883,7 +933,7 @@ document.getElementById('filtEmp').onchange=renderRecs;
 document.getElementById('filtType').onchange=renderRecs;
 document.getElementById('monthPicker').onchange=()=>{
   document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
-  renderStats(); renderRecs(); renderSum(); };
+  renderStats(); renderRecs(); renderSum(); renderTs(); };
 
 document.getElementById('langBtn').onclick=()=>{ LANG=LANG==='ar'?'en':'ar'; applyLang(); };
 
@@ -914,6 +964,205 @@ document.getElementById('exportBtn').onclick=()=>{
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Report');
   XLSX.writeFile(wb,'HSE_Report_'+m+'.xlsx');
   toast(T().toast_xlsx);
+};
+
+
+/* ============ TIMESHEET ============ */
+let TS_VIEW=false;
+function tsMonth(){ return document.getElementById('monthPicker').value; }
+function tsPeriodDays(){
+  const m=tsMonth()||''; const p=m.split('-'); if(p.length<2) return [];
+  const y=+p[0], mo=+p[1];
+  const out=[]; const d=new Date(y, mo-2, 21);
+  for(let i=0;i<31;i++){ const dt=new Date(d); dt.setDate(d.getDate()+i);
+    out.push(dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')); }
+  return out;
+}
+function tsEntry(empId){ const m=tsMonth(); return ((D.ts||[]).find(t=>t.emp_id===empId&&t.month===m))||null; }
+function switchView(ts){
+  TS_VIEW=ts;
+  document.getElementById('viewVio').classList.toggle('hide', ts);
+  document.getElementById('viewTs').classList.toggle('hide', !ts);
+  document.getElementById('tabVio').classList.toggle('active', !ts);
+  document.getElementById('tabTs').classList.toggle('active', ts);
+  if(ts) renderTs();
+}
+function renderTs(){
+  const sel=document.getElementById('tsEmp'); if(!sel) return;
+  const cur=sel.value; sel.innerHTML='';
+  if(!D.emp.length){ const o=document.createElement('option'); o.value=''; o.textContent=T().ts_noemp; sel.appendChild(o);
+    document.getElementById('tsBody').innerHTML=''; document.getElementById('tsPeriodLabel').textContent=''; return; }
+  D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+    o.textContent=(LANG==='ar'?(e.ar||e.en):(e.en||e.ar))+' — '+(e.num||''); sel.appendChild(o); });
+  if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
+  const days=tsPeriodDays();
+  document.getElementById('tsPeriodLabel').textContent = days.length? days[0].split('-')[2]+'/'+days[0].split('-')[1]+' - '+days[days.length-1].split('-')[2]+'/'+days[days.length-1].split('-')[1] : '';
+  loadTsForm();
+}
+function loadTsForm(){
+  const empId=document.getElementById('tsEmp').value;
+  const e=empById(empId);
+  const saved=empId?tsEntry(empId):null;
+  document.getElementById('tsPosition').value=(saved&&saved.position!==undefined&&saved.position!==null)?saved.position:(e.dept||'');
+  document.getElementById('tsNationality').value=(saved&&saved.nationality!==undefined&&saved.nationality!==null)?saved.nationality:'Saudi';
+  const days=tsPeriodDays();
+  const body=document.getElementById('tsBody'); body.innerHTML='';
+  const dn=LANG==='ar'?['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  days.forEach(ds=>{
+    const d=new Date(ds+'T00:00:00'); const fri=d.getDay()===5;
+    const sv=(saved&&saved.days&&saved.days[ds])?saved.days[ds]:{};
+    const tr=document.createElement('tr'); tr.dataset.date=ds;
+    let h='<td>'+esc(ds)+'</td><td>'+dn[d.getDay()]+'</td>';
+    ['in1','out1','in2','out2','in3','out3'].forEach(k=>{ h+='<td><input type="time" data-k="'+k+'" value="'+esc(sv[k]||'')+'"></td>'; });
+    h+='<td><input type="text" data-k="remark" value="'+esc(sv.remark||'')+'" style="min-width:110px;"></td>';
+    tr.innerHTML=h;
+    if(fri) tr.querySelectorAll('td').forEach(td=>td.classList.add('fri'));
+    body.appendChild(tr);
+  });
+}
+function readTsGrid(){
+  const days={};
+  document.querySelectorAll('#tsBody tr').forEach(tr=>{
+    const ds=tr.dataset.date; const o={};
+    tr.querySelectorAll('input').forEach(inp=>{ o[inp.dataset.k]=(inp.value||'').trim(); });
+    if(o.in1||o.out1||o.in2||o.out2||o.in3||o.out3||o.remark) days[ds]=o;
+  });
+  return days;
+}
+async function reloadTs(){ try{ const t=await sb('timesheets'); D.ts=t||[]; }catch(e){ D.ts=D.ts||[]; } renderTs(); }
+document.getElementById('tabVio').onclick=()=>switchView(false);
+document.getElementById('tabTs').onclick=()=>switchView(true);
+document.getElementById('tsEmp').onchange=loadTsForm;
+document.getElementById('tsFillBtn').onclick=()=>{
+  const empId=document.getElementById('tsEmp').value;
+  document.querySelectorAll('#tsBody tr').forEach(tr=>{
+    const ds=tr.dataset.date; const d=new Date(ds+'T00:00:00');
+    const set=(k,v)=>{ const i=tr.querySelector('input[data-k="'+k+'"]'); if(i) i.value=v; };
+    const isAbs=D.rec.some(r=>r.empId===empId&&r.date===ds&&r.type==='absence');
+    if(isAbs){ ['in1','out1','in2','out2','in3','out3'].forEach(k=>set(k,'')); set('remark','Absent'); }
+    else if(d.getDay()===5){ ['in1','out1','in2','out2','in3','out3','remark'].forEach(k=>set(k,'')); }
+    else{ set('in1','07:00'); set('out1','12:00'); set('in2','13:00'); set('out2','16:00'); set('in3',''); set('out3',''); }
+  });
+};
+document.getElementById('tsSaveBtn').onclick=async()=>{
+  const empId=document.getElementById('tsEmp').value; if(!empId){ toast(T().ts_noemp); return; }
+  const m=tsMonth();
+  const obj={position:document.getElementById('tsPosition').value.trim(), nationality:document.getElementById('tsNationality').value.trim(), days:readTsGrid()};
+  const id='ts-'+empId+'-'+m;
+  const payload={id:id, emp_id:empId, month:m, position:obj.position, nationality:obj.nationality, days:obj.days};
+  const patched=await sb('timesheets','PATCH',payload,'?id=eq.'+id);
+  if(!patched||!patched.length) await sb('timesheets','POST',payload);
+  const row={id:id, emp_id:empId, month:m, position:obj.position, nationality:obj.nationality, days:obj.days};
+  D.ts=D.ts||[];
+  const ix=D.ts.findIndex(t=>t.emp_id===empId&&t.month===m);
+  if(ix>=0) D.ts[ix]=row; else D.ts.push(row);
+  toast(T().ts_saved);
+};
+
+/* ---- Timesheet Excel export (ExcelJS, exact template replica) ---- */
+function tsTimeVal(s){ if(!s) return null; const p=s.split(':'); if(p.length<2) return null;
+  return new Date(1899,11,30,+p[0],+p[1]); }
+function tsFrac(s){ if(!s) return 0; const p=s.split(':'); return ((+p[0])*60+(+p[1]))/1440; }
+function tsSerial(y,mo,d){ return (Date.UTC(y,mo-1,d)-Date.UTC(1899,11,30))/86400000; }
+function tsDayTotal(o){ let h=0;
+  [['in1','out1'],['in2','out2'],['in3','out3']].forEach(pr=>{ const a=tsFrac(o[pr[0]]), b=tsFrac(o[pr[1]]); if(b>a) h+=(b-a); });
+  return h; }
+const TS_MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function buildTsSheet(wb, e, m, days, pos, nat, dd){
+  const ws=wb.addWorksheet((e.num||e.en||e.ar||'emp').toString().slice(0,31));
+  ws.columns=[{width:4.7},{width:12.7},{width:8.9},{width:9.7},{width:13},{width:13},{width:13},{width:13},{width:13},{width:10},{width:13.2},{width:20.1},{width:7.1}];
+  [4.7,12.7,8.9,9.7,13,13,13,13,13,10,13.2,20.1,7.1].forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+  const RH={1:30,2:30,3:30,4:15,5:6,6:15,7:14.25,8:29.25,9:20.25,10:20.25,11:26.1,43:23.1,44:16.2,45:15,46:15,47:14.25,48:14.25,49:14.25,50:14.25,51:25.5,52:33,53:60};
+  for(let r=12;r<=42;r++) RH[r]=26.1;
+  Object.keys(RH).forEach(r=>{ ws.getRow(+r).height=RH[r]; });
+  const HDR='FFF2F2F2', DAYN='FFBFBFBF', WHT='FFFFFFFF';
+  const ctr={horizontal:'center',vertical:'middle'}, ctrW={horizontal:'center',vertical:'middle',wrapText:true};
+  const cCont={horizontal:'centerContinuous',vertical:'middle'};
+  const thin={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}};
+  const hTop={top:{style:'medium'},left:{style:'medium'},bottom:{style:'double'},right:{style:'thin'}};
+  const thick={top:{style:'thick'},left:{style:'thick'},bottom:{style:'thick'},right:{style:'thick'}};
+  const F=(n,s,b)=>({name:n||'Arial',size:s,bold:!!b});
+  const C=(addr,v,o)=>{ o=o||{}; const c=ws.getCell(addr); if(v!==undefined&&v!==null) c.value=v;
+    if(o.f)c.font=o.f; if(o.bg)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:o.bg}};
+    if(o.a)c.alignment=o.a; if(o.n)c.numFmt=o.n; if(o.b)c.border=o.b; return c; };
+  // merges
+  ['B9:C11','D10:E10','F10:G10','H10:I10','J9:J11','K9:K11','L9:L11','B45:C46','D45:E46','H45:I46','J45:K46','B47:C51','D47:E51','H47:I51','J47:K51'].forEach(r=>ws.mergeCells(r));
+  // titles
+  C('B1',' MONTHLY ATTENDANCE REPORT',{f:F('Arial',22,1),a:cCont});
+  const d0=days[0].split('-'), d1=days[days.length-1].split('-');
+  C('B2','( '+d0[2]+' '+TS_MON[+d0[1]-1]+' '+d0[0]+' -'+d1[2]+' '+TS_MON[+d1[1]-1]+' '+d1[0]+')',{f:F('Arial',14,1),a:cCont});
+  C('B4','JOB ID: ',{f:F('Arial',11,1),a:{vertical:'middle'}});
+  C('C4',e.num||'',{f:F('Arial',11,1),a:{vertical:'middle'}});
+  C('F4','NAME:',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
+  let nm=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm)) nm=nm.toUpperCase();
+  C('H4',nm,{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
+  C('B6','POSITION:',{f:F('Arial',11,1),a:{horizontal:'left',vertical:'middle'}});
+  C('C6',pos||'',{f:F('Arial',11,1),a:{horizontal:'left',vertical:'middle'}});
+  C('F6','Nationality:',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
+  C('H6',nat||'',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
+  C('B8','SAC2 PROJECT',{f:F('Arial',10,1),a:{horizontal:'left',vertical:'middle'}});
+  C('L8','HSE',{f:F('Arial',10,1),a:{vertical:'middle'}});
+  // header rows
+  const HH=(addr,v,fs)=>C(addr,v,{f:F('Arial',fs,fs<=10),bg:HDR,a:ctr,b:hTop});
+  HH('B9','DATE',10); C('D9','WORKING HOURS',{f:F('Arial',12,0),bg:HDR,a:cCont,b:hTop});
+  HH('J9','TOTAL',10); HH('K9','EMPLOYEE SIGNATURE',8); HH('L9','REMARKS',7);
+  ['D10','F10','H10'].forEach((a,i)=>C(a,['TIME 1','TIME 2','TIME 3'][i],{f:F('Arial',12,0),bg:HDR,a:ctr,b:hTop}));
+  ['D11|IN 1','E11|OUT 1','F11|IN 2','G11|OUT 2','H11|IN 3','I11|OUT 3'].forEach(s=>{ const p=s.split('|');
+    C(p[0],p[1],{f:F('Arial',12,0),bg:HDR,a:ctr,b:hTop}); });
+  // day rows
+  let totFrac=0;
+  days.forEach((ds,i)=>{
+    const r=12+i; const p=ds.split('-'); const y=+p[0], mo=+p[1], d=+p[2];
+    const o=dd[ds]||{};
+    const hasT=o.in1||o.out1||o.in2||o.out2||o.in3||o.out3;
+    if(i===0) C('B'+r,new Date(Date.UTC(y,mo-1,d)),{f:F('Arial',10,0),bg:WHT,a:ctr,n:'mm-dd-yy',b:thin});
+    else C('B'+r,{formula:'B'+(r-1)+'+1',result:tsSerial(y,mo,d)},{f:F('Arial',10,0),bg:WHT,a:ctr,n:'mm-dd-yy',b:thin});
+    C('C'+r,{formula:'B'+r,result:tsSerial(y,mo,d)},{f:F('Arial',10,0),bg:DAYN,a:ctr,n:'ddd',b:thin});
+    const tmap={D:o.in1,E:o.out1,F:o.in2,G:o.out2,H:o.in3,I:o.out3};
+    Object.keys(tmap).forEach(col=>{ C(col+r,tsTimeVal(tmap[col]),{f:F('Arial',10,0),bg:WHT,a:ctr,n:'h:mm;@',b:thin}); });
+    if(hasT){ const fr=tsDayTotal(o); totFrac+=fr;
+      C('J'+r,{formula:'E'+r+'-D'+r+'+G'+r+'-F'+r+'+I'+r+'-H'+r+'+K'+r,result:fr},{f:F('Arial',10,1),bg:WHT,a:ctr,n:'h:mm;@',b:thin});
+    } else C('J'+r,null,{bg:WHT,a:ctr,b:thin});
+    C('K'+r,null,{bg:WHT,a:ctrW,b:thin});
+    C('L'+r,o.remark||null,{f:F('Arial',10,0),bg:WHT,a:ctrW,b:thin});
+  });
+  C('B43','TOTAL ',{f:F('Arial',14,1),a:cCont,b:thin});
+  C('J43',{formula:'SUM(J12:J42)',result:totFrac},{f:F('Arial',12,1),bg:WHT,a:ctr,n:'[h]:mm',b:thin});
+  for(let col=2;col<=12;col++){ if(col===10) continue; C(colToL(col)+'43',null,{b:thin}); }
+  C('B44','PREPARED BY :',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
+  C('F44','                 CHECKED & APPROVED BY',{f:F('Arial',12,1),a:{horizontal:'left',vertical:'middle'}});
+  C('B45','In-Charge',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
+  C('D45','Manger',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
+  C('H45',' HR In-Charge',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
+  C('J45','HR   Manager',{f:F('Century Gothic',12,1),a:ctrW,b:thin});
+  ['B47','D47','H47','J47'].forEach(a=>C(a,null,{b:thick,a:ctr}));
+  ws.views=[{state:'frozen',ySplit:11}];
+  ws.pageSetup.orientation='portrait'; ws.pageSetup.paperSize=9;
+  ws.pageSetup.fitToPage=true; ws.pageSetup.fitToWidth=1; ws.pageSetup.fitToHeight=1;
+  ws.pageSetup.printArea='A1:M52';
+  ws.pageSetup.margins={left:0.2362,right:0.2362,top:0.3543,bottom:0.1575,header:0.3,footer:0.3};
+  return ws;
+}
+function colToL(n){ let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+document.getElementById('tsExportBtn').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
+  const m=tsMonth(); if(!m||!D.emp.length){ toast(T().ts_noemp); return; }
+  try{
+    const wb=new ExcelJS.Workbook(); wb.creator='HSE Tracker'; wb.created=new Date();
+    const days=tsPeriodDays();
+    D.emp.forEach(e=>{
+      const saved=tsEntry(e.id);
+      const pos=(saved&&saved.position!=null)?saved.position:(e.dept||'');
+      const nat=(saved&&saved.nationality!=null)?saved.nationality:'Saudi';
+      buildTsSheet(wb, e, m, days, pos, nat, (saved&&saved.days)?saved.days:{});
+    });
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='Time_Sheet_'+m+'_Group-office.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast(T().toast_xlsx);
+  }catch(err){ console.error(err); toast('Export failed: '+err.message); }
 };
 
 /* ============ TOAST ============ */
