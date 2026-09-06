@@ -216,6 +216,11 @@
       </div>
       <div class="field"><label data-i="l_date">التاريخ</label><input type="date" id="recDate"></div>
       <div class="field" style="grid-column:span 2;"><label data-i="l_note">الملاحظة / تفاصيل المخالفة</label><textarea id="recNote" placeholder="اكتب هنا تفاصيل المخالفة أو الغياب..."></textarea></div>
+      <div class="field" style="grid-column:span 2;">
+        <label>📎 إرفاق مستند / دليل (صورة أو PDF)</label>
+        <input type="file" id="recFile" accept="image/*,.pdf,.doc,.docx" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--txt);">
+        <div id="filePreview" style="margin-top:8px;font-size:12px;color:var(--mut);"></div>
+      </div>
       <div><button class="btn btn-acc" id="addRecBtn" data-i="saveRec">✓ حفظ الحركة</button></div>
     </div>
   </div>
@@ -707,7 +712,16 @@ function renderRecs(){
     const e=empById(r.empId); const tr=document.createElement('tr');
     const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',other:'أخرى'}[r.type]
                   :{violation:'Violation',absence:'Absence',permission:'Permit',other:'Other'}[r.type];
-    tr.innerHTML='<td>'+esc(r.date)+'</td><td>'+esc(empName(e))+'</td><td>'+esc(e.num||'')+'</td>      <td><span class="tag '+(TYPE_TAG[r.type]||'t-oth')+'">'+tn+'</span></td>      <td>'+esc(userNameBy(r.by))+'</td>      <td style="white-space:normal;min-width:200px;">'+esc(r.note)+'</td>      <td>'+(isAdmin()?'<button class="del" data-id="'+r.id+'" title="🗑">🗑</button>':'')+'</td>';
+    let noteDisplay = esc(r.note);
+    let fileLink = '';
+    try {
+      const noteObj = JSON.parse(r.note);
+      if(noteObj && noteObj.file){
+        noteDisplay = esc(noteObj.note||'');
+        fileLink = ' <a href="'+noteObj.file.data+'" download="'+esc(noteObj.file.name)+'" style="color:var(--acc);text-decoration:none;font-size:12px;" target="_blank">📎 '+esc(noteObj.file.name)+'</a>';
+      }
+    } catch(ex){}
+    tr.innerHTML='<td>'+esc(r.date)+'</td><td>'+esc(empName(e))+'</td><td>'+esc(e.num||'')+'</td>      <td><span class="tag '+(TYPE_TAG[r.type]||'t-oth')+'">'+tn+'</span></td>      <td>'+esc(userNameBy(r.by))+'</td>      <td style="white-space:normal;min-width:200px;">'+noteDisplay+fileLink+'</td>      <td>'+(isAdmin()?'<button class="del" data-id="'+r.id+'" title="🗑">🗑</button>':'')+'</td>';
     body.appendChild(tr);
   });
 }
@@ -746,6 +760,20 @@ document.getElementById('addEmpBtn').onclick=async()=>{
   toast(T().toast_addEmp);
 };
 
+let pendingFile = null;
+document.getElementById('recFile').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  const preview = document.getElementById('filePreview');
+  if(!file){ preview.textContent=''; pendingFile=null; return; }
+  if(file.size > 5*1024*1024){ toast('الملف كبير جداً (الحد الأقصى 5MB)'); e.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    pendingFile = { name:file.name, type:file.type, data:ev.target.result };
+    preview.innerHTML = '📎 <b>'+esc(file.name)+'</b> ('+Math.round(file.size/1024)+'KB) <span style="color:var(--red);cursor:pointer;" onclick="document.getElementById(\'recFile\').value=\'\';document.getElementById(\'filePreview\').textContent=\'\';pendingFile=null;">✕ إزالة</span>';
+  };
+  reader.readAsDataURL(file);
+});
+
 document.getElementById('addRecBtn').onclick=async()=>{
   const empId=document.getElementById('recEmp').value;
   const type=document.getElementById('recType').value;
@@ -754,12 +782,19 @@ document.getElementById('addRecBtn').onclick=async()=>{
   if(!empId){ toast(T().err_emp); return; }
   if(!note){ toast(T().err_note); return; }
   if(!date){ toast(T().err_note); return; }
-  const rec={id:uid(),empId,type,date,note,by:SESSION,ts:Date.now()};
+  let noteData = note;
+  if(pendingFile){
+    noteData = JSON.stringify({note:note, file:{name:pendingFile.name, type:pendingFile.type, data:pendingFile.data}});
+  }
+  const rec={id:uid(),empId,type,date,note:noteData,by:SESSION,ts:Date.now()};
   D.rec.push(rec);
   await saveRec(rec);
   renderStats(); renderRecs(); renderSum();
   document.getElementById('recNote').value='';
   document.getElementById('recDate').value=today();
+  document.getElementById('recFile').value='';
+  document.getElementById('filePreview').textContent='';
+  pendingFile=null;
   toast(T().toast_addRec);
 };
 
@@ -817,30 +852,7 @@ let toastT;
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
 
-const SEED_EMP = [["HUSSAIN ALL ALHOODAR", "SASL-0543", "OVERALL"], ["HADI HAMAD ALYAMI", "SASL-0527", "With CM Team"], ["ABDULLAH MOHAMMED AL QUSHAYM", "SASL-0387", "Brown Field"], ["SAEED MOSHWAT ALHAJRI", "SASL-0518", "Brown Field"], ["HUSSAIN IBRAHIM ALESSA", "SASL-0469", "Brown Field"], ["HUSSAM NAJIM ALSHARIF", "SASL-0449", "Brown Field"], ["RIDHA YOUSEF ALWABARI", "SASL-0475", "Brown Field"], ["MOHAMMED AYIDH ALHSAN", "SASL-0005", "Brown Field"], ["HAIF ALI ALQAHTANI", "SASL-0528", "K9 Area"], ["YASIR KHALID ALMEHIYAWI", "SASL-0397", "K9 Area"], ["ZIYAD ABDULLAH ALQAHTANI", "SASL-0508", "K9 Area"], ["ABDULLAH MOHSEN ALOTAIBI", "SASL-0526", "K9 Area"], ["ABDULLAH ABDULAZIZ AL NASHMI", "SASL-0481", "K9 Area"], ["HUSSAIN HAMED ALSHAMMARI", "SASL-0492", "K9 Area"], ["MABKHOOT ABDULLAH AL SAIARI", "HECL-0090", "K9 Area"], ["MOHAMMED E ALMINHALI", "HECL-0182", "K9 Area"], ["FAISAL FEHAID ALGETHAMI", "HECL-0188", "K9 Area"], ["MOHAMMED FAISAL ALSUHALI", "SASL-0450", "K9 Area"], ["FARIS MESHAL ALSAGOOR", "SASL-0514", "K9 Area"], ["OMAR IBRAHIM ALANAZI", "SASL-0499", "Chemical Storage"], ["MESHARI ABDULLAH ALBATI", "SASL-0476", "Chemical Storage"], ["SULTAN MOHAMMED ALMARRI", "HECL-0094", "Chemical Storage"], ["AHMED A ALSULTAN", "HECL-0102", "Chemical Storage"], ["AHMED ABDULRAHMAN ALSHEHRI", "SASL-0460", "Chemical Storage"], ["ABDULAZIZ ABDULLAH ALESSA", "SASL-0479", "Chemical Storage"], ["ABDULMAJEED SAAD AL BAKHAT", "SASL-0510", "Chemical Storage"], ["ABDULWAHAB MASTOUR ALALSHYKH", "SASL-0472", "Chemical Storage"], ["FAISAL ABDULKHALIQ ALQARNI", "SASL-0489", "Chemical Storage"], ["ABDULLAH SALAH BUDI", "HECL-0101", "Chemical Storage"], ["ALWAFI ABDULLAH SAAD ALRASHED", "SASL-0471", "GIS-02"], ["AHMED ALMUBARAK", "HECL-0196", "GIS-02"], ["ALI MOHAMMED ASIRI", "SASL-0448", "GIS-02"], ["HASSAN AMEER ALMUHANNA", "HECL-0187", "GIS-02"], ["HAMAD A ALDAWSARI", "HECL-0177", "GIS-02"], ["ALI MESHAL ALSAGOOR", "SASL-0482", "GIS-02"], ["ALI OBAID ALHARTHI", "SASL-0484", "GIS-02"], ["ALI MOHAMMED ALQARNI", "SASL-0483", "GIS-02"], ["MUSAAD ABDULAZIZ ALDHUWAIHI", "SASL-0557", "GIS-02"], ["AHMED SALAH ABDULAZIZ BUDI", "HECL-0103", "GIS-02"], ["ABDULLAH ADNAN ABDULLAH ALSHAALAN", "HECL-0190", "ASU"], ["FAISAL SAEED ALHADDAD", "SASL-0490", "ASU"], ["YOUSIF FAHAD ALISMAIL", "SASL-0507", "ASU"], ["MARWAN ABDULMALIK AL ISMAIL", "SASL-0493", "ASU"], ["FAHAD ABDULAZIZ ALWASMI", "SASL-0487", "ASU"], ["ABDULAZIZ GHAZI ALSUHAYMI", "SASL-0480", "ASU"], ["ABDULLAH KHALED ALTAMIMI", "HECL-0191", "ASU"], ["ABDULAZIZ I ALSULAYBI", "HECL-0176", "ASU"], ["ABDULLAH I ALSULAYBI", "HECL-0095", "ASU"], ["ANAS MUBARAK ALQAHTANI", "SASL-0486", "ASU"], ["AHMED YASIR ALSALEEM", "HECL-0178", "ASU"], ["ABDULKHALIQ MOHAMMED ASIRI", "SASL-0453", "ASU"], ["DYIA RIAD MOHAMED ALHUMAID", "HECL-0185", "ASU"], ["ABDULLAH MASTOUR AL ALSHAYKH", "SASL-0456", "ASU"], ["NAWAF RABEA AL SAAD", "SASL-0534", "SRU4"], ["NAWAF SAAD ALGHAMDI", "SASL-0497", "SRU4"], ["OBAID MOHAMMED ALDOSSARI", "HECL-0097", "SRU4"], ["NAYEF ABDULLAH AL NUWAIRAN", "SASL-0498", "SRU4"], ["BADER SAAD ALRABAH", "SASL-0512", "SRU4"], ["ANWAR M ALBISHI", "SASL-0549", "SRU4"], ["SALMAN ZIKRIYAA ALSALMAN", "SASL-0563", "SRU4"], ["SAUD HAMOUD SAULM", "HECL-0992", "SRU4"], ["SAUD ABDULAZIZ ALKHULAIF", "HECL-0175", "SRU4"], ["NAWAF HUSSAIN AL SHAIBAN", "SASL-0459", "SRU4"], ["SAUD MOHAMMED ALWADANI", "SASL-0520", "SRU5"], ["SULTAN SHULAYWIH ALHARBI", "SASL-0532", "SRU5"], ["RAKAN SAAD ALQAHTANI", "SASL-0517", "SRU5"], ["RAYAN MOHAMMED AL ZUHAYR", "SASL-0466", "SRU5"], ["SAUD MOHAMMED AL GMAL", "SASL-0530", "SRU5"], ["TALAL SAEED ALGHAMDI", "HECL-0184", "SRU5"], ["SAAD MOHAMMED ALSUBAIE", "SASL-0502", "SRU5"], ["HUSSAIN Ahmed ALWABARI", "HECL-0209", "SRU5"], ["WALEED MASOUD ALQAHTANI", "SASL-0392", "SRU5"], ["RAYAN SAAD ALRABAH", "SASL-0501", "SRU5"], ["RIDHA TAHER MOHAMMED ALKHAMIS", "HECL-0189", "SRU5"], ["TARIQ AHMED ALQARNI", "SASL-0505", "SRU5"], ["IBRAHIM ALI IBRAHIM", "HECL-0548", "Laydown B"], ["MOHAMMED M ALMARRI", "HECL-0098", "Laydown B"], ["MOHAMMED GHAZI ALSUHAYMI", "SASL-0455", "Laydown B"], ["FEHAID AOWIDAH AL AJMI", "SASL-0491", "Laydown B"], ["ABDULLAH KANAN ALKANAN", "HECL-0084", "Laydown B"], ["FAHAD ADEL ALSADUN", "HECL-0100", "Laydown B"], ["MUSAAD AHMED ALSULTAN", "HECL-0096", "Laydown B"], ["SALEH SAEED ALSAEED", "SASL-0503", "Laydown B"], ["GHAZI AMER ALBARQI", "SASL-0452", "Laydown B"], ["HAMAD MOHAMMED ALFEHAID", "SASL-0537", "Laydown B"], ["KHALED YAQOUB ALDOSSARY", "SASL-0464", "Laydown B"], ["OMAR ABDULLAH ALAHMARI", "SASL-0516", "Laydown C"], ["NASSER ABDULLAH ALSUBAIEI", "SASL-0561", "Laydown C"], ["MANA NASSER AL QAHTANI", "SASL-0515", "Laydown C"], ["ALI HASSAN ALBANNAY", "SASL-0473", "Laydown C"], ["FAHAD M ALDOSSARY", "HECL-0091", "Laydown C"], ["MANSOOR ALI ALGHAMDI", "SASL-0463", "Laydown C"], ["MOHAMMED ALI ALGHAMDI", "SASL-0494", "Laydown C"], ["RAYAN NAJIM ALSHARIF", "SASL-0462", "Laydown C"], ["SAAD HANDI M ALQAHTANI", "SASL-0021", "Laydown C"], ["HINDI FEHAID ALQAHTANI", "SASL-0461", "Laydown C"], ["MOHAMMED GAZI ALBARGA", "SASL-0495", "Laydown C"], ["NASSER ABDULLAH ALDAWSARI", "SASL-0560", "Laydown C"], ["MUTLIQ OMAR AL WADAANI", "SASL-0529", "Silver Area"], ["RASHED MOHAMMED A. ALDOSSARY", "HECL-0194", "Silver Area"], ["MOHAMMED KHALID ALBARQI", "SASL-0451", "Silver Area"], ["MUATH MANDR ALZAHRANI", "HECL-0181", "Silver Area"], ["MOHAMMED SAEED AL NASIM", "SASL-0465", "Silver Area"], ["NAWAF BADER ALAYADI", "SASL-0394", "Silver Area"], ["KHALID NAJIM ALSHARIF", "SASL-0474", "Silver Area"], ["FAHAD SALEH ALZAHRANI", "SASL-0488", "Silver Area"], ["SULTAN MUIDH ALQAHTANI", "HECL-0193", "Silver Area"], ["SALEH KHALID ALRUMAYH", "SASL-0562", "Silver Area"], ["TALAL SALAH BOODAI", "SASL-0531", "Water-bound Area"], ["THABIT ALI ALSUBAIE", "SASL-0506", "Water-bound Area"], ["SHAMAN M ALDOSSARY", "HECL-0104", "Water-bound Area"], ["TURKI SALEM ALJWHAR", "SASL-0523", "Water-bound Area"], ["YAZEED FAHAD ALMUTAIRI", "SASL-0566", "Water-bound Area"], ["YOUSEF MUBARAK ALHAMDAN", "SASL-0522", "Water-bound Area"], ["SULTAN ABDULLATIF ALHARBI", "SASL-0504", "Water-bound Area"], ["TURKI SULTAN ALSULTAN", "HECL-0093", "Water-bound Area"], ["SULTAN ABDULLAH ALSHAHRANI", "HECL-0197", "SSC"], ["ABDULLAH KHADEM ALNUWAYSIR", "SASL-0386", "SSC"], ["ALI SALEH ALSALEH", "SASL-0485", "SSC"], ["MUHANNAD KHUWAYLID ALANAZI", "SASL-0496", "SSC"], ["OMAR SAAD ALMAKHAYITAH", "SASL-0500", "SSC"], ["FAISAL AL QAHTANI", "SASL-0598", "SSC"], ["MAHMOUD ALI AL WABARI", "SASL-0003", "SSC"], ["FAHAD ABDULLAH ALYOUSIF", "SASL-0513", "SSC"], ["ABDULAZIZ NAJEA ALSUBEIA", "SASL-0458", "Training Room"], ["KHALID FEHAID ALQAHTANI", "SASL-0470", "Training Room"], ["MOHAMMED IBRAHIM ALANAZI", "SASL-0468", "Training Room"], ["SALEM FEHAID ALMARRI", "HECL-0203", "Training Room"], ["ABDULAZIZ ALI HARTHI", "SASL-0509", "Office"], ["ADI HAMAD ALHARTHI", "SASL-0389", "Office"], ["AHMED ABDULLATIF AL DOSSARI", "SASL-0396", "Office"], ["ALI AHMED ALHABIB", "SASL-0524", "Office"], ["ALI TAHER ALMUMTIN", "SASL-0374", "Office"], ["AMMAR HUSSAIN AL BELADI", "SASL-0467", "Office"], ["ABDULLAH ALI ALBAQSHI", "SASL-0533", "With CM Team"], ["AHMED MOHAMMED ALRASHIDI", "SASL-0521", "With CM Team"]];
-
 /* ============ SEED EMPLOYEES TO SUPABASE ============ */
-async function seedEmployeesToSupabase(){
-  if(D.emp.length > 10) return; // already seeded
-  const known=new Set(D.emp.map(x=>(x.num||'').replace(/\s/g,'').toUpperCase()));
-  const newEmps=[];
-  SEED_EMP.forEach(s=>{
-    const id=String(s[1]||'').replace(/\s/g,'').toUpperCase();
-    if(!id || known.has(id)) return;
-    known.add(id);
-    const emp={id:uid(), ar:'', en:s[0], num:id, dept:s[2]||'', phone:''};
-    D.emp.push(emp);
-    newEmps.push(emp);
-  });
-  if(newEmps.length){
-    // Batch insert to Supabase
-    for(let i=0; i<newEmps.length; i+=50){
-      const batch=newEmps.slice(i, i+50);
-      await sb('employees', 'POST', batch);
-    }
-    toast('Seeded ' + newEmps.length + ' employees');
-  }
-}
 
 /* ============ INIT ============ */
 // IMMEDIATE: seed admin so login always works
