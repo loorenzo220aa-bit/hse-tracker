@@ -265,6 +265,8 @@
       <div class="field"><label data-i="l_dept">القسم / المهنة</label><input id="empDept" placeholder="مثال: سائق"></div>
       <div class="field"><label data-i="l_phone">رقم الهاتف</label><input id="empPhone" type="tel" placeholder="05xxxxxxxx"></div>
       <div class="field"><label data-i="l_plate">رقم لوحة المركبة</label><input id="empPlate" placeholder="أ ب ج 1234"></div>
+      <div class="field"><label data-i="l_group">المجموعة</label><select id="empGrp"><option value="SASL">SASL</option><option value="HECL">HECL</option></select></div>
+      <div class="field"><label data-i="l_photo">صورة الموظف</label><input type="file" id="empPhoto" accept="image/*"><div id="empPhotoPrev" style="margin-top:6px;"></div></div>
       <div><button class="btn btn-acc" id="addEmpBtn" data-i="addEmp">➕ إضافة</button></div>
     </div>
     <div class="frow" style="margin-top:14px;">
@@ -277,7 +279,7 @@
     <div class="tbl-holder" style="margin-top:0;">
       <table>
         <thead><tr>
-          <th data-i="c_emp">الموظف</th><th data-i="c_ar">الاسم العربي</th><th data-i="c_num">الرقم الوظيفي</th>
+          <th data-i="c_emp">الموظف</th><th data-i="l_group">المجموعة</th><th data-i="c_ar">الاسم العربي</th><th data-i="c_num">الرقم الوظيفي</th>
           <th data-i="l_phone">الرقم الهاتف</th><th data-i="l_plate">رقم اللوحة</th><th data-i="l_dept">القسم / المهنة</th><th data-i="c_act">إجراءات</th>
         </tr></thead>
         <tbody id="empBody"></tbody>
@@ -434,7 +436,7 @@ async function sb(table, method='GET', body=null, qs='') {
 let SB_CONNECTED = false;
 
 /* ============ LOAD / SAVE ============ */
-function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate}; }
+function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate, grp:e.grp, photo:e.photo}; }
 function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
 async function loadAll() {
   const [users, emp, rec, tsl] = await Promise.all([ sb('users'), sb('employees'), sb('records'), sb('timesheets') ]);
@@ -454,9 +456,9 @@ async function saveUser(u) {
 }
 async function delUser(id) { await sb('users', 'DELETE', null, '?id=eq.'+id); }
 async function updateUser(id, data) { await sb('users', 'PATCH', data, '?id=eq.'+id); }
-async function saveEmp(e) { const r=await sb('employees', 'POST', e); if(!r&&'plate' in e){ const c=Object.assign({},e); delete c.plate; await sb('employees', 'POST', c); } }
+async function saveEmp(e) { let r=await sb('employees', 'POST', e); if(!r){ const c={id:e.id,ar:e.ar,en:e.en,num:e.num,dept:e.dept,phone:e.phone}; r=await sb('employees', 'POST', c); } return r; }
 async function delEmp(id) { await sb('employees', 'DELETE', null, '?id=eq.'+id); await sb('records', 'DELETE', null, '?emp_id=eq.'+id); }
-async function updateEmp(id, data) { const r=await sb('employees', 'PATCH', data, '?id=eq.'+id); if(!r&&'plate' in data){ const c=Object.assign({},data); delete c.plate; await sb('employees', 'PATCH', c, '?id=eq.'+id); } }
+async function updateEmp(id, data) { const keep={}; ['ar','en','num','dept','phone','plate','grp','photo'].forEach(k=>{ if(data[k]!==undefined) keep[k]=data[k]; }); let r=await sb('employees', 'PATCH', keep, '?id=eq.'+id); if(!r){ const c={ar:data.ar,en:data.en,num:data.num,dept:data.dept,phone:data.phone}; r=await sb('employees', 'PATCH', c, '?id=eq.'+id); } return r; }
 async function saveRec(r) { 
   const payload = { id: r.id, emp_id: r.empId, type: r.type, date: r.date, note: r.note, by_user: r.by, ts: r.ts };
   await sb('records', 'POST', payload); 
@@ -495,7 +497,7 @@ const I18N={
     c_ar:'الاسم العربي', c_act:'إجراءات', edit:'تعديل', save_edit:'حفظ التعديل', cancel_edit:'إلغاء',
     emp_deleted:'تم حذف الموظف', emp_updated:'تم حفظ التعديل', ask_del_emp:'حذف هذا الموظف وجميع سجلاته؟',
     emptyEmp:'لا يوجد موظفون بعد — أضف الموظف الأول',
-    l_phone:'رقم الهاتف', l_plate:'رقم لوحة المركبة', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
+    l_phone:'رقم الهاتف', l_plate:'رقم لوحة المركبة', l_group:'المجموعة', l_photo:'صورة الموظف', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
     settings:'الإعدادات',
@@ -532,7 +534,7 @@ const I18N={
     c_ar:'Arabic Name', c_act:'Actions', edit:'Edit', save_edit:'Save Changes', cancel_edit:'Cancel',
     emp_deleted:'Employee deleted', emp_updated:'Changes saved', ask_del_emp:'Delete this employee and all their records?',
     emptyEmp:'No employees yet — add the first one',
-    l_phone:'Phone Number', l_plate:'Vehicle Plate No.', importEmp:'Import from Excel', exportEmp:'Export Employees',
+    l_phone:'Phone Number', l_plate:'Vehicle Plate No.', l_group:'Group', l_photo:'Employee Photo', importEmp:'Import from Excel', exportEmp:'Export Employees',
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
     settings:'Settings',
@@ -754,10 +756,12 @@ function renderEmps(){
   D.emp.forEach(e=>{
     const tr=document.createElement('tr');
     if(editingEmpId===e.id){
-      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
+      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td><td><select id="edGrp" style="width:90px;direction:ltr"><option value="SASL">SASL</option><option value="HECL">HECL</option></select><input type="file" id="edPhoto" accept="image/*" style="margin-top:6px;font-size:11px;max-width:130px;"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
     } else {
       const nm=empName(e);
-      tr.innerHTML='<td>'+esc(nm)+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.plate||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del" data-del="'+e.id+'">🗑</button>        </td>';
+      const thumb=e.photo?'<img src="'+e.photo+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-inline-end:6px;">':'';
+      const gbadge='<span class="tag '+(empGroup(e)==='HECL'?'t-user':'t-admin')+'" style="direction:ltr;">'+esc(empGroup(e))+'</span>';
+      tr.innerHTML='<td>'+thumb+esc(nm)+'</td><td>'+gbadge+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.plate||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del" data-del="'+e.id+'">🗑</button>        </td>';
     }
     body.appendChild(tr);
   });
@@ -769,7 +773,7 @@ document.getElementById('empBody').addEventListener('click',async e=>{
   const delBtn=e.target.closest('[data-del]');
   const saveBtn=e.target.closest('#saveEditBtn');
   const cancelBtn=e.target.closest('#cancelEditBtn');
-  if(edBtn){ editingEmpId=edBtn.dataset.edit; renderEmps(); return; }
+  if(edBtn){ editingEmpId=edBtn.dataset.edit; renderEmps(); const _em=D.emp.find(x=>x.id===editingEmpId); const _g=document.getElementById('edGrp'); if(_g&&_em) _g.value=empGroup(_em); return; }
   if(cancelBtn){ editingEmpId=null; renderEmps(); return; }
   if(saveBtn){
     const em=D.emp.find(x=>x.id===editingEmpId); if(!em){editingEmpId=null;renderEmps();return;}
@@ -779,7 +783,10 @@ document.getElementById('empBody').addEventListener('click',async e=>{
     em.phone=document.getElementById('edPhone').value.trim();
     em.plate=document.getElementById('edPlate').value.trim();
     em.dept=document.getElementById('edDept').value.trim();
-    await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, plate:em.plate, dept:em.dept});
+    em.grp=document.getElementById('edGrp').value;
+    const edf=document.getElementById('edPhoto').files[0];
+    if(edf){ em.photo=await fileToPhoto(edf); }
+    await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, plate:em.plate, dept:em.dept, grp:em.grp, photo:em.photo});
     editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
     toast(T().emp_updated); return;
   }
@@ -832,10 +839,10 @@ document.getElementById('importFile').addEventListener('change',async e=>{
 
 document.getElementById('exportEmpBtn').onclick=()=>{
   const a=[[T().s_emp],['']];
-  const hh=LANG==='ar'?['الاسم العربي','الاسم الإنجليزي','الرقم الوظيفي','رقم الهاتف','رقم لوحة المركبة','القسم / المهنة']
-                      :['Arabic Name','English Name','Job No.','Phone','Vehicle Plate No.','Department'];
+  const hh=LANG==='ar'?['الاسم العربي','الاسم الإنجليزي','الرقم الوظيفي','المجموعة','رقم الهاتف','رقم لوحة المركبة','القسم / المهنة']
+                      :['Arabic Name','English Name','Job No.','Group','Phone','Vehicle Plate No.','Department'];
   a.push(hh);
-  D.emp.forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',e.phone||'',e.plate||'',e.dept||'']));
+  D.emp.forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',empGroup(e),e.phone||'',e.plate||'',e.dept||'']));
   const ws=XLSX.utils.aoa_to_sheet(a);
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Employees');
   XLSX.writeFile(wb,'Employees_list.xlsx');
@@ -906,6 +913,23 @@ function renderSum(){
   const sc=document.getElementById('sumCountLbl'); if(sc) sc.textContent=document.querySelectorAll('#sumBody tr').length;
 }
 
+/* photo helper: resize to max 480px JPEG */
+function fileToPhoto(file){ return new Promise(res=>{ if(!file) return res(null);
+  const img=new Image();
+  img.onload=()=>{ try{ const mx=480, sc=Math.min(1,mx/Math.max(img.width,img.height));
+    const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(img.width*sc)); cv.height=Math.max(1,Math.round(img.height*sc));
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); res(cv.toDataURL('image/jpeg',0.7));
+  }catch(e){ res(null); } };
+  img.onerror=()=>res(null);
+  const rd=new FileReader(); rd.onload=e=>{ img.src=e.target.result; }; rd.onerror=()=>res(null); rd.readAsDataURL(file); }); }
+let pendingAddPhoto=null, pendingEditPhoto=null;
+document.getElementById('empPhoto').addEventListener('change',e=>{
+  const f=e.target.files[0]; const pv=document.getElementById('empPhotoPrev');
+  pendingAddPhoto=f||null;
+  if(!f){ pv.innerHTML=''; return; }
+  fileToPhoto(f).then(d=>{ pv.innerHTML=d?'<img src="'+d+'" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--acc);">':''; });
+});
+
 /* ============ EVENTS ============ */
 document.getElementById('addEmpBtn').onclick=async()=>{
   const ar=document.getElementById('empNameAr').value.trim();
@@ -914,13 +938,16 @@ document.getElementById('addEmpBtn').onclick=async()=>{
   const dept=document.getElementById('empDept').value.trim();
   const phone=document.getElementById('empPhone').value.trim();
   const plate=document.getElementById('empPlate').value.trim();
+  const grp=document.getElementById('empGrp').value;
   if(!ar && !en){ toast(T().err_emp); return; }
-  const emp={id:uid(),ar,en,num,dept,phone,plate};
+  const photo=await fileToPhoto(pendingAddPhoto);
+  const emp={id:uid(),ar,en,num,dept,phone,plate,grp,photo};
   D.emp.push(emp);
   await saveEmp(emp);
   fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
   document.getElementById('empNameAr').value='';document.getElementById('empNameEn').value='';
   document.getElementById('empNum').value='';document.getElementById('empDept').value='';document.getElementById('empPhone').value='';document.getElementById('empPlate').value='';
+  document.getElementById('empPhoto').value='';document.getElementById('empPhotoPrev').innerHTML='';pendingAddPhoto=null;
   toast(T().toast_addEmp);
 };
 
@@ -1089,11 +1116,14 @@ document.getElementById('tsEmp').onchange=loadTsForm;
 
 /* ============ STAFF DIRECTORY UI ============ */
 let STAFF_GROUP='SASL', STAFF_Q='';
+function empGroup(e){ if(e&&e.grp) return e.grp; const m=((e&&(e.num||''))||'').toUpperCase().match(/^(SASL|HECL)/); return m?m[1]:'SASL'; }
 function staffInitials(n){ return n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
 function renderStaff(){
   const grid=document.getElementById('staffGrid'); if(!grid) return;
   document.getElementById('staffSearch').placeholder=T().staff_search;
-  const list=(STAFF_GROUP==='SASL'?STAFF_SASL:STAFF_HECL);
+  const st=(STAFF_GROUP==='SASL'?STAFF_SASL:STAFF_HECL);
+  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP).map(e=>({n:((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num||''),p:e.dept||'',i:e.num||'',u:e.photo||null,f:null}));
+  const list=st.concat(dyn);
   const q=STAFF_Q.trim().toLowerCase();
   const items=list.filter(s=>!q||s.n.toLowerCase().includes(q)||s.i.toLowerCase().includes(q)||s.p.toLowerCase().includes(q));
   document.getElementById('staffCount').textContent=items.length+' / '+list.length;
@@ -1102,7 +1132,8 @@ function renderStaff(){
   grid.innerHTML='';
   items.forEach(s=>{
     const div=document.createElement('div'); div.className='staff-card';
-    const photo=s.f?'<div class="staff-init">'+esc(staffInitials(s.n))+'</div><img src="employees/'+STAFF_GROUP+'/'+s.f+'" alt="'+esc(s.n)+'" loading="lazy" onload="this.classList.add(\'ld\')" onerror="this.remove()">'
+    const src=s.u||(s.f?('employees/'+STAFF_GROUP+'/'+s.f):null);
+    const photo=src?'<div class="staff-init">'+esc(staffInitials(s.n))+'</div><img src="'+src+'" alt="'+esc(s.n)+'" loading="lazy" onload="this.classList.add(\'ld\')" onerror="this.remove()">'
                    :'<div class="staff-init">'+esc(staffInitials(s.n))+'</div>';
     div.innerHTML='<div class="staff-photo">'+photo+'</div>'+
       '<div class="staff-info"><div class="staff-name">'+esc(s.n)+'</div>'+
