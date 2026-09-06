@@ -70,7 +70,10 @@
   .brand p{font-size:12px; color:var(--mut);}
   .hd-actions{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
   .hd-actions{width:100%;}
-  .hd-btns{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .hd-actions{flex-direction:column;}
+  .hd-side-box{align-self:flex-start;}
+  .hd-btns{align-self:flex-end;}
+  .hd-btns{display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:190px;}
   .hd-side-box{display:flex; flex-direction:column; gap:8px; background:var(--card2); border:2px solid var(--line); border-radius:14px; padding:10px 14px; min-width:190px;}
   .hd-side-box .who{justify-content:center;}
   .hd-side-box .field{min-width:0;}
