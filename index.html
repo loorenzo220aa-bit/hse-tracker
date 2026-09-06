@@ -1127,9 +1127,10 @@ function tsFillSheet(ws,e,days,pos,nat,dd){
   days.forEach((ds,i)=>{
     const r=12+i; const o=dd[ds]||{};
     const hasT=o.in1||o.out1||o.in2||o.out2||o.in3||o.out3;
+    const isFri=new Date(ds+'T00:00:00').getDay()===5;
     const cols={D:o.in1,E:o.out1,F:o.in2,G:o.out2,H:o.in3,I:o.out3};
     Object.keys(cols).forEach(col=>{ S(col+r,tsTimeVal(cols[col])); });
-    if(hasT){ const fr=tsDayTotal(o); tot+=fr;
+    if(hasT||!isFri){ const fr=tsDayTotal(o); tot+=fr;
       ws.getCell('J'+r).value={formula:'E'+r+'-D'+r+'+G'+r+'-F'+r+'+I'+r+'-H'+r+'+K'+r,result:fr};
     } else S('J'+r,null);
     S('L'+r,o.remark||null);
