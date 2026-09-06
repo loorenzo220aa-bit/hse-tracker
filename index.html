@@ -121,6 +121,23 @@
     padding:13px 24px; border-radius:99px; font-size:14px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; transition:.3s; z-index:99;}
   .toast.show{opacity:1;}
   @media(max-width:600px){ .brand h1{font-size:16px;} }
+
+  #drawerOverlay{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:.3s;z-index:1500;}
+  #drawerOverlay.show{opacity:1;visibility:visible;}
+  #settingsDrawer{position:fixed;top:0;bottom:0;width:min(480px,94vw);background:linear-gradient(180deg,#f8fafc,#e8f4ff);
+    z-index:1501;box-shadow:var(--shadow-lg);transition:transform .35s ease;display:flex;flex-direction:column;}
+  html[dir="rtl"] #settingsDrawer{left:0;border-radius:0 22px 22px 0;transform:translateX(-110%);}
+  html[dir="ltr"] #settingsDrawer{right:0;border-radius:22px 0 0 22px;transform:translateX(110%);}
+  #settingsDrawer.open{transform:translateX(0) !important;}
+  #settingsDrawer .dr-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;
+    background:linear-gradient(135deg,#0ea5e9,#10b981);color:#fff;}
+  html[dir="rtl"] #settingsDrawer .dr-head{border-radius:0 22px 0 0;}
+  html[dir="ltr"] #settingsDrawer .dr-head{border-radius:22px 0 0 0;}
+  #settingsDrawer .dr-head h2{font-size:17px;font-weight:900;margin:0;}
+  #settingsDrawer .dr-head .del{background:rgba(255,255,255,.25);color:#fff;}
+  #settingsDrawer .dr-head .del:hover{background:#fff;color:var(--red);}
+  #drawerBody{overflow-y:auto;padding:16px;}
+  #drawerBody .card{box-shadow:none;}
 </style>
 </head>
 <body>
@@ -163,6 +180,7 @@
         <label data-i="lbl_month">الشهر التقريري</label>
         <input type="month" id="monthPicker">
       </div>
+      <button class="btn" id="settingsBtn">⚙️ <span data-i="settings">الإعدادات</span></button>
       <button class="btn" id="langBtn">English / الإنجليزية</button>
       <button class="btn btn-green" id="exportBtn">📥 <span data-i="export">تصدير Excel</span></button>
     </div>
@@ -299,6 +317,12 @@
     </div>
   </div>
 
+  <div id="drawerOverlay"></div>
+  <aside id="settingsDrawer">
+    <div class="dr-head"><h2>⚙️ <span data-i="settings">الإعدادات</span></h2><button class="del" id="drawerClose">✖</button></div>
+    <div id="drawerBody"></div>
+  </aside>
+
   <footer>🦺 <span data-i="foot">نظام متابعة HSE — هونداي الهندسة والإنشاء</span> · © 2026</footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -398,7 +422,8 @@ const I18N={
     emptyEmp:'لا يوجد موظفون بعد — أضف الموظف الأول',
     l_phone:'رقم الهاتف', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
-    sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة'
+    sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
+    settings:'الإعدادات', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅'
   },
   en:{
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
@@ -431,7 +456,8 @@ const I18N={
     emptyEmp:'No employees yet — add the first one',
     l_phone:'Phone Number', importEmp:'Import from Excel', exportEmp:'Export Employees',
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
-    sync_ok:'Synced', sync_err:'Sync error'
+    sync_ok:'Synced', sync_err:'Sync error',
+    settings:'Settings', set_new_pass:'New password', pwd_changed:'Password changed ✅'
   }
 };
 const T=()=>I18N[LANG];
@@ -472,6 +498,7 @@ function applyLang(){
 function refreshTypeLabels(){}
 
 /* ============ USERS (admin) ============ */
+let pwdEditUser=null;
 function renderUsers(){
   const es=document.getElementById('userBody'); if(!es) return;
   es.innerHTML='';
@@ -482,8 +509,18 @@ function renderUsers(){
     const tr=document.createElement('tr');
     const isSelf=u.user===SESSION;
     const roleTag=u.role==='admin'?'<span class="tag t-admin">'+T().admin+'</span>':'<span class="tag t-user">User</span>';
-    tr.innerHTML='<td>'+esc(u.name)+' '+(isSelf?'<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>':'')+'</td>      <td>'+esc(u.user)+'</td><td>'+roleTag+'</td>      <td>'+(isSelf?'':'<button class="del" data-u="'+esc(u.user)+'" title="'+T().u_del+'">🗑</button>')+'</td>';
+    let acts='<button class="btn btn-sm" data-pwd="'+esc(u.user)+'" title="&#128273;">&#128273;</button> ';
+    acts+=(isSelf?'':'<button class="del" data-u="'+esc(u.user)+'" title="'+T().u_del+'">🗑</button>');
+    tr.innerHTML='<td>'+esc(u.name)+' '+(isSelf?'<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>':'')+'</td>      <td>'+esc(u.user)+'</td><td>'+roleTag+'</td>      <td style="white-space:nowrap;">'+acts+'</td>';
     es.appendChild(tr);
+    if(pwdEditUser===u.user){
+      const tr2=document.createElement('tr');
+      tr2.innerHTML='<td colspan="4"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f0f9ff;padding:10px;border-radius:12px;">'+
+        '<input type="text" id="pwdNew" placeholder="'+esc(T().set_new_pass)+'" style="max-width:220px;" autocomplete="new-password">'+
+        '<button class="btn btn-sm btn-green" id="pwdSaveBtn">💾 '+esc(T().save_edit)+'</button>'+
+        '<button class="btn btn-sm" id="pwdCancelBtn">✖</button></div></td>';
+      es.appendChild(tr2);
+    }
   });
 }
 
@@ -503,6 +540,18 @@ document.getElementById('addUserBtn').onclick=async()=>{
 };
 
 document.getElementById('userBody').addEventListener('click',async e=>{
+  const pwdBtn=e.target.closest('[data-pwd]');
+  const saveBtn=e.target.closest('#pwdSaveBtn');
+  const cancelBtn=e.target.closest('#pwdCancelBtn');
+  if(pwdBtn){ pwdEditUser=pwdBtn.dataset.pwd; renderUsers(); const inp=document.getElementById('pwdNew'); if(inp) inp.focus(); return; }
+  if(cancelBtn){ pwdEditUser=null; renderUsers(); return; }
+  if(saveBtn){
+    const np=document.getElementById('pwdNew').value.trim();
+    if(np.length<4){ toast(T().err_short); return; }
+    const tu=D.users.find(x=>x.user===pwdEditUser);
+    if(tu){ tu.pass=np; await updateUser(tu.id,{password:np}); toast(T().pwd_changed); }
+    pwdEditUser=null; renderUsers(); return;
+  }
   const btn=e.target.closest('.del'); if(!btn) return;
   if(btn.dataset.u===SESSION){ toast(T().toast_cantSelf); return; }
   if(!confirm(LANG==='ar'?'حذف هذا الزميل وجميع بياناته؟':'Delete this colleague and all their data?')) return;
@@ -579,6 +628,20 @@ function buildLogout(){
   b.textContent='⇥ '+T().logout; b.onclick=doLogout; hd.appendChild(b);
 }
 buildLogout();
+
+/* ============ SETTINGS DRAWER ============ */
+(function(){
+  const dr=document.getElementById('settingsDrawer'), ov=document.getElementById('drawerOverlay');
+  const db=document.getElementById('drawerBody');
+  db.appendChild(document.getElementById('usersCard'));
+  db.appendChild(document.getElementById('changepwCard'));
+  window.openSettings=()=>{dr.classList.add('open');ov.classList.add('show');};
+  window.closeSettings=()=>{dr.classList.remove('open');ov.classList.remove('show');};
+  document.getElementById('settingsBtn').onclick=openSettings;
+  document.getElementById('drawerClose').onclick=closeSettings;
+  ov.onclick=closeSettings;
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSettings(); });
+})();
 
 /* ============ CHANGE PASSWORD ============ */
 document.getElementById('chBtn').onclick=async()=>{
