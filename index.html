@@ -348,6 +348,8 @@ async function sb(table, method='GET', body=null, qs='') {
 let SB_CONNECTED = false;
 
 /* ============ LOAD / SAVE ============ */
+function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate}; }
+function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
 async function loadAll() {
   const [users, emp, rec] = await Promise.all([ sb('users'), sb('employees'), sb('records') ]);
   if(users && users.length) {
@@ -355,12 +357,8 @@ async function loadAll() {
       id: u.id, name: u.name, user: u.username || u.user, pass: u.password || u.pass, role: u.role
     }));
   }
-  D.emp = (emp || []).map(e => ({
-    id: e.id, ar: e.ar, en: e.en, num: e.num, dept: e.dept, phone: e.phone, plate: e.plate
-  }));
-  D.rec = (rec || []).map(r => ({
-    id: r.id, empId: r.emp_id || r.empId, type: r.type, date: r.date, note: r.note, by: r.by_user || r.by, ts: r.ts
-  }));
+  D.emp = (emp || []).map(mapEmp);
+  D.rec = (rec || []).map(mapRec);
 }
 
 async function saveUser(u) { 
@@ -568,8 +566,8 @@ async function doLogin(){
     (async()=>{
       try{
         const [emp,rec]=await Promise.all([sb('employees'),sb('records')]);
-        if(emp&&emp.length) D.emp=emp;
-        if(rec&&rec.length) D.rec=rec;
+        if(emp&&emp.length) D.emp=emp.map(mapEmp);
+        if(rec&&rec.length) D.rec=rec.map(mapRec);
         SB_CONNECTED=true;
         fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
       }catch(e){}
@@ -593,8 +591,8 @@ async function doLogin(){
       (async()=>{
         try{
           const [emp,rec]=await Promise.all([sb('employees'),sb('records')]);
-          if(emp&&emp.length) D.emp=emp;
-          if(rec&&rec.length) D.rec=rec;
+          if(emp&&emp.length) D.emp=emp.map(mapEmp);
+          if(rec&&rec.length) D.rec=rec.map(mapRec);
           fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
         }catch(e){}
       })();
