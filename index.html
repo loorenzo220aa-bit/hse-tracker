@@ -138,6 +138,16 @@
   .staff-pos{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .staff-id{display:inline-block;margin-top:6px;font-size:11px;font-weight:800;color:#047857;background:var(--green-bg);padding:2px 9px;border-radius:8px;direction:ltr;}
   .mut{}
+  details.coll{margin-top:16px;background:var(--card2);border:2px solid var(--line);border-radius:14px;overflow:hidden;}
+  details.coll summary{cursor:pointer;list-style:none;padding:13px 16px;font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;}
+  details.coll summary::-webkit-details-marker{display:none;}
+  details.coll summary::before{font-size:11px;color:var(--acc);transition:.2s;}
+  html[dir="rtl"] details.coll summary::before{content:'◀';}
+  html[dir="ltr"] details.coll summary::before{content:'▶';}
+  details.coll[open] summary::before{content:'▼' !important;}
+  details.coll summary:hover{background:rgba(14,165,233,.08);}
+  details.coll .tbl-holder{border-radius:0;}
+  details.coll table{border-radius:0;}
   footer{text-align:center; color:var(--mut); font-size:12px; padding:20px 0;}
   .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#065f46; color:#fff;
     padding:13px 24px; border-radius:99px; font-size:14px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; transition:.3s; z-index:99;}
@@ -262,7 +272,9 @@
       <button class="btn btn-acc" id="importBtn">📤 <span data-i="importEmp">استيراد من ملف Excel</span></button>
       <button class="btn btn-green" id="exportEmpBtn">📥 <span data-i="exportEmp">تصدير الموظفين</span></button>
     </div>
-    <div class="tbl-holder" style="margin-top:16px;">
+    <details class="coll">
+      <summary>📋 <span data-i="emp_list">قائمة الموظفين</span> (<span id="empCountLbl">0</span>)</summary>
+    <div class="tbl-holder" style="margin-top:0;">
       <table>
         <thead><tr>
           <th data-i="c_emp">الموظف</th><th data-i="c_ar">الاسم العربي</th><th data-i="c_num">الرقم الوظيفي</th>
@@ -272,6 +284,7 @@
       </table>
       <div class="empty hide" id="empEmpty"></div>
     </div>
+    </details>
   </div>
 
   <div class="card">
@@ -325,7 +338,9 @@
 
   <div class="card">
     <h2><span class="ic">📊</span><span data-i="t_sum">ملخص شهري للموظفين</span></h2>
-    <div class="tbl-holder">
+    <details class="coll">
+      <summary>📊 <span data-i="sum_list">الملخص التفصيلي</span> (<span id="sumCountLbl">0</span>)</summary>
+    <div class="tbl-holder" style="margin-top:0;">
       <table>
         <thead><tr>
           <th data-i="c_emp">الموظف</th><th data-i="s_vio">مخالفات</th><th data-i="s_abs">غيابات</th>
@@ -335,6 +350,7 @@
       </table>
       <div class="empty" id="sumEmpty"></div>
     </div>
+    </details>
   </div>
 
   </div><!-- /viewVio -->
@@ -483,7 +499,7 @@ const I18N={
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
     settings:'الإعدادات',
-    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
+    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
     ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅'
   },
@@ -520,7 +536,7 @@ const I18N={
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
     settings:'Settings',
-    tab_vio:'Violations & Absences', tab_emp:'Employees', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
+    tab_vio:'Violations & Absences', tab_emp:'Employees', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅'
   }
@@ -745,6 +761,7 @@ function renderEmps(){
     }
     body.appendChild(tr);
   });
+  const ec=document.getElementById('empCountLbl'); if(ec) ec.textContent=D.emp.length;
 }
 
 document.getElementById('empBody').addEventListener('click',async e=>{
@@ -886,6 +903,7 @@ function renderSum(){
     tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
     body.appendChild(tr);
   });
+  const sc=document.getElementById('sumCountLbl'); if(sc) sc.textContent=document.querySelectorAll('#sumBody tr').length;
 }
 
 /* ============ EVENTS ============ */
