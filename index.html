@@ -228,6 +228,7 @@
 
   <div class="tabs">
     <button class="btn tab active" id="tabVio">🦺 <span data-i="tab_vio">المخالفات والغيابات</span></button>
+    <button class="btn tab" id="tabVeh">🚗 <span data-i="tab_veh">السيارات</span></button>
     <button class="btn tab" id="tabDep">🗺️ <span data-i="tab_dep">التوزيع</span></button>
     <button class="btn tab" id="tabEmp">👥 <span data-i="tab_emp">الموظفين</span></button>
     <button class="btn tab" id="tabTs">🗓️ <span data-i="tab_ts">التايم شيت</span></button>
@@ -424,6 +425,41 @@
   </div>
   </div><!-- /viewDep -->
 
+  <div id="viewVeh" class="hide">
+  <div class="card">
+    <h2><span class="ic">🚗</span><span data-i="veh_title">سجل السيارات</span> <span class="mut" id="vehCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="grid" id="vehStats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));"></div>
+    <div class="frow">
+      <div class="field"><label data-i="l_recEmp">الموظف</label><select id="vehEmp"></select></div>
+      <div class="field"><label data-i="veh_make">الماركة</label><input id="vehMake" list="vehMakesList" placeholder="Toyota"><datalist id="vehMakesList"></datalist></div>
+      <div class="field"><label data-i="veh_model">الموديل</label><input id="vehModel" placeholder="Camry"></div>
+      <div class="field"><label data-i="veh_year">السنة</label><input id="vehYear" placeholder="2024"></div>
+      <div class="field"><label data-i="veh_colour">اللون</label><input id="vehColour" list="vehColoursList" placeholder="White"><datalist id="vehColoursList"></datalist></div>
+      <div class="field"><label data-i="l_plate">رقم لوحة المركبة</label><input id="vehPlate" placeholder="1234 A B C"></div>
+      <div class="field"><label data-i="l_date">التاريخ</label><input type="date" id="vehDate"></div>
+      <div class="field"><label data-i="veh_rot">مجموعة الدوام</label><input id="vehRot" list="vehRotsList" placeholder="A"><datalist id="vehRotsList"></datalist></div>
+      <div class="field" style="grid-column:span 2;"><label data-i="c_note">الملاحظة</label><input id="vehNotes" placeholder="..."></div>
+      <div><button class="btn btn-acc" id="vehSaveBtn">💾 <span data-i="veh_save">حفظ السيارة</span></button></div>
+    </div>
+    <div class="frow" style="margin-top:12px;">
+      <div class="field" style="max-width:300px;"><select id="vehFilter"><option value="" data-i="f_all">الكل</option><option value="logged" data-i="veh_logged">مسجل</option><option value="remaining" data-i="veh_remaining">متبقي</option></select></div>
+      <div class="field" style="max-width:360px;"><input id="vehSearch" placeholder="بحث..."></div>
+      <div><button class="btn btn-green" id="vehExportBtn">📥 <span data-i="veh_export">تصدير سجل السيارات</span></button></div>
+    </div>
+    <div class="tbl-holder" style="margin-top:14px;">
+      <table>
+        <thead><tr>
+          <th data-i="c_emp">الموظف</th><th data-i="c_num">الرقم الوظيفي</th><th data-i="veh_make">الماركة</th>
+          <th data-i="veh_model">الموديل</th><th data-i="veh_colour">اللون</th><th data-i="l_plate">رقم اللوحة</th>
+          <th data-i="veh_rot">مجموعة الدوام</th><th></th>
+        </tr></thead>
+        <tbody id="vehBody"></tbody>
+      </table>
+      <div class="empty hide" id="vehEmpty"></div>
+    </div>
+  </div>
+  </div><!-- /viewVeh -->
+
   <div id="drawerOverlay"></div>
   <aside id="settingsDrawer">
     <div class="dr-head"><h2>⚙️ <span data-i="settings">الإعدادات</span></h2><button class="del" id="drawerClose">✖</button></div>
@@ -468,7 +504,7 @@ let SB_CONNECTED = false;
 function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate, grp:e.grp, photo:e.photo}; }
 function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
 async function loadAll() {
-  const [users, emp, rec, tsl, dep] = await Promise.all([ sb('users'), sb('employees'), sb('records'), sb('timesheets'), sb('deployment') ]);
+  const [users, emp, rec, tsl, dep, veh] = await Promise.all([ sb('users'), sb('employees'), sb('records'), sb('timesheets'), sb('deployment'), sb('vehicles') ]);
   if(users && users.length) {
     D.users = users.map(u => ({
       id: u.id, name: u.name, user: u.username || u.user, pass: u.password || u.pass, role: u.role
@@ -478,6 +514,7 @@ async function loadAll() {
   D.rec = (rec || []).map(mapRec);
   D.ts = tsl || [];
   D.dep = (dep || []).map(mapDep);
+  D.veh = (veh || []).map(mapVeh);
 }
 
 async function saveUser(u) { 
@@ -531,7 +568,12 @@ const I18N={
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
     settings:'الإعدادات',
-    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', tab_dep:'التوزيع', dep_title:'توزيع الأفراد على المناطق',
+    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', tab_dep:'التوزيع', tab_veh:'السيارات', veh_title:'سجل السيارات',
+    veh_make:'الماركة', veh_model:'الموديل', veh_year:'السنة', veh_colour:'اللون',
+    veh_rot:'مجموعة الدوام', veh_save:'حفظ السيارة', veh_export:'تصدير سجل السيارات',
+    veh_search:'🔍 بحث باسم أو لوحة...', veh_saved:'تم حفظ السيارة ✅',
+    veh_logged:'مسجل (بلوحة)', veh_remaining:'متبقي (بدون لوحة)',
+    veh_total:'الإجمالي', dep_title:'توزيع الأفراد على المناطق',
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
     dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
@@ -570,7 +612,12 @@ const I18N={
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
     settings:'Settings',
-    tab_vio:'Violations & Absences', tab_emp:'Employees', tab_dep:'Deployment', dep_title:'Area Deployment',
+    tab_vio:'Violations & Absences', tab_emp:'Employees', tab_dep:'Deployment', tab_veh:'Vehicles', veh_title:'Vehicle Log',
+    veh_make:'Make', veh_model:'Model', veh_year:'Year', veh_colour:'Colour',
+    veh_rot:'Rotation', veh_save:'Save Vehicle', veh_export:'Export Vehicle Log',
+    veh_search:'🔍 Search name or plate...', veh_saved:'Vehicle saved ✅',
+    veh_logged:'Logged (plated)', veh_remaining:'Remaining (no plate)',
+    veh_total:'Total', dep_title:'Area Deployment',
     dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
     dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
@@ -593,7 +640,7 @@ function renderAuthUI(){
   who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
   renderUsers();
-  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep();
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh();
 }
 
 function applyLang(){
@@ -1095,13 +1142,16 @@ function switchView(v){
   document.getElementById('viewTs').classList.toggle('hide', v!=='ts');
   document.getElementById('viewEmp').classList.toggle('hide', v!=='emp');
   document.getElementById('viewDep').classList.toggle('hide', v!=='dep');
+  document.getElementById('viewVeh').classList.toggle('hide', v!=='veh');
   document.getElementById('tabVio').classList.toggle('active', v==='vio');
   document.getElementById('tabTs').classList.toggle('active', v==='ts');
   document.getElementById('tabEmp').classList.toggle('active', v==='emp');
   document.getElementById('tabDep').classList.toggle('active', v==='dep');
+  document.getElementById('tabVeh').classList.toggle('active', v==='veh');
   if(v==='ts') renderTs();
   if(v==='emp') renderStaff();
   if(v==='dep') renderDep();
+  if(v==='veh') renderVeh();
 }
 function renderTs(){
   const sel=document.getElementById('tsEmp'); if(!sel) return;
@@ -1150,6 +1200,7 @@ document.getElementById('tabVio').onclick=()=>switchView('vio');
 document.getElementById('tabTs').onclick=()=>switchView('ts');
 document.getElementById('tabEmp').onclick=()=>switchView('emp');
 document.getElementById('tabDep').onclick=()=>switchView('dep');
+document.getElementById('tabVeh').onclick=()=>switchView('veh');
 document.getElementById('tsEmp').onchange=loadTsForm;
 
 /* ============ STAFF DIRECTORY UI ============ */
@@ -1473,6 +1524,204 @@ document.getElementById('depExportBtn').onclick=async()=>{
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
     const m2=tsMonth()||'';
     a.download='Deployment_Map_'+m2+'.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast(T().toast_xlsx);
+  }catch(err){ console.error(err); toast('Export failed: '+err.message); }
+};
+
+
+/* ============ VEHICLES ============ */
+const VEH_MAKES=['Toyota','Hyundai','Nissan','Kia','Chevrolet','Ford','GMC','Honda','Mazda','Mitsubishi','Isuzu','Lexus','MG','Changan','Jetour','Geely','Chery','Suzuki','NO VEHICLE'];
+const VEH_COLOURS=['White','Black','Silver','Grey','Blue','Red','Green','Beige','Gold','Brown','Yellow','Orange','Maroon','Gray','Dark gray','Silver'];
+function mapVeh(v){ return {id:v.id, empId:v.emp_id||v.empId, company:v.company||'', make:v.make||'', model:v.model||'', year:v.year||'', colour:v.colour||'', plate:v.plate||'', date:v.date_logged||v.date||'', notes:v.notes||'', rot:v.rotation||v.rot||''}; }
+function vehRotOf(empId){
+  const d=(D.dep||[]).find(x=>x.empId===empId);
+  if(d&&d.rot) return d.rot;
+  const v=(D.veh||[]).find(x=>x.empId===empId);
+  return (v&&v.rot)||'';
+}
+function fillVehEmp(){
+  const sel=document.getElementById('vehEmp'); if(!sel) return;
+  const cur=sel.value; sel.innerHTML='';
+  const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
+  D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+    o.textContent=((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num)+' — '+(e.num||''); sel.appendChild(o); });
+  if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
+}
+function renderVeh(){
+  if(!document.getElementById('vehBody')) return;
+  fillVehEmp();
+  document.getElementById('vehSearch').placeholder=T().veh_search;
+  document.getElementById('vehMakesList').innerHTML=VEH_MAKES.map(m=>'<option value="'+m+'">').join('');
+  document.getElementById('vehColoursList').innerHTML=VEH_COLOURS.map(m=>'<option value="'+m+'">').join('');
+  const rots=[...new Set((D.veh||[]).map(v=>v.rot).filter(Boolean).concat((D.dep||[]).map(d=>d.rot).filter(Boolean)))];
+  document.getElementById('vehRotsList').innerHTML=rots.map(a=>'<option value="'+esc(a)+'">').join('');
+  if(!document.getElementById('vehDate').value) document.getElementById('vehDate').value=today();
+  const rows=D.veh||[];
+  const logged=rows.filter(v=>(v.plate||'').trim()!=='').length;
+  const pct=rows.length?Math.round(logged/rows.length*100):0;
+  const st=document.getElementById('vehStats');
+  st.innerHTML='<div class="stat"><div class="k">'+esc(T().s_emp)+'</div><div class="v">'+rows.length+'</div></div>'
+    +'<div class="stat"><div class="k">'+esc(T().veh_logged)+'</div><div class="v" style="color:var(--green)">'+logged+'</div></div>'
+    +'<div class="stat"><div class="k">'+esc(T().veh_remaining)+'</div><div class="v" style="color:var(--red)">'+(rows.length-logged)+'</div></div>'
+    +'<div class="stat"><div class="k">%</div><div class="v" style="color:var(--blue)">'+pct+'%</div></div>';
+  document.getElementById('vehCountLbl').textContent=rows.length+' / '+logged;
+  const q=(document.getElementById('vehSearch').value||'').trim().toLowerCase();
+  const f=document.getElementById('vehFilter').value;
+  const body=document.getElementById('vehBody'); body.innerHTML='';
+  let shown=0;
+  rows.forEach(v=>{
+    const e=empById(v.empId);
+    const hasP=(v.plate||'').trim()!=='';
+    if(f==='logged'&&!hasP) return;
+    if(f==='remaining'&&hasP) return;
+    if(q && !(((e.en||'')+' '+(e.ar||'')+' '+(e.num||'')+' '+(v.plate||'')+' '+(v.make||'')).toLowerCase().includes(q))) return;
+    shown++;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td>'
+      +'<td>'+esc(v.make)+'</td><td>'+esc(v.model)+'</td><td>'+esc(v.colour)+'</td>'
+      +'<td style="direction:ltr;font-weight:700;">'+(hasP?esc(v.plate):'<span style="color:var(--mut);">—</span>')+'</td>'
+      +'<td>'+esc(v.rot)+'</td>'
+      +'<td style="white-space:nowrap;"><button class="btn btn-sm" data-vehedit="'+v.id+'">✏️</button> '
+      +(isAdmin()?'<button class="del" data-vehdel="'+v.id+'">🗑</button>':'')+'</td>';
+    body.appendChild(tr);
+  });
+  const ed=document.getElementById('vehEmpty');
+  if(!shown){ ed.textContent=T().empty; ed.classList.remove('hide'); } else ed.classList.add('hide');
+}
+document.getElementById('vehSearch').oninput=renderVeh;
+document.getElementById('vehFilter').onchange=renderVeh;
+document.getElementById('vehEmp').onchange=()=>{
+  const id=document.getElementById('vehEmp').value;
+  const v=(D.veh||[]).find(x=>x.empId===id);
+  if(v){ document.getElementById('vehMake').value=v.make||''; document.getElementById('vehModel').value=v.model||'';
+    document.getElementById('vehYear').value=v.year||''; document.getElementById('vehColour').value=v.colour||'';
+    document.getElementById('vehPlate').value=v.plate||''; document.getElementById('vehDate').value=v.date||today();
+    document.getElementById('vehNotes').value=v.notes||''; document.getElementById('vehRot').value=v.rot||vehRotOf(id); }
+  else { ['vehMake','vehModel','vehYear','vehColour','vehPlate','vehNotes'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('vehDate').value=today(); document.getElementById('vehRot').value=vehRotOf(id); }
+};
+document.getElementById('vehSaveBtn').onclick=async()=>{
+  const empId=document.getElementById('vehEmp').value;
+  if(!empId){ toast(T().err_emp); return; }
+  const e=empById(empId);
+  const id='veh-'+empId;
+  const payload={id:id, emp_id:empId, company:empGroup(e),
+    make:document.getElementById('vehMake').value.trim(), model:document.getElementById('vehModel').value.trim(),
+    year:document.getElementById('vehYear').value.trim(), colour:document.getElementById('vehColour').value.trim(),
+    plate:document.getElementById('vehPlate').value.trim(), date_logged:document.getElementById('vehDate').value,
+    notes:document.getElementById('vehNotes').value.trim(),
+    rotation:document.getElementById('vehRot').value.trim()||vehRotOf(empId)};
+  const patched=await sb('vehicles','PATCH',payload,'?id=eq.'+id);
+  if(!patched||!patched.length) await sb('vehicles','POST',payload);
+  D.veh=D.veh||[];
+  const row=mapVeh({id:id,emp_id:empId,company:payload.company,make:payload.make,model:payload.model,year:payload.year,colour:payload.colour,plate:payload.plate,date_logged:payload.date_logged,notes:payload.notes,rotation:payload.rotation});
+  const ix=D.veh.findIndex(t=>t.id===id||t.empId===empId);
+  if(ix>=0) D.veh[ix]=row; else D.veh.push(row);
+  renderVeh(); toast(T().veh_saved);
+};
+document.getElementById('vehBody').addEventListener('click',async e=>{
+  const del=e.target.closest('[data-vehdel]');
+  const ed=e.target.closest('[data-vehedit]');
+  if(ed){ const v=(D.veh||[]).find(x=>x.id===ed.dataset.vehedit); if(!v) return;
+    document.getElementById('vehEmp').value=v.empId;
+    document.getElementById('vehEmp').dispatchEvent(new Event('change'));
+    document.getElementById('vehEmp').scrollIntoView({behavior:'smooth',block:'center'});
+    return; }
+  if(!del) return;
+  if(!confirm(T().askDel)) return;
+  D.veh=(D.veh||[]).filter(x=>x.id!==del.dataset.vehdel);
+  await sb('vehicles','DELETE',null,'?id=eq.'+del.dataset.vehdel);
+  renderVeh(); toast(T().toast_del);
+});
+document.getElementById('vehExportBtn').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
+  if(!(D.veh||[]).length){ toast(T().empty); return; }
+  try{
+    const wb=new ExcelJS.Workbook(); wb.creator='HSE Tracker'; wb.created=new Date();
+    const thin={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}};
+    const ctr={horizontal:'center',vertical:'middle'}, ctrW={horizontal:'center',vertical:'middle',wrapText:true};
+    const NAVY='FF1F3864', STEEL='FF2F5496', LBLUE='FFDCE6F1', CREAM='FFFFF7D6', GREY='FFD9D9D9';
+    const F=(s,b,c)=>{ const o={name:'Arial',size:s,bold:!!b}; if(c) o.color={argb:c}; return o; };
+    const C=(ws,addr,v,o)=>{ o=o||{}; const c=ws.getCell(addr); if(v!==undefined&&v!==null) c.value=v;
+      if(o.f)c.font=o.f; if(o.bg)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:o.bg}};
+      if(o.a)c.alignment=o.a; if(o.b)c.border=o.b; if(o.n)c.numFmt=o.n; return c; };
+    const order=['A','B','daily_duty','ssc','office','training_room'];
+    const rots=[...new Set((D.veh||[]).map(v=>v.rot||'(no rotation)'))].sort((a,b)=>{
+      const ia=order.indexOf(a), ib=order.indexOf(b);
+      return (ia<0?99:ia)-(ib<0?99:ib)||String(a).localeCompare(String(b)); });
+    const titles={A:'GROUP A',B:'GROUP B',daily_duty:'DAILY DUTY',ssc:'SSC',office:'OFFICE',training_room:'TRAINING ROOM'};
+    const snames={A:'Group A',B:'Group B',daily_duty:'Daily Duty',ssc:'SSC',office:'Office',training_room:'Training Room'};
+    const sumRows=[];
+    rots.forEach(rot=>{
+      const rows=(D.veh||[]).filter(v=>(v.rot||'(no rotation)')===rot)
+        .sort((a,b)=>{ const ea=empById(a.empId), eb=empById(b.empId);
+          return ((ea.en||ea.ar||'').toUpperCase()).localeCompare((eb.en||eb.ar||'').toUpperCase()); });
+      const nm=snames[rot]||rot;
+      const ws=wb.addWorksheet(nm.slice(0,31));
+      [5,14,36.9,10,16,17,16,13,16,13.4,24].forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+      ws.mergeCells('A1:K1'); ws.mergeCells('A2:K2');
+      C(ws,'A1','VEHICLE LOG - '+(titles[rot]||rot.toUpperCase()),{f:F(14,1,'FFFFFFFF'),bg:NAVY,a:ctr});
+      C(ws,'A2',rows.length+' staff - fill in the yellow columns (Car Make, Model, Year, Colour, Plate No., Date Logged, Notes)',{f:F(9,0),bg:LBLUE,a:ctr});
+      ws.getRow(1).height=22; ws.getRow(2).height=18;
+      const hh=['NO.','EMPLOYEE ID','FULL NAME','COMPANY','CAR MAKE','MODEL','YEAR','COLOUR','PLATE NO.','DATE LOGGED','NOTES'];
+      hh.forEach((h,i)=>C(ws,String.fromCharCode(65+i)+'4',h,{f:F(10,1,'FFFFFFFF'),bg:STEEL,a:ctr,b:thin}));
+      ws.getRow(4).height=30;
+      rows.forEach((v,i)=>{ const r=5+i; const e=empById(v.empId);
+        let nm2=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm2)) nm2=nm2.toUpperCase();
+        C(ws,'A'+r,i+1,{f:F(10,0),bg:GREY,a:ctr,b:thin});
+        C(ws,'B'+r,e.num||'',{f:F(10,0),bg:GREY,a:ctr,b:thin});
+        C(ws,'C'+r,nm2,{f:F(10,0),bg:GREY,a:{vertical:'middle',wrapText:true},b:thin});
+        C(ws,'D'+r,v.company||empGroup(e),{f:F(10,0),bg:GREY,a:ctr,b:thin});
+        C(ws,'E'+r,v.make,{f:F(10,0),bg:CREAM,a:ctrW,b:thin});
+        C(ws,'F'+r,v.model,{f:F(10,0),bg:CREAM,a:ctrW,b:thin});
+        C(ws,'G'+r,v.year,{f:F(10,0),bg:CREAM,a:ctr,b:thin});
+        C(ws,'H'+r,v.colour,{f:F(10,0),bg:CREAM,a:ctr,b:thin});
+        C(ws,'I'+r,v.plate,{f:F(10,1),bg:CREAM,a:ctr,b:thin});
+        C(ws,'J'+r,v.date?new Date(v.date+'T12:00:00'):null,{f:F(10,0),bg:CREAM,a:ctr,n:'yyyy-mm-dd',b:thin});
+        C(ws,'K'+r,v.notes,{f:F(10,0),bg:CREAM,a:ctrW,b:thin});
+        ws.getRow(r).height=22;
+      });
+      ws.views=[{state:'frozen',ySplit:4}];
+      ws.pageSetup.orientation='portrait'; ws.pageSetup.paperSize=9;
+      ws.pageSetup.fitToPage=true; ws.pageSetup.fitToWidth=1; ws.pageSetup.fitToHeight=0;
+      const lastRow=4+rows.length;
+      ws.pageSetup.printArea='A1:K'+lastRow;
+      sumRows.push({rot:rot,name:nm,n:rows.length,last:lastRow});
+    });
+    // Summary
+    const s=wb.addWorksheet('Summary');
+    [20,10,12,12,13].forEach((w,i)=>{ s.getColumn(i+1).width=w; });
+    s.mergeCells('A1:E1');
+    C(s,'A1','VEHICLE LOG - PROGRESS SUMMARY',{f:F(14,1,'FFFFFFFF'),bg:NAVY,a:ctr});
+    C(s,'A2','Counts update automatically as plate numbers are filled in.',{f:F(10,0)});
+    s.mergeCells('A2:E2');
+    ['ROTATION GROUP','STAFF','LOGGED','REMAINING','% COMPLETE'].forEach((h,i)=>C(s,String.fromCharCode(65+i)+'4',h,{f:F(10,1,'FFFFFFFF'),bg:STEEL,a:ctr,b:thin}));
+    sumRows.forEach((g,i)=>{ const r=5+i;
+      C(s,'A'+r,g.name,{f:F(10,0),a:{vertical:'middle'},b:thin});
+      C(s,'B'+r,g.n,{f:F(10,0),a:ctr,b:thin});
+      C(s,'C'+r,{formula:"COUNTA('"+g.name.replace(/'/g,"''")+"'!I5:I"+(4+g.n)+")",result:0},{f:F(10,0),a:ctr,b:thin});
+      C(s,'D'+r,{formula:'B'+r+'-C'+r,result:g.n},{f:F(10,0),a:ctr,b:thin});
+      C(s,'E'+r,{formula:'IFERROR(C'+r+'/B'+r+',0)',result:0},{f:F(10,0),a:ctr,n:'0.0%',b:thin});
+    });
+    const tr=5+sumRows.length;
+    C(s,'A'+tr,'TOTAL',{f:F(10,1),bg:LBLUE,a:ctr,b:thin});
+    C(s,'B'+tr,{formula:'SUM(B5:B'+(tr-1)+')',result:0},{f:F(10,1),bg:LBLUE,a:ctr,b:thin});
+    C(s,'C'+tr,{formula:'SUM(C5:C'+(tr-1)+')',result:0},{f:F(10,1),bg:LBLUE,a:ctr,b:thin});
+    C(s,'D'+tr,{formula:'SUM(D5:D'+(tr-1)+')',result:0},{f:F(10,1),bg:LBLUE,a:ctr,b:thin});
+    C(s,'E'+tr,{formula:'IFERROR(C'+tr+'/B'+tr+',0)',result:0},{f:F(10,1),bg:LBLUE,a:ctr,n:'0.0%',b:thin});
+    // Lists
+    const li=wb.addWorksheet('Lists');
+    li.getColumn(1).width=16; li.getColumn(2).width=14;
+    C(li,'A1','CAR MAKE',{f:F(10,1,'FFFFFFFF'),bg:STEEL,a:ctr,b:thin});
+    C(li,'B1','COLOUR',{f:F(10,1,'FFFFFFFF'),bg:STEEL,a:ctr,b:thin});
+    const COLS=['White','Black','Silver','Grey','Blue','Red','Green','Beige','Gold','Brown','Yellow','Orange','Maroon','Gray','Dark gray','Silver','Other'];
+    VEH_MAKES.filter(m=>m!=='NO VEHICLE').forEach((m,i)=>{ C(li,'A'+(2+i),m,{f:F(10,0),a:ctr,b:thin}); });
+    COLS.forEach((m,i)=>{ C(li,'B'+(2+i),m,{f:F(10,0),a:ctr,b:thin}); });
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='Vehicle_Log_'+(tsMonth()||'')+'.xlsx'; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
     toast(T().toast_xlsx);
   }catch(err){ console.error(err); toast('Export failed: '+err.message); }
