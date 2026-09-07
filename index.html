@@ -228,6 +228,7 @@
 
   <div class="tabs">
     <button class="btn tab active" id="tabVio">🦺 <span data-i="tab_vio">المخالفات والغيابات</span></button>
+    <button class="btn tab" id="tabDep">🗺️ <span data-i="tab_dep">التوزيع</span></button>
     <button class="btn tab" id="tabEmp">👥 <span data-i="tab_emp">الموظفين</span></button>
     <button class="btn tab" id="tabTs">🗓️ <span data-i="tab_ts">التايم شيت</span></button>
   </div>
@@ -404,6 +405,25 @@
   </div>
   </div><!-- /viewEmp -->
 
+  <div id="viewDep" class="hide">
+  <div class="card">
+    <h2><span class="ic">🗺️</span><span data-i="dep_title">توزيع الأفراد على المناطق</span> <span class="mut" id="depCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="frow">
+      <div class="field"><label data-i="l_recEmp">الموظف</label><select id="depEmp"></select></div>
+      <div class="field"><label data-i="dep_area">المنطقة</label><input id="depArea" list="depAreasList" placeholder="K9"><datalist id="depAreasList"></datalist></div>
+      <div class="field"><label data-i="dep_list">القائمة</label><select id="depList"><option>A</option><option>B</option><option>(no list)</option></select></div>
+      <div class="field"><label data-i="dep_rot">مجموعة الدوام</label><input id="depRot" list="depRotsList" placeholder="A"><datalist id="depRotsList"></datalist></div>
+      <div class="field"><label data-i="dep_status">الحالة</label><select id="depStatus"><option>Active</option><option>Inactive</option><option>Vacation</option><option>Absent</option></select></div>
+      <div><button class="btn btn-acc" id="depSaveBtn">💾 <span data-i="dep_save">حفظ التوزيع</span></button></div>
+    </div>
+    <div class="frow" style="margin-top:12px;">
+      <div class="field" style="max-width:360px;"><input id="depSearch" placeholder="بحث..."></div>
+      <div><button class="btn btn-green" id="depExportBtn">📥 <span data-i="dep_export">تصدير التوزيع Excel</span></button></div>
+    </div>
+    <div id="depBody" style="margin-top:14px;"></div>
+  </div>
+  </div><!-- /viewDep -->
+
   <div id="drawerOverlay"></div>
   <aside id="settingsDrawer">
     <div class="dr-head"><h2>⚙️ <span data-i="settings">الإعدادات</span></h2><button class="del" id="drawerClose">✖</button></div>
@@ -448,7 +468,7 @@ let SB_CONNECTED = false;
 function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate, grp:e.grp, photo:e.photo}; }
 function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
 async function loadAll() {
-  const [users, emp, rec, tsl] = await Promise.all([ sb('users'), sb('employees'), sb('records'), sb('timesheets') ]);
+  const [users, emp, rec, tsl, dep] = await Promise.all([ sb('users'), sb('employees'), sb('records'), sb('timesheets'), sb('deployment') ]);
   if(users && users.length) {
     D.users = users.map(u => ({
       id: u.id, name: u.name, user: u.username || u.user, pass: u.password || u.pass, role: u.role
@@ -457,6 +477,7 @@ async function loadAll() {
   D.emp = (emp || []).map(mapEmp);
   D.rec = (rec || []).map(mapRec);
   D.ts = tsl || [];
+  D.dep = (dep || []).map(mapDep);
 }
 
 async function saveUser(u) { 
@@ -510,7 +531,9 @@ const I18N={
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
     settings:'الإعدادات',
-    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
+    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', tab_dep:'التوزيع', dep_title:'توزيع الأفراد على المناطق',
+    dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
+    dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
     ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅'
   },
@@ -547,7 +570,9 @@ const I18N={
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
     settings:'Settings',
-    tab_vio:'Violations & Absences', tab_emp:'Employees', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
+    tab_vio:'Violations & Absences', tab_emp:'Employees', tab_dep:'Deployment', dep_title:'Area Deployment',
+    dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
+    dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅'
   }
@@ -568,7 +593,7 @@ function renderAuthUI(){
   who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
   renderUsers();
-  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs();
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep();
 }
 
 function applyLang(){
@@ -1069,11 +1094,14 @@ function switchView(v){
   document.getElementById('viewVio').classList.toggle('hide', v!=='vio');
   document.getElementById('viewTs').classList.toggle('hide', v!=='ts');
   document.getElementById('viewEmp').classList.toggle('hide', v!=='emp');
+  document.getElementById('viewDep').classList.toggle('hide', v!=='dep');
   document.getElementById('tabVio').classList.toggle('active', v==='vio');
   document.getElementById('tabTs').classList.toggle('active', v==='ts');
   document.getElementById('tabEmp').classList.toggle('active', v==='emp');
+  document.getElementById('tabDep').classList.toggle('active', v==='dep');
   if(v==='ts') renderTs();
   if(v==='emp') renderStaff();
+  if(v==='dep') renderDep();
 }
 function renderTs(){
   const sel=document.getElementById('tsEmp'); if(!sel) return;
@@ -1121,6 +1149,7 @@ async function reloadTs(){ try{ const t=await sb('timesheets'); D.ts=t||[]; }cat
 document.getElementById('tabVio').onclick=()=>switchView('vio');
 document.getElementById('tabTs').onclick=()=>switchView('ts');
 document.getElementById('tabEmp').onclick=()=>switchView('emp');
+document.getElementById('tabDep').onclick=()=>switchView('dep');
 document.getElementById('tsEmp').onchange=loadTsForm;
 
 /* ============ STAFF DIRECTORY UI ============ */
@@ -1296,6 +1325,152 @@ document.getElementById('tsExportBtn').onclick=async()=>{
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
     a.download='Time_Sheet_'+m+'_Group-office.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast(T().toast_xlsx);
+  }catch(err){ console.error(err); toast('Export failed: '+err.message); }
+};
+
+
+/* ============ DEPLOYMENT ============ */
+function mapDep(d){ return {id:d.id, empId:d.emp_id||d.empId, area:d.area||'', list:d.list||'A', rot:d.rotation||d.rot||'', status:d.status||'Active'}; }
+function depGroups(){
+  const groups=[]; const idx={};
+  (D.dep||[]).forEach(d=>{
+    const a=d.area||'—';
+    if(!(a in idx)){ idx[a]=groups.length; groups.push({area:a,lists:[],lidx:{}}); }
+    const g=groups[idx[a]];
+    const l=d.list||'(no list)';
+    if(!(l in g.lidx)){ g.lidx[l]=g.lists.length; g.lists.push({list:l,rows:[]}); }
+    g.lists[g.lidx[l]].rows.push(d);
+  });
+  return groups;
+}
+function fillDepEmp(){
+  const sel=document.getElementById('depEmp'); if(!sel) return;
+  const cur=sel.value; sel.innerHTML='';
+  const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
+  D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+    o.textContent=((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num)+' — '+(e.num||''); sel.appendChild(o); });
+  if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
+}
+function renderDep(){
+  const wrap=document.getElementById('depBody'); if(!wrap) return;
+  fillDepEmp();
+  document.getElementById('depSearch').placeholder=T().dep_search;
+  const areas=[...new Set((D.dep||[]).map(d=>d.area).filter(Boolean))].sort();
+  document.getElementById('depAreasList').innerHTML=areas.map(a=>'<option value="'+esc(a)+'">').join('');
+  const rots=[...new Set((D.dep||[]).map(d=>d.rot).filter(Boolean))];
+  ['A','B','daily_duty','ssc','office','training_room'].forEach(r=>{ if(!rots.includes(r)) rots.push(r); });
+  document.getElementById('depRotsList').innerHTML=rots.map(a=>'<option value="'+esc(a)+'">').join('');
+  const q=(document.getElementById('depSearch').value||'').trim().toLowerCase();
+  const match=d=>{ if(!q) return true; const e=empById(d.empId);
+    return ((e.en||'')+' '+(e.ar||'')+' '+(e.num||'')+' '+(d.area||'')).toLowerCase().includes(q); };
+  const groups=depGroups();
+  let total=0;
+  wrap.innerHTML='';
+  groups.forEach(g=>{
+    const rows=g.lists.flatMap(l=>l.rows).filter(match);
+    if(!rows.length) return;
+    total+=rows.length;
+    const det=document.createElement('details'); det.className='coll';
+    let h='<summary>🗺️ '+esc(g.area)+' ('+rows.length+')</summary><div class="tbl-holder" style="margin-top:0;"><table><thead><tr><th>#</th><th data-i="c_emp">'+esc(T().c_emp||'Employee')+'</th><th data-i="c_num">'+esc(T().c_num||'Job No.')+'</th><th data-i="l_dept">'+esc(T().l_dept||'Department')+'</th><th>'+esc(T().dep_list)+'</th><th>'+esc(T().dep_rot)+'</th><th>'+esc(T().dep_status)+'</th><th></th></tr></thead><tbody>';
+    let n=0;
+    g.lists.forEach(l=>{
+      const lr=l.rows.filter(match); if(!lr.length) return;
+      h+='<tr><td colspan="8" style="background:#f0f9ff;font-weight:800;">'+esc(l.list)+' — '+lr.length+'</td></tr>';
+      lr.forEach(d=>{ n++; const e=empById(d.empId);
+        h+='<tr><td>'+n+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(e.dept||'')+'</td><td>'+esc(d.list)+'</td><td>'+esc(d.rot)+'</td><td>'+esc(d.status)+'</td><td>'+(isAdmin()?'<button class="del" data-depdel="'+d.id+'">🗑</button>':'')+'</td></tr>'; });
+    });
+    h+='</tbody></table></div>';
+    det.innerHTML=h;
+    wrap.appendChild(det);
+  });
+  if(!total) wrap.innerHTML='<div class="empty">'+esc(T().empty)+'</div>';
+  document.getElementById('depCountLbl').textContent=groups.length+' / '+total;
+}
+document.getElementById('depSearch').oninput=renderDep;
+document.getElementById('depSaveBtn').onclick=async()=>{
+  const empId=document.getElementById('depEmp').value;
+  const area=document.getElementById('depArea').value.trim();
+  if(!empId||!area){ toast(T().err_fill); return; }
+  const id='dep-'+empId;
+  const payload={id:id, emp_id:empId, area:area, list:document.getElementById('depList').value,
+    rotation:document.getElementById('depRot').value.trim()||document.getElementById('depList').value,
+    status:document.getElementById('depStatus').value};
+  const patched=await sb('deployment','PATCH',payload,'?id=eq.'+id);
+  if(!patched||!patched.length) await sb('deployment','POST',payload);
+  D.dep=D.dep||[];
+  const ix=D.dep.findIndex(t=>t.id===id||t.empId===empId);
+  const row={id:id, empId:empId, area:payload.area, list:payload.list, rot:payload.rotation, status:payload.status};
+  if(ix>=0) D.dep[ix]=row; else D.dep.push(row);
+  document.getElementById('depArea').value=''; document.getElementById('depRot').value='';
+  renderDep(); toast(T().dep_saved);
+};
+document.getElementById('depBody').addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-depdel]'); if(!btn) return;
+  if(!confirm(T().askDel)) return;
+  D.dep=(D.dep||[]).filter(d=>d.id!==btn.dataset.depdel);
+  await sb('deployment','DELETE',null,'?id=eq.'+btn.dataset.depdel);
+  renderDep(); toast(T().toast_del);
+});
+document.getElementById('depExportBtn').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
+  if(!(D.dep||[]).length){ toast(T().empty); return; }
+  try{
+    const wb=new ExcelJS.Workbook(); wb.creator='HSE Tracker'; wb.created=new Date();
+    const ws=wb.addWorksheet('Deployment');
+    [6,34,14,26,22,18,20].forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+    const thin={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}};
+    const ctr={horizontal:'center',vertical:'middle'}, ctrW={horizontal:'center',vertical:'middle',wrapText:true};
+    const F=(s,b)=>({name:'Calibri',size:s,bold:!!b});
+    const C=(addr,v,o)=>{ o=o||{}; const c=ws.getCell(addr); if(v!==undefined&&v!==null) c.value=v;
+      if(o.f)c.font=o.f; if(o.a)c.alignment=o.a; if(o.b)c.border=o.b; return c; };
+    C('A1','HSE Area Deployment',{f:F(16,1)});
+    const t=new Date();
+    C('A2','All deployed personnel  ·  Generated: '+t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'),{f:F(10,0)});
+    ws.mergeCells('A1:G1'); ws.mergeCells('A2:G2');
+    let r=4;
+    depGroups().forEach(g=>{
+      const n=g.lists.reduce((a,l)=>a+l.rows.length,0);
+      ws.mergeCells('A'+r+':G'+r);
+      C('A'+r,'▸ '+g.area+'  —  '+n+' personnel',{f:F(12,1),a:{horizontal:'left',vertical:'middle'},b:thin});
+      for(let cc=1;cc<=7;cc++) ws.getCell(r,cc).border=thin;
+      r++;
+      const hh=['No','Officer Name','Employee ID','Designation','List','Rotation Group','Status'];
+      hh.forEach((h,i)=>C(String.fromCharCode(65+i)+r,h,{f:F(11,1),a:ctr,b:thin}));
+      r++;
+      g.lists.forEach(l=>{
+        ws.mergeCells('A'+r+':G'+r);
+        C('A'+r,l.list+'  —  '+l.rows.length,{f:F(11,1),a:{horizontal:'left',vertical:'middle'},b:thin});
+        for(let cc=1;cc<=7;cc++) ws.getCell(r,cc).border=thin;
+        r++;
+        let n2=0;
+        l.rows.forEach(d=>{ n2++; const e=empById(d.empId);
+          let nm=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm)) nm=nm.toUpperCase();
+          C('A'+r,n2,{f:F(11,0),a:ctr,b:thin});
+          C('B'+r,nm,{f:F(11,0),a:{vertical:'middle'},b:thin});
+          C('C'+r,e.num||'',{f:F(11,0),a:ctr,b:thin});
+          C('D'+r,(e.dept||'').toUpperCase(),{f:F(11,0),a:{vertical:'middle'},b:thin});
+          C('E'+r,d.list,{f:F(11,0),a:ctr,b:thin});
+          C('F'+r,d.rot,{f:F(11,0),a:ctr,b:thin});
+          C('G'+r,d.status,{f:F(11,0),a:ctr,b:thin});
+          r++;
+        });
+      });
+      ws.mergeCells('A'+r+':F'+r);
+      C('A'+r,'Total — '+g.area,{f:F(11,1),a:{horizontal:'right',vertical:'middle'},b:thin});
+      C('G'+r,n,{f:F(11,1),a:ctr,b:thin});
+      for(let cc=1;cc<=6;cc++) ws.getCell(r,cc).border=thin;
+      r+=2;
+    });
+    ws.views=[{state:'frozen',ySplit:4}];
+    ws.pageSetup.orientation='landscape'; ws.pageSetup.paperSize=9;
+    ws.pageSetup.fitToPage=true; ws.pageSetup.fitToWidth=1; ws.pageSetup.fitToHeight=1;
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    const m2=tsMonth()||'';
+    a.download='Deployment_Map_'+m2+'.xlsx'; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
     toast(T().toast_xlsx);
   }catch(err){ console.error(err); toast('Export failed: '+err.message); }
