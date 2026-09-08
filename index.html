@@ -124,6 +124,20 @@
   .t-per{background:var(--green-bg); color:#047857;}
   .t-oth{background:var(--purple-bg); color:#6d28d9;}
   .t-wrn{background:var(--orange-bg); color:#b45309;}
+  .empdlg{position:fixed; inset:0; background:rgba(15,23,42,.55); backdrop-filter:blur(3px); z-index:999; display:flex; align-items:center; justify-content:center; padding:16px;}
+  .empdlg-card{background:#fff; border-radius:20px; max-width:420px; width:100%; max-height:88vh; overflow:auto; padding:26px 22px; position:relative; box-shadow:0 25px 60px rgba(0,0,0,.3); animation:fadeUp .3s ease both;}
+  .empdlg-x{position:absolute; top:12px; inset-inline-end:12px; border:none; background:#f1f5f9; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:15px; color:#475569;}
+  .empdlg-photo{width:110px; height:110px; border-radius:50%; object-fit:cover; margin:0 auto 10px; display:block; border:4px solid var(--line);}
+  .empdlg-init{width:110px; height:110px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:38px; font-weight:900; color:#fff; background:linear-gradient(135deg,var(--acc),#8b5cf6);}
+  .empdlg-name{text-align:center; font-size:19px; font-weight:900; margin:2px 0;}
+  .empdlg-sub{text-align:center; color:var(--mut); font-size:13px; margin-bottom:12px;}
+  .empdlg-row{display:flex; justify-content:space-between; gap:10px; padding:9px 4px; border-top:1px solid var(--line); font-size:14px;}
+  .empdlg-row .k{color:var(--mut);}
+  .empdlg-row .v{font-weight:800; text-align:end;}
+  .empdlg-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px;}
+  .empdlg-stat{background:#f8fafc; border-radius:12px; padding:8px 4px; text-align:center;}
+  .empdlg-stat .n{font-size:19px; font-weight:900;}
+  .empdlg-stat .t{font-size:11px; color:var(--mut);}
   .t-admin{background:var(--orange-bg); color:#b45309;}
   .t-user{background:var(--blue-bg); color:#1d4ed8;}
   .empty{color:var(--mut); text-align:center; padding:24px;}
@@ -412,6 +426,7 @@
     <div class="field" style="max-width:360px;margin-bottom:14px;"><input id="staffSearch" placeholder="بحث..."></div>
     <div class="staff-grid" id="staffGrid"></div>
   </div>
+  <div id="empDlg" class="empdlg hide"><div class="empdlg-card"><button class="empdlg-x" id="empDlgX">✕</button><div id="empDlgBody"></div></div></div>
   </div><!-- /viewEmp -->
 
   <div id="viewDep" class="hide">
@@ -1240,7 +1255,7 @@ function renderStaff(){
   }catch(e){}
   grid.innerHTML='';
   items.forEach(s=>{
-    const div=document.createElement('div'); div.className='staff-card';
+    const div=document.createElement('div'); div.className='staff-card'; div.dataset.num=s.i||'';
     const src=s.u||(s.f?('employees/'+STAFF_GROUP+'/'+s.f):null);
     const photo=src?'<div class="staff-init">'+esc(staffInitials(s.n))+'</div><img src="'+src+'" alt="'+esc(s.n)+'" loading="lazy" onload="this.classList.add(\'ld\')" onerror="this.remove()">'
                    :'<div class="staff-init">'+esc(staffInitials(s.n))+'</div>';
@@ -1254,6 +1269,45 @@ function renderStaff(){
 document.getElementById('subHdec').onclick=()=>{ STAFF_GROUP='HDEC'; renderStaff(); };
 document.getElementById('subHec').onclick=()=>{ STAFF_GROUP='HEC'; renderStaff(); };
 document.getElementById('staffSearch').oninput=e=>{ STAFF_Q=e.target.value; renderStaff(); };
+document.getElementById('staffGrid').addEventListener('click',e=>{
+  const card=e.target.closest('.staff-card'); if(!card||!card.dataset.num) return;
+  openEmpDlg(card.dataset.num, card.querySelector('img')?card.querySelector('img').src:null);
+});
+document.getElementById('empDlgX').onclick=closeEmpDlg;
+document.getElementById('empDlg').addEventListener('click',e=>{ if(e.target.id==='empDlg') closeEmpDlg(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeEmpDlg(); });
+function closeEmpDlg(){ document.getElementById('empDlg').classList.add('hide'); }
+function openEmpDlg(num, photoSrc){
+  const key=(num||'').replace(/\s/g,'').toUpperCase();
+  const e=D.emp.find(x=>((x.num||'').replace(/\s/g,'').toUpperCase())===key);
+  const m=curMonth();
+  const recs=e?(D.rec||[]).filter(r=>r.empId===e.id&&monthKey(r.date)===m):[];
+  const c=t=>recs.filter(r=>r.type===t).length;
+  const nmEn=e?(e.en||''):'', nmAr=e?(e.ar||''):'';
+  const pos=e?(e.dept||''):'', phone=e?(e.phone||''):'', plate=e?(e.plate||''):'';
+  const grp=e?empGroup(e):STAFF_GROUP;
+  const LBL=LANG==='ar'?{g:'المجموعة',p:'القسم / المهنة',ph:'رقم الهاتف',pl:'رقم اللوحة',na:'—',ms:'حركات الشهر الحالي',v:'مخالفات',a:'غيابات',pm:'استئذانات',w:'إنذارات'}
+    :{g:'Group',p:'Department',ph:'Phone',pl:'Plate No.',na:'—',ms:'Current month records',v:'Violations',a:'Absences',pm:'Permits',w:'Warnings'};
+  const ph=photoSrc||(e&&e.photo)||null;
+  const init=staffInitials(nmEn||nmAr||key);
+  document.getElementById('empDlgBody').innerHTML=
+    (ph?'<img class="empdlg-photo" src="'+esc(ph)+'">':'<div class="empdlg-init">'+esc(init)+'</div>')
+    +'<div class="empdlg-name">'+esc(nmEn||key)+'</div>'
+    +(nmAr?'<div class="empdlg-sub">'+esc(nmAr)+'</div>':'')
+    +'<div class="empdlg-sub" style="direction:ltr;">'+esc(key)+'</div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.g+'</span><span class="v">'+esc(grp)+'</span></div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.p+'</span><span class="v">'+esc(pos||LBL.na)+'</span></div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.ph+'</span><span class="v" style="direction:ltr;">'+esc(phone||LBL.na)+'</span></div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.pl+'</span><span class="v" style="direction:ltr;">'+esc(plate||LBL.na)+'</span></div>'
+    +'<div class="empdlg-sub" style="margin:12px 0 0;">'+LBL.ms+' ('+esc(m)+')</div>'
+    +'<div class="empdlg-stats">'
+    +'<div class="empdlg-stat"><div class="n" style="color:var(--red)">'+c('violation')+'</div><div class="t">'+LBL.v+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:var(--blue)">'+c('absence')+'</div><div class="t">'+LBL.a+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:var(--green)">'+c('permission')+'</div><div class="t">'+LBL.pm+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:#b45309">'+c('warning')+'</div><div class="t">'+LBL.w+'</div></div>'
+    +'</div>';
+  document.getElementById('empDlg').classList.remove('hide');
+}
 document.getElementById('tsFillBtn').onclick=()=>{
   const empId=document.getElementById('tsEmp').value;
   document.querySelectorAll('#tsBody tr').forEach(tr=>{
