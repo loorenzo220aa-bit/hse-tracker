@@ -117,6 +117,7 @@
   .t-abs{background:var(--blue-bg); color:#1d4ed8;}
   .t-per{background:var(--green-bg); color:#047857;}
   .t-oth{background:var(--purple-bg); color:#6d28d9;}
+  .t-wrn{background:var(--orange-bg); color:#b45309;}
   .t-admin{background:var(--orange-bg); color:#b45309;}
   .t-user{background:var(--blue-bg); color:#1d4ed8;}
   .empty{color:var(--mut); text-align:center; padding:24px;}
@@ -241,6 +242,7 @@
     <div class="stat"><div class="k" data-i="s_vio">مخالفات (الشهر)</div><div class="v" id="statVio" style="color:var(--red)">0</div></div>
     <div class="stat"><div class="k" data-i="s_abs">غيابات (الشهر)</div><div class="v" id="statAbs" style="color:var(--blue)">0</div></div>
     <div class="stat"><div class="k" data-i="s_per">استأذانات (الشهر)</div><div class="v" id="statPer" style="color:var(--green)">0</div></div>
+    <div class="stat"><div class="k" data-i="s_wrn">إنذارات (الشهر)</div><div class="v" id="statWrn" style="color:#b45309">0</div></div>
     <div class="stat"><div class="k" data-i="s_users">المستخدمون</div><div class="v" id="statUsers" style="color:var(--purple)">0</div></div>
   </div>
 
@@ -308,7 +310,7 @@
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
           <option value="absence" data-i="opt_abs">🚶 غياب</option>
           <option value="permission" data-i="opt_per">✅ استئذان</option>
-          <option value="other" data-i="opt_oth">📌 أخرى</option>
+          <option value="warning" data-i="opt_wrn">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
         </select>
       </div>
       <div class="field"><label data-i="l_date">التاريخ</label><input type="date" id="recDate"></div>
@@ -331,7 +333,7 @@
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
           <option value="absence" data-i="opt_abs">🚶 غياب</option>
           <option value="permission" data-i="opt_per">✅ استئذان</option>
-          <option value="other" data-i="opt_oth">📌 أخرى</option>
+          <option value="warning" data-i="opt_wrn">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
         </select>
       </div>
       <div><button class="btn btn-sm" id="clearFilt" data-i="clearF">مسح التصفية</button></div>
@@ -357,7 +359,7 @@
       <table>
         <thead><tr>
           <th data-i="c_emp">الموظف</th><th data-i="s_vio">مخالفات</th><th data-i="s_abs">غيابات</th>
-          <th data-i="s_per">استأذانات</th><th data-i="s_oth">أخرى</th><th data-i="c_total">الإجمالي</th>
+          <th data-i="s_per">استأذانات</th><th data-i="s_wrn">إنذارات</th><th data-i="s_oth">أخرى</th><th data-i="c_total">الإجمالي</th>
         </tr></thead>
         <tbody id="sumBody"></tbody>
       </table>
@@ -539,12 +541,12 @@ const I18N={
     login_title:'تسجيل الدخول', login_sub:'نظام متابعة HSE — هونداي الهندسة والإنشاء',
     title:'متابعة المخالفات والغيابات والاستأذانات', subtitle:'هونداي الهندسة والإنشاء | السجل اليومي للموظفين',
     lbl_month:'الشهر التقريري', export:'تصدير Excel',
-    s_emp:'الموظفون المسجلون', s_vio:'مخالفات', s_abs:'غيابات', s_per:'استأذانات', s_oth:'أخرى', s_users:'المستخدمون', c_total:'الإجمالي',
+    s_emp:'الموظفون المسجلون', s_vio:'مخالفات', s_abs:'غيابات', s_per:'استأذانات', s_oth:'أخرى',s_wrn:'إنذارات', s_users:'المستخدمون', c_total:'الإجمالي',
     t_users:'إدارة الزملاء (المستخدمون)', u_name:'اسم الزميل', u_role:'الصلاحية', u_roleAdmin:'مدير (Admin)', u_roleUser:'مستخدم (User)', u_add:'＋ إضافة زميل',
     t_emp:'إضافة موظف جديد', l_empname:'اسم الموظف (عربي)', l_empname2:'الاسم بالإنجليزية', l_empnum:'الرقم الوظيفي',
     l_dept:'القسم / المهنة', addEmp:'➕ إضافة',
     t_rec:'تسجيل حركة يومية (مخالفة / غياب / استئذان)', l_recEmp:'الموظف', l_type:'النوع',
-    opt_vio:'🚫 مخالفة', opt_abs:'🚶 غياب', opt_per:'✅ استئذان', opt_oth:'📌 أخرى',
+    opt_vio:'🚫 مخالفة', opt_abs:'🚶 غياب', opt_per:'✅ استئذان', opt_oth:'📌 أخرى',opt_wrn:'⚠️ إنذار',
     l_date:'التاريخ', l_note:'الملاحظة / تفاصيل المخالفة', saveRec:'✓ حفظ الحركة', l_user:'اسم المستخدم', l_pass:'كلمة المرور', login:'دخول',
     t_list:'سجل الحركات', l_filtEmp:'تصفية بالموظف', l_filtType:'تصفية بالنوع', f_all:'الكل', clearF:'مسح التصفية',
     c_date:'التاريخ', c_emp:'الموظف', c_num:'الرقم الوظيفي', c_type:'النوع', c_note:'الملاحظة', c_by:'سجّله',
@@ -573,7 +575,7 @@ const I18N={
     veh_rot:'مجموعة الدوام', veh_save:'حفظ السيارة', veh_export:'تصدير سجل السيارات',
     veh_search:'🔍 بحث باسم أو لوحة...', veh_saved:'تم حفظ السيارة ✅',
     veh_logged:'مسجل (بلوحة)', veh_remaining:'متبقي (بدون لوحة)',
-    veh_total:'الإجمالي', dep_title:'توزيع الأفراد على المناطق',
+    veh_total:'الإجمالي', veh_rows:'المركبات المسجلة', dep_title:'توزيع الأفراد على المناطق',
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
     dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
@@ -583,12 +585,12 @@ const I18N={
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
     title:'Violations, Absences & Permits Tracker', subtitle:'Hyundai Engineering & Construction | Daily Employee Log',
     lbl_month:'Report Month', export:'Export Excel',
-    s_emp:'Registered Employees', s_vio:'Violations', s_abs:'Absences', s_per:'Permits', s_oth:'Others', s_users:'Users', c_total:'Total',
+    s_emp:'Registered Employees', s_vio:'Violations', s_abs:'Absences', s_per:'Permits', s_oth:'Others',s_wrn:'Warnings', s_users:'Users', c_total:'Total',
     t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'+ Add Colleague',
     t_emp:'Add New Employee', l_empname:'Employee Name (Arabic)', l_empname2:'Name (English)', l_empnum:'Job Number',
     l_dept:'Department / Job', addEmp:'+ Add',
     t_rec:'Daily Entry (Violation / Absence / Permit)', l_recEmp:'Employee', l_type:'Type',
-    opt_vio:'Violation', opt_abs:'Absence', opt_per:'Permit', opt_oth:'Other',
+    opt_vio:'Violation', opt_abs:'Absence', opt_per:'Permit', opt_oth:'Other',opt_wrn:'Warning',
     l_date:'Date', l_note:'Note / Violation Details', saveRec:'Save Entry', l_user:'Username', l_pass:'Password', login:'Sign In',
     t_list:'Records Log', l_filtEmp:'Filter by Employee', l_filtType:'Filter by Type', f_all:'All', clearF:'Clear Filters',
     c_date:'Date', c_emp:'Employee', c_num:'Job No.', c_type:'Type', c_note:'Note', c_by:'Recorded by',
@@ -617,7 +619,7 @@ const I18N={
     veh_rot:'Rotation', veh_save:'Save Vehicle', veh_export:'Export Vehicle Log',
     veh_search:'🔍 Search name or plate...', veh_saved:'Vehicle saved ✅',
     veh_logged:'Logged (plated)', veh_remaining:'Remaining (no plate)',
-    veh_total:'Total', dep_title:'Area Deployment',
+    veh_total:'Total', veh_rows:'Logged Vehicles', dep_title:'Area Deployment',
     dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
     dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
@@ -930,7 +932,7 @@ document.getElementById('exportEmpBtn').onclick=()=>{
   toast(T().export_emp_ok);
 };
 
-const TYPE_TAG={violation:'t-vio',absence:'t-abs',permission:'t-per',other:'t-oth'};
+const TYPE_TAG={violation:'t-vio',absence:'t-abs',permission:'t-per',warning:'t-wrn',other:'t-oth'};
 function monthKey(dateStr){ return (dateStr||'').slice(0,7); }
 function curMonth(){ return document.getElementById('monthPicker').value; }
 function empName(e){ return LANG==='ar'?(e.ar||e.en):(e.en||e.ar); }
@@ -946,6 +948,7 @@ function renderStats(){
   document.getElementById('statVio').textContent=cnt('violation');
   document.getElementById('statAbs').textContent=cnt('absence');
   document.getElementById('statPer').textContent=cnt('permission');
+  document.getElementById('statWrn').textContent=cnt('warning');
 }
 
 function renderRecs(){
@@ -960,8 +963,8 @@ function renderRecs(){
   emptyDiv.classList.add('hide');
   recs.forEach(r=>{
     const e=empById(r.empId); const tr=document.createElement('tr');
-    const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',other:'أخرى'}[r.type]
-                  :{violation:'Violation',absence:'Absence',permission:'Permit',other:'Other'}[r.type];
+    const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',other:'أخرى'}[r.type]
+                  :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',other:'Other'}[r.type];
     let noteDisplay = esc(r.note);
     let fileLink = '';
     try {
@@ -982,13 +985,13 @@ function renderSum(){
   const eDiv=document.getElementById('sumEmpty');
   if(!recs.length || !D.emp.length){ eDiv.classList.remove('hide'); return;}
   eDiv.classList.add('hide');
-  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,oth:0,tot:0});
+  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,oth:0,tot:0});
   recs.forEach(r=>{ if(!map[r.empId]) return; const o=map[r.empId];
-    if(r.type==='violation')o.vio++; else if(r.type==='absence')o.abs++; else if(r.type==='permission')o.per++; else o.oth++; o.tot++; });
+    if(r.type==='violation')o.vio++; else if(r.type==='absence')o.abs++; else if(r.type==='permission')o.per++; else if(r.type==='warning')o.wrn++; else o.oth++; o.tot++; });
   D.emp.forEach(e=>{
-    const o=map[e.id]||{vio:0,abs:0,per:0,oth:0,tot:0};
+    const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,oth:0,tot:0};
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
+    tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td><td style="color:#b45309;font-weight:700">'+o.wrn+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
     body.appendChild(tr);
   });
   const sc=document.getElementById('sumCountLbl'); if(sc) sc.textContent=document.querySelectorAll('#sumBody tr').length;
@@ -1096,20 +1099,20 @@ function today(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); retu
 document.getElementById('exportBtn').onclick=()=>{
   const m=curMonth();
   const recs=D.rec.filter(r=>monthKey(r.date)===m).sort((a,b)=>a.date.localeCompare(b.date));
-  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,oth:0,tot:0});
+  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,oth:0,tot:0});
   recs.forEach(r=>{ const o=map[r.empId]; if(!o) return;
-    if(r.type==='violation')o.vio++;else if(r.type==='absence')o.abs++;else if(r.type==='permission')o.per++;else o.oth++;o.tot++;});
+    if(r.type==='violation')o.vio++;else if(r.type==='absence')o.abs++;else if(r.type==='permission')o.per++;else if(r.type==='warning')o.wrn++;else o.oth++;o.tot++;});
   const a=[];a.push([T().title]); a.push([LANG==='ar'?'الشهر':'Month', m]); a.push([]);
-  const hh=LANG==='ar'?['الموظف','الرقم الوظيفي','القسم','مخالفات','غيابات','استأذانات','أخرى','الإجمالي']
-                    :['Employee','Job No.','Department','Violations','Absences','Permits','Others','Total'];
+  const hh=LANG==='ar'?['الموظف','الرقم الوظيفي','القسم','مخالفات','غيابات','استأذانات','إنذارات','أخرى','الإجمالي']
+                    :['Employee','Job No.','Department','Violations','Absences','Permits','Warnings','Others','Total'];
   a.push(hh);
-  D.emp.forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,oth:0,tot:0};
-    a.push([empName(e),e.num||'',e.dept||'',o.vio,o.abs,o.per,o.oth,o.tot]);});
+  D.emp.forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,oth:0,tot:0};
+    a.push([empName(e),e.num||'',e.dept||'',o.vio,o.abs,o.per,o.wrn,o.oth,o.tot]);});
   a.push([]); a.push([]);
   a.push(LANG==='ar'?['التاريخ','الموظف','الرقم الوظيفي','النوع','سجّله','الملاحظة']
                     :['Date','Employee','Job No.','Type','Recorded by','Note']);
-  const tmap=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',other:'أخرى'}
-                       :{violation:'Violation',absence:'Absence',permission:'Permit',other:'Other'};
+  const tmap=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',other:'أخرى'}
+                       :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',other:'Other'};
   recs.forEach(r=>{ const e=empById(r.empId);
     a.push([r.date, empName(e), e.num||'', tmap[r.type]||r.type, userNameBy(r.by), r.note]); });
   const ws=XLSX.utils.aoa_to_sheet(a);
@@ -1561,7 +1564,7 @@ function renderVeh(){
   const logged=rows.filter(v=>(v.plate||'').trim()!=='').length;
   const pct=rows.length?Math.round(logged/rows.length*100):0;
   const st=document.getElementById('vehStats');
-  st.innerHTML='<div class="stat"><div class="k">'+esc(T().s_emp)+'</div><div class="v">'+rows.length+'</div></div>'
+  st.innerHTML='<div class="stat"><div class="k">'+esc(T().veh_rows)+'</div><div class="v">'+rows.length+'</div></div>'
     +'<div class="stat"><div class="k">'+esc(T().veh_logged)+'</div><div class="v" style="color:var(--green)">'+logged+'</div></div>'
     +'<div class="stat"><div class="k">'+esc(T().veh_remaining)+'</div><div class="v" style="color:var(--red)">'+(rows.length-logged)+'</div></div>'
     +'<div class="stat"><div class="k">%</div><div class="v" style="color:var(--blue)">'+pct+'%</div></div>';
@@ -1591,42 +1594,43 @@ function renderVeh(){
 }
 document.getElementById('vehSearch').oninput=renderVeh;
 document.getElementById('vehFilter').onchange=renderVeh;
+let editingVehId=null;
 document.getElementById('vehEmp').onchange=()=>{
+  editingVehId=null;
   const id=document.getElementById('vehEmp').value;
-  const v=(D.veh||[]).find(x=>x.empId===id);
-  if(v){ document.getElementById('vehMake').value=v.make||''; document.getElementById('vehModel').value=v.model||'';
-    document.getElementById('vehYear').value=v.year||''; document.getElementById('vehColour').value=v.colour||'';
-    document.getElementById('vehPlate').value=v.plate||''; document.getElementById('vehDate').value=v.date||today();
-    document.getElementById('vehNotes').value=v.notes||''; document.getElementById('vehRot').value=v.rot||vehRotOf(id); }
-  else { ['vehMake','vehModel','vehYear','vehColour','vehPlate','vehNotes'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('vehDate').value=today(); document.getElementById('vehRot').value=vehRotOf(id); }
+  ['vehMake','vehModel','vehYear','vehColour','vehPlate','vehNotes'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('vehDate').value=today(); document.getElementById('vehRot').value=vehRotOf(id);
 };
 document.getElementById('vehSaveBtn').onclick=async()=>{
   const empId=document.getElementById('vehEmp').value;
   if(!empId){ toast(T().err_emp); return; }
   const e=empById(empId);
-  const id='veh-'+empId;
+  const id=editingVehId||('veh-'+Date.now().toString(36)+Math.random().toString(36).slice(2,7));
   const payload={id:id, emp_id:empId, company:empGroup(e),
     make:document.getElementById('vehMake').value.trim(), model:document.getElementById('vehModel').value.trim(),
     year:document.getElementById('vehYear').value.trim(), colour:document.getElementById('vehColour').value.trim(),
     plate:document.getElementById('vehPlate').value.trim(), date_logged:document.getElementById('vehDate').value,
     notes:document.getElementById('vehNotes').value.trim(),
     rotation:document.getElementById('vehRot').value.trim()||vehRotOf(empId)};
-  const patched=await sb('vehicles','PATCH',payload,'?id=eq.'+id);
-  if(!patched||!patched.length) await sb('vehicles','POST',payload);
   D.veh=D.veh||[];
   const row=mapVeh({id:id,emp_id:empId,company:payload.company,make:payload.make,model:payload.model,year:payload.year,colour:payload.colour,plate:payload.plate,date_logged:payload.date_logged,notes:payload.notes,rotation:payload.rotation});
-  const ix=D.veh.findIndex(t=>t.id===id||t.empId===empId);
-  if(ix>=0) D.veh[ix]=row; else D.veh.push(row);
+  if(editingVehId){ await sb('vehicles','PATCH',payload,'?id=eq.'+id);
+    const ix=D.veh.findIndex(t=>t.id===id); if(ix>=0) D.veh[ix]=row; editingVehId=null;
+  } else { const posted=await sb('vehicles','POST',payload); if(posted&&posted.length) D.veh.push(row); }
+  ['vehMake','vehModel','vehYear','vehColour','vehPlate','vehNotes'].forEach(i=>document.getElementById(i).value='');
   renderVeh(); toast(T().veh_saved);
 };
 document.getElementById('vehBody').addEventListener('click',async e=>{
   const del=e.target.closest('[data-vehdel]');
   const ed=e.target.closest('[data-vehedit]');
   if(ed){ const v=(D.veh||[]).find(x=>x.id===ed.dataset.vehedit); if(!v) return;
+    editingVehId=v.id;
     document.getElementById('vehEmp').value=v.empId;
-    document.getElementById('vehEmp').dispatchEvent(new Event('change'));
-    document.getElementById('vehEmp').scrollIntoView({behavior:'smooth',block:'center'});
+    document.getElementById('vehMake').value=v.make||''; document.getElementById('vehModel').value=v.model||'';
+    document.getElementById('vehYear').value=v.year||''; document.getElementById('vehColour').value=v.colour||'';
+    document.getElementById('vehPlate').value=v.plate||''; document.getElementById('vehDate').value=v.date||today();
+    document.getElementById('vehNotes').value=v.notes||''; document.getElementById('vehRot').value=v.rot||'';
+    document.getElementById('vehSaveBtn').scrollIntoView({behavior:'smooth',block:'center'});
     return; }
   if(!del) return;
   if(!confirm(T().askDel)) return;
