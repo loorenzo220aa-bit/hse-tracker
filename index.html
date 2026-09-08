@@ -96,6 +96,12 @@
   .stat:nth-child(4){border-top-color:var(--green);} .stat:nth-child(5){border-top-color:var(--purple);}
   .stat .k{font-size:13px; color:var(--mut); margin-bottom:6px; font-weight:700;}
   .stat .v{font-size:30px; font-weight:900;}
+  .grid.stats6{grid-template-columns:repeat(6,1fr); gap:10px;}
+  .stats6 .stat{padding:10px 12px;}
+  .stats6 .stat .v{font-size:22px;}
+  .stats6 .stat .k{font-size:12px;}
+  @media(max-width:900px){.grid.stats6{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:560px){.grid.stats6{grid-template-columns:repeat(2,1fr);}}
   .stat .sub{font-size:12px; color:var(--mut); margin-top:4px;}
   .card{background:rgba(255,255,255,.94); border:1px solid #fff; border-radius:var(--radius); padding:20px; margin-bottom:16px; box-shadow:var(--shadow); animation:fadeUp .6s ease both;}
   .card h2{font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-weight:900;}
@@ -237,7 +243,7 @@
 
   <div id="viewVio">
 
-  <div class="grid">
+  <div class="grid stats6">
     <div class="stat"><div class="k" data-i="s_emp">الموظفون المسجلون</div><div class="v" id="statEmp">0</div></div>
     <div class="stat"><div class="k" data-i="s_vio">مخالفات (الشهر)</div><div class="v" id="statVio" style="color:var(--red)">0</div></div>
     <div class="stat"><div class="k" data-i="s_abs">غيابات (الشهر)</div><div class="v" id="statAbs" style="color:var(--blue)">0</div></div>
