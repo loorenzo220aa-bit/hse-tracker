@@ -817,20 +817,22 @@ buildLogout();
 
 
 /* ============ EMPLOYEES ============ */
+function dispName(e){ return LANG==='ar'?(e.ar||e.en):(e.en||e.ar); }
+function sortedEmp(){ const L=LANG==='ar'?'ar':'en'; return [...D.emp].sort((a,b)=>String(dispName(a)||'').localeCompare(String(dispName(b)||''),L)); }
 function fillEmpSel(){
   const es=[document.getElementById('recEmp')];
   es.forEach(sel=>{
     if(!sel) return;
     const cur=sel.value; sel.innerHTML='';
     const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
-    D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+    sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
       const nm=LANG==='ar'?(e.ar||e.en):(e.en||e.ar); o.textContent=nm+' — '+e.num; sel.appendChild(o);});
     if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
   });
   const fs=document.getElementById('filtEmp'); if(!fs) return;
   const fc=fs.value; fs.innerHTML='';
   const a=document.createElement('option'); a.value=''; a.textContent=T().f_all; fs.appendChild(a);
-  D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
     o.textContent=LANG==='ar'?(e.ar||e.en):(e.en||e.ar); fs.appendChild(o);});
   if(fc) fs.value=fc;
 }
@@ -842,7 +844,7 @@ function renderEmps(){
   const emptyDiv=document.getElementById('empEmpty');
   if(!D.emp.length){ emptyDiv.textContent=T().emptyEmp; emptyDiv.classList.remove('hide'); return;}
   emptyDiv.classList.add('hide');
-  D.emp.forEach(e=>{
+  sortedEmp().forEach(e=>{
     const tr=document.createElement('tr');
     if(editingEmpId===e.id){
       tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td><td><select id="edGrp" style="width:90px;direction:ltr"><option value="HDEC">HDEC</option><option value="HEC">HEC</option></select><input type="file" id="edPhoto" accept="image/*" style="margin-top:6px;font-size:11px;max-width:130px;"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
@@ -931,7 +933,7 @@ document.getElementById('exportEmpBtn').onclick=()=>{
   const hh=LANG==='ar'?['الاسم العربي','الاسم الإنجليزي','الرقم الوظيفي','المجموعة','رقم الهاتف','رقم لوحة المركبة','القسم / المهنة']
                       :['Arabic Name','English Name','Job No.','Group','Phone','Vehicle Plate No.','Department'];
   a.push(hh);
-  D.emp.forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',empGroup(e),e.phone||'',e.plate||'',e.dept||'']));
+  sortedEmp().forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',empGroup(e),e.phone||'',e.plate||'',e.dept||'']));
   const ws=XLSX.utils.aoa_to_sheet(a);
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Employees');
   XLSX.writeFile(wb,'Employees_list.xlsx');
@@ -994,7 +996,7 @@ function renderSum(){
   const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,oth:0,tot:0});
   recs.forEach(r=>{ if(!map[r.empId]) return; const o=map[r.empId];
     if(r.type==='violation')o.vio++; else if(r.type==='absence')o.abs++; else if(r.type==='permission')o.per++; else if(r.type==='warning')o.wrn++; else o.oth++; o.tot++; });
-  D.emp.forEach(e=>{
+  sortedEmp().forEach(e=>{
     const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,oth:0,tot:0};
     const tr=document.createElement('tr');
     tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td><td style="color:#b45309;font-weight:700">'+o.wrn+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
@@ -1112,7 +1114,7 @@ document.getElementById('exportBtn').onclick=()=>{
   const hh=LANG==='ar'?['الموظف','الرقم الوظيفي','القسم','مخالفات','غيابات','استأذانات','إنذارات','أخرى','الإجمالي']
                     :['Employee','Job No.','Department','Violations','Absences','Permits','Warnings','Others','Total'];
   a.push(hh);
-  D.emp.forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,oth:0,tot:0};
+  sortedEmp().forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,oth:0,tot:0};
     a.push([empName(e),e.num||'',e.dept||'',o.vio,o.abs,o.per,o.wrn,o.oth,o.tot]);});
   a.push([]); a.push([]);
   a.push(LANG==='ar'?['التاريخ','الموظف','الرقم الوظيفي','النوع','سجّله','الملاحظة']
@@ -1167,7 +1169,7 @@ function renderTs(){
   const cur=sel.value; sel.innerHTML='';
   if(!D.emp.length){ const o=document.createElement('option'); o.value=''; o.textContent=T().ts_noemp; sel.appendChild(o);
     document.getElementById('tsBody').innerHTML=''; document.getElementById('tsPeriodLabel').textContent=''; return; }
-  D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
     o.textContent=(LANG==='ar'?(e.ar||e.en):(e.en||e.ar))+' — '+(e.num||''); sel.appendChild(o); });
   if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
   const days=tsPeriodDays();
@@ -1221,8 +1223,8 @@ function renderStaff(){
   document.getElementById('staffSearch').placeholder=T().staff_search;
   const st=(STAFF_GROUP==='HDEC'?STAFF_HDEC:STAFF_HEC);
   const haveIds=new Set(st.map(s=>(s.i||'').replace(/\s/g,'').toUpperCase()));
-  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP&&!haveIds.has((e.num||'').replace(/\s/g,'').toUpperCase())).map(e=>({n:((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num||''),p:e.dept||'',i:e.num||'',u:e.photo||null,f:null}));
-  const list=st.concat(dyn);
+  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP&&!haveIds.has((e.num||'').replace(/\s/g,'').toUpperCase())).map(e=>({n:((e.en||e.ar)||e.num||''),p:e.dept||'',i:e.num||'',u:e.photo||null,f:null}));
+  const list=st.concat(dyn).sort((a,b)=>String(a.n||'').localeCompare(String(b.n||''),'en'));
   const q=STAFF_Q.trim().toLowerCase();
   const items=list.filter(s=>!q||s.n.toLowerCase().includes(q)||s.i.toLowerCase().includes(q)||s.p.toLowerCase().includes(q));
   document.getElementById('staffCount').textContent=items.length+' / '+list.length;
@@ -1409,7 +1411,7 @@ function fillDepEmp(){
   const sel=document.getElementById('depEmp'); if(!sel) return;
   const cur=sel.value; sel.innerHTML='';
   const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
-  D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
     o.textContent=((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num)+' — '+(e.num||''); sel.appendChild(o); });
   if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
 }
@@ -1553,7 +1555,7 @@ function fillVehEmp(){
   const sel=document.getElementById('vehEmp'); if(!sel) return;
   const cur=sel.value; sel.innerHTML='';
   const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
-  D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
     o.textContent=((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num)+' — '+(e.num||''); sel.appendChild(o); });
   if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
 }
