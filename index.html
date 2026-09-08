@@ -1236,12 +1236,15 @@ function staffInitials(n){ return n.split(/\s+/).slice(0,2).map(w=>w[0]).join(''
 function renderStaff(){
   const grid=document.getElementById('staffGrid'); if(!grid) return;
   document.getElementById('staffSearch').placeholder=T().staff_search;
-  const st=(STAFF_GROUP==='HDEC'?STAFF_HDEC:STAFF_HEC);
+  const st=(STAFF_GROUP==='HDEC'?STAFF_HDEC:STAFF_HEC).map(s=>{
+    const de=D.emp.find(x=>(x.num||'').replace(/\s/g,'').toUpperCase()===(s.i||'').replace(/\s/g,'').toUpperCase());
+    return de?{...s,ar:de.ar||''}:s;
+  });
   const haveIds=new Set(st.map(s=>(s.i||'').replace(/\s/g,'').toUpperCase()));
-  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP&&!haveIds.has((e.num||'').replace(/\s/g,'').toUpperCase())).map(e=>({n:((e.en||e.ar)||e.num||''),p:e.dept||'',i:e.num||'',u:e.photo||null,f:null}));
+  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP&&!haveIds.has((e.num||'').replace(/\s/g,'').toUpperCase())).map(e=>({n:(e.en||e.num||''),ar:e.ar||'',p:e.dept||'',i:e.num||'',u:e.photo||null,f:null}));
   const list=st.concat(dyn).sort((a,b)=>String(a.n||'').localeCompare(String(b.n||''),'en'));
   const q=STAFF_Q.trim().toLowerCase();
-  const items=list.filter(s=>!q||s.n.toLowerCase().includes(q)||s.i.toLowerCase().includes(q)||s.p.toLowerCase().includes(q));
+  const items=list.filter(s=>!q||s.n.toLowerCase().includes(q)||s.i.toLowerCase().includes(q)||s.p.toLowerCase().includes(q)||(s.ar||'').includes(q));
   document.getElementById('staffCount').textContent=items.length+' / '+list.length;
   document.getElementById('subHdec').classList.toggle('active', STAFF_GROUP==='HDEC');
   document.getElementById('subHec').classList.toggle('active', STAFF_GROUP==='HEC');
