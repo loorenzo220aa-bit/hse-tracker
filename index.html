@@ -110,7 +110,6 @@
   .field label{display:block; font-size:12px; color:var(--mut); margin-bottom:5px; font-weight:700;}
   input,select,textarea{width:100%; padding:11px 13px; border-radius:13px; border:2px solid var(--line);
     background:#fff; color:var(--txt); font-size:14px; outline:none; transition:.2s;}
-  .empsearch{margin-bottom:6px; padding:8px 11px; font-size:13px;}
   input:focus,select:focus,textarea:focus{border-color:var(--acc); box-shadow:0 0 0 4px rgba(14,165,233,.12);}
   textarea{resize:vertical; min-height:60px;}
   .tbl-holder{overflow-x:auto; border-radius:14px;}
@@ -311,7 +310,7 @@
   <div class="card">
     <h2><span class="ic">📝</span><span data-i="t_rec">تسجيل حركة يومية (مخالفة / غياب / استئذان)</span></h2>
     <div class="frow">
-      <div class="field"><label data-i="l_recEmp">الموظف</label><input class="empsearch" id="recEmpSearch" data-for="recEmp"><select id="recEmp"></select></div>
+      <div class="field"><label data-i="l_recEmp">الموظف</label><select id="recEmp"></select></div>
       <div class="field"><label data-i="l_type">النوع</label>
         <select id="recType">
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
@@ -334,7 +333,7 @@
   <div class="card">
     <h2><span class="ic">🗂</span><span data-i="t_list">سجل الحركات</span> <span class="mut" id="listMonthLabel" style="color:var(--mut);font-size:13px;"></span></h2>
     <div class="filters">
-      <div class="field"><label data-i="l_filtEmp">تصفية بالملوظف</label><input class="empsearch" id="filtEmpSearch" data-for="filtEmp"><select id="filtEmp"><option value="" data-i="f_all">الكل</option></select></div>
+      <div class="field"><label data-i="l_filtEmp">تصفية بالملوظف</label><select id="filtEmp"><option value="" data-i="f_all">الكل</option></select></div>
       <div class="field"><label data-i="l_filtType">تصفية بالنوع</label>
         <select id="filtType"><option value="" data-i="f_all">الكل</option>
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
@@ -381,7 +380,7 @@
   <div class="card">
     <h2><span class="ic">🗓️</span><span data-i="ts_title">التايم شيت الشهري</span> <span class="mut" id="tsPeriodLabel" style="color:var(--mut);font-size:13px;"></span></h2>
     <div class="frow">
-      <div class="field"><label data-i="l_recEmp">الموظف</label><input class="empsearch" id="tsEmpSearch" data-for="tsEmp"><select id="tsEmp"></select></div>
+      <div class="field"><label data-i="l_recEmp">الموظف</label><select id="tsEmp"></select></div>
       <div class="field"><label data-i="ts_position">المسمى الوظيفي</label><input id="tsPosition" placeholder="SAFETY OFFICER"></div>
       <div class="field"><label data-i="ts_nationality">الجنسية</label><input id="tsNationality" placeholder="Saudi"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-acc" id="tsFillBtn">🪄 <span data-i="ts_fill">تعبئة افتراضية</span></button>
@@ -419,7 +418,7 @@
   <div class="card">
     <h2><span class="ic">🗺️</span><span data-i="dep_title">توزيع الأفراد على المناطق</span> <span class="mut" id="depCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
     <div class="frow">
-      <div class="field"><label data-i="l_recEmp">الموظف</label><input class="empsearch" id="depEmpSearch" data-for="depEmp"><select id="depEmp"></select></div>
+      <div class="field"><label data-i="l_recEmp">الموظف</label><select id="depEmp"></select></div>
       <div class="field"><label data-i="dep_area">المنطقة</label><input id="depArea" list="depAreasList" placeholder="K9"><datalist id="depAreasList"></datalist></div>
       <div class="field"><label data-i="dep_list">القائمة</label><select id="depList"><option>A</option><option>B</option><option>(no list)</option></select></div>
       <div class="field"><label data-i="dep_rot">مجموعة الدوام</label><input id="depRot" list="depRotsList" placeholder="A"><datalist id="depRotsList"></datalist></div>
@@ -439,7 +438,7 @@
     <h2><span class="ic">🚗</span><span data-i="veh_title">سجل السيارات</span> <span class="mut" id="vehCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
     <div class="grid" id="vehStats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));"></div>
     <div class="frow">
-      <div class="field"><label data-i="l_recEmp">الموظف</label><input class="empsearch" id="vehEmpSearch" data-for="vehEmp"><select id="vehEmp"></select></div>
+      <div class="field"><label data-i="l_recEmp">الموظف</label><select id="vehEmp"></select></div>
       <div class="field"><label data-i="veh_make">الماركة</label><input id="vehMake" list="vehMakesList" placeholder="Toyota"><datalist id="vehMakesList"></datalist></div>
       <div class="field"><label data-i="veh_model">الموديل</label><input id="vehModel" placeholder="Camry"></div>
       <div class="field"><label data-i="veh_year">السنة</label><input id="vehYear" placeholder="2024"></div>
@@ -552,7 +551,7 @@ const I18N={
     t_users:'إدارة الزملاء (المستخدمون)', u_name:'اسم الزميل', u_role:'الصلاحية', u_roleAdmin:'مدير (Admin)', u_roleUser:'مستخدم (User)', u_add:'＋ إضافة زميل',
     t_emp:'إضافة موظف جديد', l_empname:'اسم الموظف (عربي)', l_empname2:'الاسم بالإنجليزية', l_empnum:'الرقم الوظيفي',
     l_dept:'القسم / المهنة', addEmp:'➕ إضافة',
-    t_rec:'تسجيل حركة يومية (مخالفة / غياب / استئذان)', l_recEmp:'الموظف',emp_search:'🔍 اكتب الاسم للبحث...', l_type:'النوع',
+    t_rec:'تسجيل حركة يومية (مخالفة / غياب / استئذان)', l_recEmp:'الموظف', l_type:'النوع',
     opt_vio:'🚫 مخالفة', opt_abs:'🚶 غياب', opt_per:'✅ استئذان', opt_oth:'📌 أخرى',opt_wrn:'⚠️ إنذار',
     l_date:'التاريخ', l_note:'الملاحظة / تفاصيل المخالفة', saveRec:'✓ حفظ الحركة', l_user:'اسم المستخدم', l_pass:'كلمة المرور', login:'دخول',
     t_list:'سجل الحركات', l_filtEmp:'تصفية بالموظف', l_filtType:'تصفية بالنوع', f_all:'الكل', clearF:'مسح التصفية',
@@ -596,7 +595,7 @@ const I18N={
     t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'+ Add Colleague',
     t_emp:'Add New Employee', l_empname:'Employee Name (Arabic)', l_empname2:'Name (English)', l_empnum:'Job Number',
     l_dept:'Department / Job', addEmp:'+ Add',
-    t_rec:'Daily Entry (Violation / Absence / Permit)', l_recEmp:'Employee',emp_search:'🔍 Type a name to search...', l_type:'Type',
+    t_rec:'Daily Entry (Violation / Absence / Permit)', l_recEmp:'Employee', l_type:'Type',
     opt_vio:'Violation', opt_abs:'Absence', opt_per:'Permit', opt_oth:'Other',opt_wrn:'Warning',
     l_date:'Date', l_note:'Note / Violation Details', saveRec:'Save Entry', l_user:'Username', l_pass:'Password', login:'Sign In',
     t_list:'Records Log', l_filtEmp:'Filter by Employee', l_filtType:'Filter by Type', f_all:'All', clearF:'Clear Filters',
@@ -818,21 +817,6 @@ buildLogout();
 
 
 /* ============ EMPLOYEES ============ */
-function clearEmpSearch(selId){ const i=document.getElementById(selId+'Search'); if(i){ i.value=''; } }
-function applyEmpSearchPh(){ document.querySelectorAll('.empsearch').forEach(i=>{ i.placeholder=T().emp_search; }); }
-document.querySelectorAll('.empsearch').forEach(inp=>{
-  const sel=document.getElementById(inp.dataset.for); if(!sel) return;
-  inp.addEventListener('input',()=>{
-    const q=inp.value.trim().toLowerCase();
-    [...sel.options].forEach(o=>{ o.hidden = !!q && o.value!=='' && !o.textContent.toLowerCase().includes(q); });
-  });
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){ e.preventDefault();
-      const vis=[...sel.options].filter(o=>!o.hidden&&o.value!=='');
-      if(vis.length===1){ sel.value=vis[0].value; sel.dispatchEvent(new Event('change')); sel.focus(); }
-    }
-  });
-});
 function fillEmpSel(){
   const es=[document.getElementById('recEmp')];
   es.forEach(sel=>{
@@ -849,7 +833,6 @@ function fillEmpSel(){
   D.emp.forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
     o.textContent=LANG==='ar'?(e.ar||e.en):(e.en||e.ar); fs.appendChild(o);});
   if(fc) fs.value=fc;
-  clearEmpSearch('recEmp'); clearEmpSearch('filtEmp'); applyEmpSearchPh();
 }
 
 let editingEmpId=null;
