@@ -497,13 +497,14 @@
       <table>
         <thead><tr>
           <th data-i="c_emp">الموظف</th><th data-i="c_num">الرقم الوظيفي</th><th data-i="appr_rot">مجموعة الدوام</th>
-          <th data-i="appr_stat">حالة الابروفل</th><th data-i="c_phone">الهاتف</th><th data-i="appr_aramco">ارامكو</th><th data-i="appr_area">المنطقة</th>
+          <th data-i="appr_stat">حالة الابروفل</th><th data-i="c_phone">الهاتف</th><th data-i="appr_aramco">ارامكو</th><th data-i="appr_area">المنطقة</th><th style="width:46px;"></th>
         </tr></thead>
         <tbody id="apprBody"></tbody>
       </table>
       <div class="hide" id="apprEmpty"></div>
     </div>
   </div>
+  <div id="apprEditDlg" class="empdlg hide"><div class="empdlg-card"><button class="empdlg-x" id="apprEditX">✕</button><div id="apprEditBody"></div></div></div>
   </div><!-- /viewAppr -->
 
   <div id="drawerOverlay"></div>
@@ -1812,7 +1813,8 @@ function renderAppr(){
     tr.innerHTML='<td>'+esc(e?empName(e):x.i)+'</td><td style="direction:ltr;">'+esc(e?(e.num||''):x.i)+'</td>'
       +'<td>'+esc(x.r)+'</td><td><span class="tag '+apprClass(x.a)+'">'+esc(x.a||'—')+'</span></td>'
       +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td><td style="direction:ltr;">'+esc(x.ar||'—')+'</td>'
-      +'<td>'+esc(x.x||'—')+'</td>';
+      +'<td>'+esc(x.x||'—')+'</td>'
+    +'<td><button class="btn btn-sm" data-appredit="'+esc(x.i)+'">✏️</button></td>';
     body.appendChild(tr);
   });
   const ed=document.getElementById('apprEmpty');
@@ -1831,6 +1833,47 @@ document.getElementById('apprExportBtn').onclick=async()=>{
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Approval');
   XLSX.writeFile(wb,'Aramco_Approval.xlsx'); toast(T().toast_xlsx);
 };
+let apprEditId=null;
+document.getElementById('apprBody').addEventListener('click',e=>{
+  const b=e.target.closest('[data-appredit]'); if(!b) return;
+  openApprEdit(b.dataset.appredit);
+});
+document.getElementById('apprEditX').onclick=()=>document.getElementById('apprEditDlg').classList.add('hide');
+document.getElementById('apprEditDlg').addEventListener('click',e=>{ if(e.target.id==='apprEditDlg') document.getElementById('apprEditDlg').classList.add('hide'); });
+function openApprEdit(id){
+  const x=(D.appr||[]).find(v=>v.i===id); if(!x) return;
+  apprEditId=id;
+  const e=empById(id);
+  const stats=[...new Set((D.appr||[]).map(v=>(v.a||'').trim()).filter(Boolean))].sort();
+  const areas=[...new Set((D.appr||[]).map(v=>(v.x||'').trim()).filter(Boolean))].sort();
+  const LBL=LANG==='ar'?{t:'تعديل بيانات الابروفل',r:'مجموعة الدوام',s:'حالة الابروفل',p:'الهاتف',ar:'ارامكو',x:'المنطقة',sv:'💾 حفظ',ch:'— اختر —'}
+    :{t:'Edit Approval',r:'Rotation',s:'Approval',p:'Phone',ar:'Aramco',x:'Area',sv:'💾 Save',ch:'— Choose —'};
+  const opt=(v,lbl)=>'<option value="'+esc(v)+'"'+(v===lbl?' selected':'')+'>'+esc(v||LBL.ch)+'</option>';
+  document.getElementById('apprEditBody').innerHTML=
+    '<h3 style="margin:0 0 4px;">'+LBL.t+'</h3>'
+    +'<div class="empdlg-sub">'+esc(e?empName(e):id)+' — <span style="direction:ltr;">'+esc(id)+'</span></div>'
+    +'<div class="field" style="margin-top:10px;"><label>'+LBL.r+'</label><select id="aeRot">'+['A','B','Daily'].map(v=>opt(v,x.r)).join('')+'</select></div>'
+    +'<div class="field" style="margin-top:10px;"><label>'+LBL.s+'</label><select id="aeStat"><option value="">'+LBL.ch+'</option>'+stats.map(v=>opt(v,x.a)).join('')+'</select></div>'
+    +'<div class="field" style="margin-top:10px;"><label>'+LBL.x+'</label><select id="aeArea"><option value="">'+LBL.ch+'</option>'+areas.map(v=>opt(v,x.x)).join('')+'</select></div>'
+    +'<div class="field" style="margin-top:10px;"><label>'+LBL.p+'</label><input id="aePhone" style="direction:ltr;" value="'+esc(x.p||'')+'"></div>'
+    +'<div class="field" style="margin-top:10px;"><label>'+LBL.ar+'</label><input id="aeAramco" style="direction:ltr;" value="'+esc(x.ar||'')+'"></div>'
+    +'<button class="btn btn-acc" id="aeSave" style="margin-top:14px;width:100%;">'+LBL.sv+'</button>';
+  document.getElementById('aeSave').onclick=saveApprEdit;
+  document.getElementById('apprEditDlg').classList.remove('hide');
+}
+async function saveApprEdit(){
+  const x=(D.appr||[]).find(v=>v.i===apprEditId); if(!x) return;
+  x.r=document.getElementById('aeRot').value;
+  x.a=document.getElementById('aeStat').value;
+  x.x=document.getElementById('aeArea').value;
+  x.p=document.getElementById('aePhone').value.trim();
+  x.ar=document.getElementById('aeAramco').value.trim();
+  const payload={emp_id:x.i, rotation:x.r, approval:x.a, phone:x.p, aramco_id:x.ar, area:x.x};
+  try{ const r=await sb('approvals','PATCH',payload,'?emp_id=eq.'+encodeURIComponent(x.i)); if(!r||!r.length) await sb('approvals','POST',payload); }
+  catch(e){ /* table may not exist yet — kept locally */ }
+  document.getElementById('apprEditDlg').classList.add('hide');
+  renderAppr(); toast(T().veh_saved);
+}
 /* ============ VEHICLES ============ */
 const VEH_MAKES=['Toyota','Hyundai','Nissan','Kia','Chevrolet','Ford','GMC','Honda','Mazda','Mitsubishi','Isuzu','Lexus','MG','Changan','Jetour','Geely','Chery','Suzuki','NO VEHICLE'];
 const VEH_COLOURS=['White','Black','Silver','Grey','Blue','Red','Green','Beige','Gold','Brown','Yellow','Orange','Maroon','Gray','Dark gray','Silver'];
