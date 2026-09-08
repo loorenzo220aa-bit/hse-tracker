@@ -250,6 +250,7 @@
   <div class="tabs">
     <button class="btn tab active" id="tabVio">🦺 <span data-i="tab_vio">المخالفات والغيابات</span></button>
     <button class="btn tab" id="tabVeh">🚗 <span data-i="tab_veh">السيارات</span></button>
+    <button class="btn tab" id="tabAppr">🛡️ <span data-i="tab_appr">ابروفل ارامكو</span></button>
     <button class="btn tab" id="tabDep">🗺️ <span data-i="tab_dep">التوزيع</span></button>
     <button class="btn tab" id="tabEmp">👥 <span data-i="tab_emp">الموظفين</span></button>
     <button class="btn tab" id="tabTs">🗓️ <span data-i="tab_ts">التايم شيت</span></button>
@@ -483,6 +484,28 @@
   </div>
   </div><!-- /viewVeh -->
 
+  <div id="viewAppr" class="hide">
+  <div class="card">
+    <h2><span class="ic">🛡️</span><span data-i="appr_title">ابروفل ارامكو</span> <span class="mut" id="apprCount" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="grid" id="apprStats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;"></div>
+    <div class="frow" style="margin-top:14px;">
+      <div class="field" style="max-width:280px;"><select id="apprRot"><option value="" data-i="f_all">الكل</option><option value="A">A</option><option value="B">B</option><option value="Daily">Daily</option></select></div>
+      <div class="field" style="max-width:340px;"><input id="apprSearch" placeholder="بحث..."></div>
+      <div><button class="btn btn-green" id="apprExportBtn">📥 <span data-i="appr_export">تصدير</span></button></div>
+    </div>
+    <div class="tbl-holder" style="margin-top:14px;">
+      <table>
+        <thead><tr>
+          <th data-i="c_emp">الموظف</th><th data-i="c_num">الرقم الوظيفي</th><th data-i="appr_rot">مجموعة الدوام</th>
+          <th data-i="appr_stat">حالة الابروفل</th><th data-i="c_phone">الهاتف</th><th data-i="appr_aramco">ارامكو</th><th data-i="appr_area">المنطقة</th>
+        </tr></thead>
+        <tbody id="apprBody"></tbody>
+      </table>
+      <div class="hide" id="apprEmpty"></div>
+    </div>
+  </div>
+  </div><!-- /viewAppr -->
+
   <div id="drawerOverlay"></div>
   <aside id="settingsDrawer">
     <div class="dr-head"><h2>⚙️ <span data-i="settings">الإعدادات</span></h2><button class="del" id="drawerClose">✖</button></div>
@@ -527,6 +550,7 @@ let SB_CONNECTED = false;
 function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate, grp:e.grp, photo:e.photo}; }
 function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
 async function loadAll() {
+  let appr=null; try{ appr=await sb('approvals'); }catch(e){}
   const [users, emp, rec, tsl, dep, veh] = await Promise.all([ sb('users'), sb('employees'), sb('records'), sb('timesheets'), sb('deployment'), sb('vehicles') ]);
   if(users && users.length) {
     D.users = users.map(u => ({
@@ -538,6 +562,7 @@ async function loadAll() {
   D.ts = tsl || [];
   D.dep = (dep || []).map(mapDep);
   D.veh = (veh || []).map(mapVeh);
+  D.appr = (appr && appr.length) ? appr.map(mapAppr) : SEED_APPR.slice();
 }
 
 async function saveUser(u) { 
@@ -591,7 +616,9 @@ const I18N={
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
     settings:'الإعدادات',
-    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', tab_dep:'التوزيع', tab_veh:'السيارات', veh_title:'سجل السيارات',
+    tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', tab_dep:'التوزيع', tab_veh:'السيارات',
+    tab_appr:'ابروفل ارامكو', appr_title:'ابروفل ارامكو', appr_rot:'مجموعة الدوام',
+    appr_stat:'حالة الابروفل', appr_aramco:'ارامكو', appr_area:'المنطقة', appr_export:'تصدير', veh_title:'سجل السيارات',
     veh_make:'الماركة', veh_model:'الموديل', veh_year:'السنة', veh_colour:'اللون',
     veh_rot:'مجموعة الدوام', veh_save:'حفظ السيارة', veh_export:'تصدير سجل السيارات',
     veh_search:'🔍 بحث باسم أو لوحة...', veh_saved:'تم حفظ السيارة ✅',
@@ -635,7 +662,9 @@ const I18N={
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
     settings:'Settings',
-    tab_vio:'Violations & Absences', tab_emp:'Employees', tab_dep:'Deployment', tab_veh:'Vehicles', veh_title:'Vehicle Log',
+    tab_vio:'Violations & Absences', tab_emp:'Employees', tab_dep:'Deployment', tab_veh:'Vehicles',
+    tab_appr:'Aramco Approval', appr_title:'Aramco Approval', appr_rot:'Rotation',
+    appr_stat:'Approval', appr_aramco:'Aramco', appr_area:'Area', appr_export:'Export', veh_title:'Vehicle Log',
     veh_make:'Make', veh_model:'Model', veh_year:'Year', veh_colour:'Colour',
     veh_rot:'Rotation', veh_save:'Save Vehicle', veh_export:'Export Vehicle Log',
     veh_search:'🔍 Search name or plate...', veh_saved:'Vehicle saved ✅',
@@ -663,7 +692,7 @@ function renderAuthUI(){
   who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
   renderUsers();
-  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh();
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh(); renderAppr();
 }
 
 function applyLang(){
@@ -1169,15 +1198,18 @@ function switchView(v){
   document.getElementById('viewEmp').classList.toggle('hide', v!=='emp');
   document.getElementById('viewDep').classList.toggle('hide', v!=='dep');
   document.getElementById('viewVeh').classList.toggle('hide', v!=='veh');
+  document.getElementById('viewAppr').classList.toggle('hide', v!=='appr');
   document.getElementById('tabVio').classList.toggle('active', v==='vio');
   document.getElementById('tabTs').classList.toggle('active', v==='ts');
   document.getElementById('tabEmp').classList.toggle('active', v==='emp');
   document.getElementById('tabDep').classList.toggle('active', v==='dep');
   document.getElementById('tabVeh').classList.toggle('active', v==='veh');
+  document.getElementById('tabAppr').classList.toggle('active', v==='appr');
   if(v==='ts') renderTs();
   if(v==='emp') renderStaff();
   if(v==='dep') renderDep();
   if(v==='veh') renderVeh();
+  if(v==='appr') renderAppr();
 }
 function renderTs(){
   const sel=document.getElementById('tsEmp'); if(!sel) return;
@@ -1227,6 +1259,7 @@ document.getElementById('tabTs').onclick=()=>switchView('ts');
 document.getElementById('tabEmp').onclick=()=>switchView('emp');
 document.getElementById('tabDep').onclick=()=>switchView('dep');
 document.getElementById('tabVeh').onclick=()=>switchView('veh');
+document.getElementById('tabAppr').onclick=()=>switchView('appr');
 document.getElementById('tsEmp').onchange=loadTsForm;
 
 /* ============ STAFF DIRECTORY UI ============ */
@@ -1598,6 +1631,206 @@ document.getElementById('depExportBtn').onclick=async()=>{
 };
 
 
+
+/* ============ ARAMCO APPROVAL ============ */
+const SEED_APPR = [
+  {i:"SASL-0543",r:"Daily",a:"Safety Supervisor 180-day",p:"",ar:"",x:"OVERALL"},
+  {i:"SASL-0387",r:"Daily",a:"Safety officer 90-day",p:"559221505",ar:"",x:"Brown Field"},
+  {i:"SASL-0518",r:"Daily",a:"Safety officer 90-day",p:"530373700",ar:"",x:"Brown Field"},
+  {i:"SASL-0469",r:"Daily",a:"Safety officer 90-day",p:"553447412",ar:"",x:"Brown Field"},
+  {i:"SASL-0449",r:"Daily",a:"Safety officer 180-day",p:"530033965",ar:"",x:"Brown Field"},
+  {i:"SASL-0005",r:"Daily",a:"ACCEPTED",p:"",ar:"",x:"Brown Field"},
+  {i:"SASL-0397",r:"Daily",a:"Safety officer 180-day",p:"535767065",ar:"",x:"Brown Field"},
+  {i:"HECL-0084",r:"Daily",a:"Safety officer 90-day",p:"054-966-0015",ar:"",x:"Brown Field"},
+  {i:"SASL-0527",r:"Daily",a:"Safety officer 180-day",p:"502172207",ar:"",x:"Brown Field"},
+  {i:"SASL-0526",r:"B",a:"Safety officer 90-day",p:"550995239",ar:"",x:"K9 Area"},
+  {i:"SASL-0481",r:"B",a:"Safety officer 90-day",p:"561511108",ar:"",x:"K9 Area"},
+  {i:"HECL-0188",r:"B",a:"ONGOING",p:"050-671-8010",ar:"",x:"K9 Area"},
+  {i:"SASL-0450",r:"B",a:"Trainee for 180-day",p:"507870466",ar:"",x:"K9 Area"},
+  {i:"SASL-0514",r:"B",a:"Trainee for 180-day",p:"530304867",ar:"",x:"K9 Area"},
+  {i:"HECL-0182",r:"A",a:"ONGOING",p:"",ar:"",x:"K9 Area"},
+  {i:"HECL-0090",r:"A",a:"ONGOING",p:"053-528-4440",ar:"",x:"K9 Area"},
+  {i:"SASL-0492",r:"A",a:"Trainee for 180-day",p:"547123398",ar:"",x:"K9 Area"},
+  {i:"SASL-0528",r:"A",a:"Trainee for 180-day",p:"",ar:"",x:"K9 Area"},
+  {i:"HECL-0094",r:"A",a:"ONGOING",p:"",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0476",r:"Daily",a:"Trainee for 180-day",p:"543993266",ar:"",x:"Chemical Storage"},
+  {i:"HECL-0102",r:"B",a:"ONGOING",p:"",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0460",r:"B",a:"Trainee for 180-day",p:"567011806",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0510",r:"B",a:"PASS(Waiting for a transmittal)",p:"544147722",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0472",r:"B",a:"Trainee for 180-day",p:"563220921",ar:"",x:"Chemical Storage"},
+  {i:"HECL-0101",r:"B",a:"PASS(Waiting for a transmittal)",p:"056-526-7405",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0479",r:"A",a:"Trainee for 180-day",p:"567902896",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0489",r:"A",a:"Trainee for 180-day",p:"550823127",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0499",r:"A",a:"Safety officer 180-day",p:"560644833",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0475",r:"Daily",a:"Safety officer 180-day",p:"543602823",ar:"",x:"GIS-02"},
+  {i:"SASL-0471",r:"B",a:"Trainee for 180-day",p:"557262180",ar:"",x:"GIS-02"},
+  {i:"HECL-0196",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"GIS-02"},
+  {i:"SASL-0448",r:"B",a:"Trainee for 180-day",p:"507494918",ar:"",x:"GIS-02"},
+  {i:"HECL-0177",r:"A",a:"ONGOING",p:"",ar:"",x:"GIS-02"},
+  {i:"SASL-0482",r:"B",a:"Trainee for 180-day",p:"501256316",ar:"",x:"GIS-02"},
+  {i:"SASL-0484",r:"B",a:"Safety officer 180-day",p:"504487534",ar:"",x:"GIS-02"},
+  {i:"HECL-0103",r:"B",a:"ONGOING",p:"",ar:"",x:"GIS-02"},
+  {i:"HECL-0187",r:"A",a:"ONGOING",p:"",ar:"",x:"GIS-02"},
+  {i:"SASL-0483",r:"A",a:"Trainee for 180-day",p:"555789904",ar:"",x:"GIS-02"},
+  {i:"SASL-0555",r:"A",a:"Trainee for 180-day",p:"536285439",ar:"",x:"GIS-02"},
+  {i:"HECL-0095",r:"A",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"HECL-0176",r:"A",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"HECL-0178",r:"A",a:"ONGOING",p:"050-498-1222",ar:"",x:"ASU"},
+  {i:"HECL-0190",r:"B",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"SASL-0490",r:"Daily",a:"Safety officer 90-day",p:"503661422",ar:"",x:"ASU"},
+  {i:"SASL-0507",r:"Daily",a:"Trainee for 180-day",p:"",ar:"",x:"ASU"},
+  {i:"SASL-0493",r:"Daily",a:"Trainee for 180-day",p:"561009533",ar:"",x:"ASU"},
+  {i:"SASL-0487",r:"B",a:"Trainee for 180-day",p:"566299880",ar:"",x:"ASU"},
+  {i:"SASL-0480",r:"Daily",a:"Safety officer 90-day",p:"549783999",ar:"",x:"ASU"},
+  {i:"HECL-0191",r:"B",a:"PASS(Waiting for a transmittal)",p:"058-090-3757",ar:"",x:"ASU"},
+  {i:"SASL-0453",r:"B",a:"Trainee for 180-day",p:"506832012",ar:"",x:"ASU"},
+  {i:"HECL-0185",r:"A",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"SASL-0456",r:"B",a:"Trainee for 180-day",p:"549430796",ar:"",x:"ASU"},
+  {i:"HECL-0175",r:"A",a:"ONGOING",p:"056-519-5644",ar:"",x:"SRU4"},
+  {i:"SASL-0534",r:"B",a:"Trainee for 180-day",p:"501961705",ar:"",x:"SRU4"},
+  {i:"SASL-0497",r:"B",a:"ONGOING",p:"550767237",ar:"",x:"SRU4"},
+  {i:"HECL-0097",r:"B",a:"ONGOING",p:"054-409-9037",ar:"",x:"SRU4"},
+  {i:"SASL-0498",r:"B",a:"Trainee for 180-day",p:"598872248",ar:"",x:"SRU4"},
+  {i:"SASL-0512",r:"Daily",a:"Trainee for 180-day",p:"554873448",ar:"",x:"SRU4"},
+  {i:"HECL-0992",r:"A",a:"ONGOING",p:"",ar:"",x:"SRU4"},
+  {i:"SASL-0459",r:"B",a:"PASS(Waiting for a transmittal)",p:"504756813",ar:"",x:"SRU4"},
+  {i:"SASL-0561",r:"A",a:"Trainee for 180-day",p:"580366101",ar:"",x:"SRU4"},
+  {i:"HECL-0197",r:"Daily",a:"Safety officer 90-day",p:"055-755-2121",ar:"",x:"SRU4"},
+  {i:"HECL-0184",r:"A",a:"Trainee for 180-day",p:"058-091-2371",ar:"",x:"SRU5"},
+  {i:"HECL-0189",r:"A",a:"ONGOING",p:"054-709-1510",ar:"",x:"SRU5"},
+  {i:"SASL-0520",r:"B",a:"Trainee for 180-day",p:"563958596",ar:"",x:"SRU5"},
+  {i:"SASL-0517",r:"B",a:"Trainee for 180-day",p:"553602824",ar:"",x:"SRU5"},
+  {i:"SASL-0466",r:"B",a:"Safety officer 90-day",p:"556454380",ar:"",x:"SRU5"},
+  {i:"SASL-0530",r:"B",a:"Trainee for 180-day",p:"544433402",ar:"",x:"SRU5"},
+  {i:"SASL-0502",r:"B",a:"ONGOING",p:"509875080",ar:"",x:"SRU5"},
+  {i:"HECL-0209",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"SRU5"},
+  {i:"SASL-0392",r:"Daily",a:"Safety officer 90-day",p:"558064284",ar:"",x:"SRU5"},
+  {i:"SASL-0501",r:"Daily",a:"Trainee for 180-day",p:"500649405",ar:"",x:"SRU5"},
+  {i:"SASL-0505",r:"A",a:"Trainee for 180-day",p:"553887386",ar:"",x:"SRU5"},
+  {i:"SASL-0532",r:"A",a:"Trainee for 180-day",p:"504467447",ar:"",x:"SRU5"},
+  {i:"HECL-0096",r:"A",a:"ONGOING",p:"050-331-8166",ar:"",x:"Laydown B"},
+  {i:"HECL-0098",r:"A",a:"ONGOING",p:"",ar:"",x:"Laydown B"},
+  {i:"HECL-0100",r:"A",a:"ONGOING",p:"053-573-8980",ar:"",x:"Laydown B"},
+  {i:"SASL-0455",r:"A",a:"Trainee for 180-day",p:"502316632",ar:"",x:"Laydown B"},
+  {i:"HECL-0548",r:"B",a:"ONGOING",p:"",ar:"",x:"Laydown B"},
+  {i:"SASL-0491",r:"B",a:"Trainee for 180-day",p:"538276603",ar:"",x:"Laydown B"},
+  {i:"SASL-0503",r:"B",a:"Trainee for 180-day",p:"549368860",ar:"",x:"Laydown B"},
+  {i:"SASL-0452",r:"B",a:"Trainee for 180-day",p:"532658477",ar:"",x:"Laydown B"},
+  {i:"SASL-0537",r:"B",a:"Safety officer 180-day",p:"540733051",ar:"",x:"Laydown B"},
+  {i:"SASL-0464",r:"B",a:"Trainee for 180-day",p:"",ar:"",x:"Laydown B"},
+  {i:"SASL-0508",r:"Daily",a:"Trainee for 180-day",p:"550717165",ar:"",x:"Laydown B"},
+  {i:"SASL-0462",r:"Daily",a:"Trainee for 180-day",p:"500407786",ar:"",x:"Laydown A"},
+  {i:"SASL-0461",r:"Daily",a:"Safety officer 180-day",p:"532122141",ar:"",x:"Laydown A"},
+  {i:"SASL-0021",r:"Daily",a:"ACCEPTED",p:"",ar:"",x:"Laydown C"},
+  {i:"SASL-0473",r:"A",a:"ONGOING",p:"506788116",ar:"",x:"Laydown C"},
+  {i:"SASL-0516",r:"A",a:"ONGOING",p:"500833305",ar:"",x:"Laydown C"},
+  {i:"SASL-0515",r:"B",a:"Trainee for 180-day",p:"561050710",ar:"",x:"Laydown C"},
+  {i:"HECL-0091",r:"B",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"Laydown C"},
+  {i:"SASL-0463",r:"B",a:"Safety officer 180-day",p:"506668047",ar:"",x:"Laydown C"},
+  {i:"SASL-0494",r:"B",a:"Safety officer 180-day",p:"569636181",ar:"",x:"Laydown C"},
+  {i:"SASL-0495",r:"B",a:"PASS(Waiting for a transmittal)",p:"509857312",ar:"",x:"Laydown C"},
+  {i:"SASL-0560",r:"A",a:"Safety officer 180-day",p:"547373293",ar:"",x:"Laydown C"},
+  {i:"SASL-0561",r:"A",a:"Safety officer 180-day",p:"540396544",ar:"",x:"Laydown C"},
+  {i:"HECL-0193",r:"A",a:"ONGOING",p:"055-479-3046",ar:"",x:"Silver Area"},
+  {i:"HECL-0194",r:"A",a:"Safety officer 90-day",p:"",ar:"",x:"Silver Area"},
+  {i:"SASL-0529",r:"B",a:"PASS(Waiting for a transmittal)",p:"541416719",ar:"",x:"Silver Area"},
+  {i:"SASL-0451",r:"B",a:"Trainee for 180-day",p:"555180670",ar:"",x:"Silver Area"},
+  {i:"HECL-0181",r:"B",a:"ONGOING",p:"",ar:"",x:"Silver Area"},
+  {i:"SASL-0465",r:"B",a:"Trainee for 180-day",p:"556657771",ar:"",x:"Silver Area"},
+  {i:"SASL-0394",r:"B",a:"Safety officer 90-day",p:"535229931",ar:"",x:"Silver Area"},
+  {i:"SASL-0474",r:"Daily",a:"Trainee for 180-day",p:"557650959",ar:"",x:"Silver Area"},
+  {i:"SASL-0488",r:"Daily",a:"Trainee for 180-day",p:"501626509",ar:"",x:"Silver Area"},
+  {i:"SASL-0560",r:"A",a:"Trainee for 180-day",p:"542488161",ar:"",x:"Silver Area"},
+  {i:"HECL-0093",r:"A",a:"Trainee for 180-day",p:"050-221-2729",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0523",r:"A",a:"Trainee for 180-day",p:"",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0506",r:"B",a:"Trainee for 180-day",p:"",ar:"",x:"Water-bound Area"},
+  {i:"HECL-0104",r:"B",a:"ONGOING",p:"",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0522",r:"B",a:"Trainee for 180-day",p:"550142966",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0504",r:"B",a:"ONGOING",p:"508859524",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0386",r:"Daily",a:"Safety officer 90-day",p:"561089318",ar:"",x:"SSC"},
+  {i:"SASL-0485",r:"Daily",a:"Safety officer 180-day",p:"535474217",ar:"",x:"SSC"},
+  {i:"SASL-0496",r:"Daily",a:"Safety officer 180-day",p:"535444619",ar:"",x:"SSC"},
+  {i:"SASL-0500",r:"Daily",a:"Safety officer 180-day",p:"548984266",ar:"",x:"SSC"},
+  {i:"SASL-0598",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"SSC"},
+  {i:"SASL-0003",r:"Daily",a:"ACCEPTED",p:"0557896393",ar:"",x:"SSC"},
+  {i:"SASL-0513",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"581387963",ar:"",x:"SSC"},
+  {i:"HECL-0082",r:"Daily",a:"Safety officer 90-day",p:"053-873-2464",ar:"",x:"SSC"},
+  {i:"SASL-0458",r:"Daily",a:"Safety officer 180-day",p:"599442258",ar:"",x:"Training Room"},
+  {i:"SASL-0470",r:"Daily",a:"Safety officer 180-day",p:"551311155",ar:"",x:"Training Room"},
+  {i:"SASL-0468",r:"Daily",a:"Safety officer 180-day",p:"536999232",ar:"",x:"Training Room"},
+  {i:"HECL-0203",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"Training Room"},
+  {i:"SASL-0509",r:"Daily",a:"Safety officer 90-day",p:"554980231",ar:"",x:"Office"},
+  {i:"SASL-0389",r:"Daily",a:"Safety officer 180-day",p:"534844508",ar:"",x:"Office"},
+  {i:"SASL-0396",r:"Daily",a:"Safety officer 180-day",p:"549851724",ar:"",x:"Office"},
+  {i:"SASL-0524",r:"Daily",a:"Trainee for 180-day",p:"561026676",ar:"",x:"Office"},
+  {i:"SASL-0374",r:"Daily",a:"Trainee for 180-day",p:"562667085",ar:"",x:"Office"},
+  {i:"SASL-0467",r:"Daily",a:"Trainee for 180-day",p:"557003331",ar:"",x:"Office"},
+  {i:"SASL-0533",r:"Daily",a:"Safety officer 90-day",p:"548876608",ar:"",x:"With CM Team"},
+  {i:"SASL-0521",r:"Daily",a:"Safety officer 180-day",p:"535273047",ar:"",x:"With CM Team"},
+  {i:"SASL-0621",r:"Daily",a:"Safety officer 180-day",p:"",ar:"",x:"Silver Area"},
+  {i:"SASL-0617",r:"A",a:"",p:"580301783",ar:"",x:""},
+  {i:"SASL-0616",r:"A",a:"",p:"544743061",ar:"",x:""},
+  {i:"SASL-0607",r:"A",a:"",p:"509812707",ar:"",x:""},
+  {i:"HECL-0211",r:"A",a:"Trainee for 180-day",p:"050-669-6313",ar:"",x:"GIS-02"},
+  {i:"SASL-0605",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"549393646",ar:"",x:""}
+];
+function mapAppr(v){ return {i:v.emp_id||v.i, r:v.rotation||v.r, a:v.approval||v.a, p:v.phone||v.p, ar:v.aramco_id||v.ar, x:v.area||v.x}; }
+function apprClass(s){
+  s=(s||'').toLowerCase();
+  if(s.includes('trainee')) return 't-wrn';
+  if(s.includes('ongoing')||s.includes('accept')) return 't-per';
+  if(s.includes('pass')||s.includes('wait')) return 't-abs';
+  if(s.includes('safety')) return 't-vio';
+  return 't-oth';
+}
+function renderAppr(){
+  if(!document.getElementById('apprBody')) return;
+  const rows=D.appr||[];
+  document.getElementById('apprCount').textContent=rows.length+' / '+rows.length;
+  document.getElementById('apprSearch').placeholder=(LANG==='ar'?'🔍 بحث بالاسم أو المنطقة...':'🔍 Search name or area...');
+  const st=document.getElementById('apprStats');
+  let html='';
+  [['A'],['B'],['Daily']].forEach(([k])=>{
+    const n=rows.filter(x=>x.r===k).length;
+    html+='<div class="stat"><div class="k">Group '+k+'</div><div class="v" style="color:var(--blue)">'+n+'</div></div>';
+  });
+  html+='<div class="stat"><div class="k">'+esc(T().veh_total)+'</div><div class="v" style="color:var(--green)">'+rows.length+'</div></div>';
+  st.innerHTML=html;
+  const q=(document.getElementById('apprSearch').value||'').toLowerCase();
+  const rot=document.getElementById('apprRot').value;
+  const body=document.getElementById('apprBody'); body.innerHTML='';
+  let shown=0;
+  rows.forEach(x=>{
+    const e=empById(x.i);
+    if(rot && x.r!==rot) return;
+    if(q){
+      const c1=(e?(e.en||e.ar||''):'')+' '+(e?(e.num||''):'')+' '+(x.x||'')+' '+(x.a||'');
+      if(!c1.toLowerCase().includes(q)) return;
+    }
+    shown++;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+esc(e?empName(e):x.i)+'</td><td style="direction:ltr;">'+esc(e?(e.num||''):x.i)+'</td>'
+      +'<td>'+esc(x.r)+'</td><td><span class="tag '+apprClass(x.a)+'">'+esc(x.a||'—')+'</span></td>'
+      +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td><td style="direction:ltr;">'+esc(x.ar||'—')+'</td>'
+      +'<td>'+esc(x.x||'—')+'</td>';
+    body.appendChild(tr);
+  });
+  const ed=document.getElementById('apprEmpty');
+  if(!shown){ ed.classList.remove('hide'); ed.textContent=T().empty; } else ed.classList.add('hide');
+}
+document.getElementById('apprSearch').oninput=renderAppr;
+document.getElementById('apprRot').onchange=renderAppr;
+document.getElementById('apprExportBtn').onclick=async()=>{
+  if(typeof XLSX==='undefined'){ toast('Excel lib'); return; }
+  const a=[]; a.push([T().appr_title]); a.push([]);
+  a.push([T().c_emp,T().c_num,T().appr_rot,T().appr_stat,T().c_phone,T().appr_aramco,T().appr_area]);
+  (D.appr||[]).forEach(x=>{ const e=empById(x.i);
+    a.push([empName(e),e?(e.num||''):'',x.r,x.a,x.p,x.ar,x.x]); });
+  const ws=XLSX.utils.aoa_to_sheet(a);
+  ws['!cols']=[{wch:26},{wch:14},{wch:10},{wch:30},{wch:14},{wch:12},{wch:16}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Approval');
+  XLSX.writeFile(wb,'Aramco_Approval.xlsx'); toast(T().toast_xlsx);
+};
 /* ============ VEHICLES ============ */
 const VEH_MAKES=['Toyota','Hyundai','Nissan','Kia','Chevrolet','Ford','GMC','Honda','Mazda','Mitsubishi','Isuzu','Lexus','MG','Changan','Jetour','Geely','Chery','Suzuki','NO VEHICLE'];
 const VEH_COLOURS=['White','Black','Silver','Grey','Blue','Red','Green','Beige','Gold','Brown','Yellow','Orange','Maroon','Gray','Dark gray','Silver'];
