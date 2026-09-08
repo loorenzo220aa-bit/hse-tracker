@@ -1810,7 +1810,7 @@ function renderAppr(){
     }
     shown++;
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc(e?empName(e):x.i)+'</td><td style="direction:ltr;">'+esc(e?(e.num||''):x.i)+'</td>'
+    tr.innerHTML='<td>'+esc((e&&e.id)?empName(e):(x.i||'—'))+'</td><td style="direction:ltr;">'+esc(e?(e.num||''):x.i)+'</td>'
       +'<td>'+esc(x.r)+'</td><td><span class="tag '+apprClass(x.a)+'">'+esc(x.a||'—')+'</span></td>'
       +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td><td style="direction:ltr;">'+esc(x.ar||'—')+'</td>'
       +'<td>'+esc(x.x||'—')+'</td>'
