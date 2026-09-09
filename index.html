@@ -96,7 +96,7 @@
   .stat:nth-child(4){border-top-color:var(--green);} .stat:nth-child(5){border-top-color:var(--purple);}
   .stat .k{font-size:13px; color:var(--mut); margin-bottom:6px; font-weight:700;}
   .stat .v{font-size:30px; font-weight:900;}
-  .grid.stats6{grid-template-columns:repeat(6,1fr); gap:10px;}
+  .grid.stats6{grid-template-columns:repeat(7,1fr); gap:10px;}
   .stats6 .stat{padding:10px 12px;}
   .stats6 .stat .v{font-size:22px;}
   .stats6 .stat .k{font-size:12px;}
@@ -124,6 +124,7 @@
   .t-per{background:var(--green-bg); color:#047857;}
   .t-oth{background:var(--purple-bg); color:#6d28d9;}
   .t-wrn{background:var(--orange-bg); color:#b45309;}
+  .t-sick{background:#e0f2fe; color:#0284c7;}
   .empdlg{position:fixed; inset:0; background:rgba(15,23,42,.55); backdrop-filter:blur(3px); z-index:999; display:flex; align-items:center; justify-content:center; padding:16px;}
   .empdlg-card{background:#fff; border-radius:20px; max-width:420px; width:100%; max-height:88vh; overflow:auto; padding:26px 22px; position:relative; box-shadow:0 25px 60px rgba(0,0,0,.3); animation:fadeUp .3s ease both;}
   .empdlg-x{position:absolute; top:12px; inset-inline-end:12px; border:none; background:#f1f5f9; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:15px; color:#475569;}
@@ -134,7 +135,7 @@
   .empdlg-row{display:flex; justify-content:space-between; gap:10px; padding:9px 4px; border-top:1px solid var(--line); font-size:14px;}
   .empdlg-row .k{color:var(--mut);}
   .empdlg-row .v{font-weight:800; text-align:end;}
-  .empdlg-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px;}
+  .empdlg-stats{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px;}
   .empdlg-stat{background:#f8fafc; border-radius:12px; padding:8px 4px; text-align:center;}
   .empdlg-stat .n{font-size:19px; font-weight:900;}
   .empdlg-stat .t{font-size:11px; color:var(--mut);}
@@ -264,6 +265,7 @@
     <div class="stat"><div class="k" data-i="s_abs">غيابات (الشهر)</div><div class="v" id="statAbs" style="color:var(--blue)">0</div></div>
     <div class="stat"><div class="k" data-i="s_per">استأذانات (الشهر)</div><div class="v" id="statPer" style="color:var(--green)">0</div></div>
     <div class="stat"><div class="k" data-i="s_wrn">إنذارات (الشهر)</div><div class="v" id="statWrn" style="color:#b45309">0</div></div>
+    <div class="stat"><div class="k" data-i="s_sick">سكليف (الشهر)</div><div class="v" id="statSick" style="color:#0284c7">0</div></div>
     <div class="stat"><div class="k" data-i="s_users">المستخدمون</div><div class="v" id="statUsers" style="color:var(--purple)">0</div></div>
   </div>
 
@@ -331,7 +333,7 @@
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
           <option value="absence" data-i="opt_abs">🚶 غياب</option>
           <option value="permission" data-i="opt_per">✅ استئذان</option>
-          <option value="warning" data-i="opt_wrn">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
+          <option value="warning" data-i="opt_wrn">XX</option><option value="sick" data-i="opt_sick">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
         </select>
       </div>
       <div class="field"><label data-i="l_date">التاريخ</label><input type="date" id="recDate"></div>
@@ -354,7 +356,7 @@
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
           <option value="absence" data-i="opt_abs">🚶 غياب</option>
           <option value="permission" data-i="opt_per">✅ استئذان</option>
-          <option value="warning" data-i="opt_wrn">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
+          <option value="warning" data-i="opt_wrn">XX</option><option value="sick" data-i="opt_sick">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
         </select>
       </div>
       <div><button class="btn btn-sm" id="clearFilt" data-i="clearF">مسح التصفية</button></div>
@@ -380,7 +382,7 @@
       <table>
         <thead><tr>
           <th data-i="c_emp">الموظف</th><th data-i="s_vio">مخالفات</th><th data-i="s_abs">غيابات</th>
-          <th data-i="s_per">استأذانات</th><th data-i="s_wrn">إنذارات</th><th data-i="s_oth">أخرى</th><th data-i="c_total">الإجمالي</th>
+          <th data-i="s_per">استأذانات</th><th data-i="s_wrn">إنذارات</th><th data-i="s_sick">سكليف</th><th data-i="s_oth">أخرى</th><th data-i="c_total">الإجمالي</th>
         </tr></thead>
         <tbody id="sumBody"></tbody>
       </table>
@@ -588,12 +590,12 @@ const I18N={
     login_title:'تسجيل الدخول', login_sub:'نظام متابعة HSE — هونداي الهندسة والإنشاء',
     title:'متابعة المخالفات والغيابات والاستأذانات', subtitle:'هونداي الهندسة والإنشاء | السجل اليومي للموظفين',
     lbl_month:'الشهر التقريري', export:'تصدير Excel',
-    s_emp:'الموظفون المسجلون', s_vio:'مخالفات', s_abs:'غيابات', s_per:'استأذانات', s_oth:'أخرى',s_wrn:'إنذارات', s_users:'المستخدمون', c_total:'الإجمالي',
+    s_emp:'الموظفون المسجلون', s_vio:'مخالفات', s_abs:'غيابات', s_per:'استأذانات', s_oth:'أخرى',s_sick:'سكليف',s_wrn:'إنذارات', s_users:'المستخدمون', c_total:'الإجمالي',
     t_users:'إدارة الزملاء (المستخدمون)', u_name:'اسم الزميل', u_role:'الصلاحية', u_roleAdmin:'مدير (Admin)', u_roleUser:'مستخدم (User)', u_add:'＋ إضافة زميل',
     t_emp:'إضافة موظف جديد', l_empname:'اسم الموظف (عربي)', l_empname2:'الاسم بالإنجليزية', l_empnum:'الرقم الوظيفي',
     l_dept:'القسم / المهنة', addEmp:'➕ إضافة',
     t_rec:'تسجيل حركة يومية (مخالفة / غياب / استئذان)', l_recEmp:'الموظف', l_type:'النوع',
-    opt_vio:'🚫 مخالفة', opt_abs:'🚶 غياب', opt_per:'✅ استئذان', opt_oth:'📌 أخرى',opt_wrn:'⚠️ إنذار',
+    opt_vio:'🚫 مخالفة', opt_abs:'🚶 غياب', opt_per:'✅ استئذان', opt_oth:'📌 أخرى',opt_sick:'🤒 سكليف',opt_wrn:'⚠️ إنذار',
     l_date:'التاريخ', l_note:'الملاحظة / تفاصيل المخالفة', saveRec:'✓ حفظ الحركة', l_user:'اسم المستخدم', l_pass:'كلمة المرور', login:'دخول',
     t_list:'سجل الحركات', l_filtEmp:'تصفية بالموظف', l_filtType:'تصفية بالنوع', f_all:'الكل', clearF:'مسح التصفية',
     c_date:'التاريخ', c_emp:'الموظف', c_num:'الرقم الوظيفي', c_type:'النوع', c_note:'الملاحظة', c_by:'سجّله',
@@ -634,12 +636,12 @@ const I18N={
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
     title:'Violations, Absences & Permits Tracker', subtitle:'Hyundai Engineering & Construction | Daily Employee Log',
     lbl_month:'Report Month', export:'Export Excel',
-    s_emp:'Registered Employees', s_vio:'Violations', s_abs:'Absences', s_per:'Permits', s_oth:'Others',s_wrn:'Warnings', s_users:'Users', c_total:'Total',
+    s_emp:'Registered Employees', s_vio:'Violations', s_abs:'Absences', s_per:'Permits', s_oth:'Others',s_sick:'Sick Leave',s_wrn:'Warnings', s_users:'Users', c_total:'Total',
     t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'+ Add Colleague',
     t_emp:'Add New Employee', l_empname:'Employee Name (Arabic)', l_empname2:'Name (English)', l_empnum:'Job Number',
     l_dept:'Department / Job', addEmp:'+ Add',
     t_rec:'Daily Entry (Violation / Absence / Permit)', l_recEmp:'Employee', l_type:'Type',
-    opt_vio:'Violation', opt_abs:'Absence', opt_per:'Permit', opt_oth:'Other',opt_wrn:'Warning',
+    opt_vio:'Violation', opt_abs:'Absence', opt_per:'Permit', opt_oth:'Other',opt_sick:'Sick Leave',opt_wrn:'Warning',
     l_date:'Date', l_note:'Note / Violation Details', saveRec:'Save Entry', l_user:'Username', l_pass:'Password', login:'Sign In',
     t_list:'Records Log', l_filtEmp:'Filter by Employee', l_filtType:'Filter by Type', f_all:'All', clearF:'Clear Filters',
     c_date:'Date', c_emp:'Employee', c_num:'Job No.', c_type:'Type', c_note:'Note', c_by:'Recorded by',
@@ -985,7 +987,7 @@ document.getElementById('exportEmpBtn').onclick=()=>{
   toast(T().export_emp_ok);
 };
 
-const TYPE_TAG={violation:'t-vio',absence:'t-abs',permission:'t-per',warning:'t-wrn',other:'t-oth'};
+const TYPE_TAG={violation:'t-vio',absence:'t-abs',permission:'t-per',warning:'t-wrn',sick:'t-sick',other:'t-oth'};
 function monthKey(dateStr){ return (dateStr||'').slice(0,7); }
 function curMonth(){ return document.getElementById('monthPicker').value; }
 function empName(e){ return LANG==='ar'?(e.ar||e.en):(e.en||e.ar); }
@@ -1002,6 +1004,7 @@ function renderStats(){
   document.getElementById('statAbs').textContent=cnt('absence');
   document.getElementById('statPer').textContent=cnt('permission');
   document.getElementById('statWrn').textContent=cnt('warning');
+  document.getElementById('statSick').textContent=cnt('sick');
 }
 
 function renderRecs(){
@@ -1016,8 +1019,8 @@ function renderRecs(){
   emptyDiv.classList.add('hide');
   recs.forEach(r=>{
     const e=empById(r.empId); const tr=document.createElement('tr');
-    const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',other:'أخرى'}[r.type]
-                  :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',other:'Other'}[r.type];
+    const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',sick:'سكليف',other:'أخرى'}[r.type]
+                  :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',sick:'Sick Leave',other:'Other'}[r.type];
     let noteDisplay = esc(r.note);
     let fileLink = '';
     try {
@@ -1038,13 +1041,13 @@ function renderSum(){
   const eDiv=document.getElementById('sumEmpty');
   if(!recs.length || !D.emp.length){ eDiv.classList.remove('hide'); return;}
   eDiv.classList.add('hide');
-  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,oth:0,tot:0});
+  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0});
   recs.forEach(r=>{ if(!map[r.empId]) return; const o=map[r.empId];
-    if(r.type==='violation')o.vio++; else if(r.type==='absence')o.abs++; else if(r.type==='permission')o.per++; else if(r.type==='warning')o.wrn++; else o.oth++; o.tot++; });
+    if(r.type==='violation')o.vio++; else if(r.type==='absence')o.abs++; else if(r.type==='permission')o.per++; else if(r.type==='warning')o.wrn++; else if(r.type==='sick')o.sick++; else o.oth++; o.tot++; });
   sortedEmp().forEach(e=>{
-    const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,oth:0,tot:0};
+    const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0};
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td><td style="color:#b45309;font-weight:700">'+o.wrn+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
+    tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td><td style="color:#b45309;font-weight:700">'+o.wrn+'</td><td style="color:#0284c7;font-weight:700">'+o.sick+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
     body.appendChild(tr);
   });
   const sc=document.getElementById('sumCountLbl'); if(sc) sc.textContent=document.querySelectorAll('#sumBody tr').length;
@@ -1152,20 +1155,20 @@ function today(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); retu
 document.getElementById('exportBtn').onclick=()=>{
   const m=curMonth();
   const recs=D.rec.filter(r=>monthKey(r.date)===m).sort((a,b)=>a.date.localeCompare(b.date));
-  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,oth:0,tot:0});
+  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0});
   recs.forEach(r=>{ const o=map[r.empId]; if(!o) return;
-    if(r.type==='violation')o.vio++;else if(r.type==='absence')o.abs++;else if(r.type==='permission')o.per++;else if(r.type==='warning')o.wrn++;else o.oth++;o.tot++;});
+    if(r.type==='violation')o.vio++;else if(r.type==='absence')o.abs++;else if(r.type==='permission')o.per++;else if(r.type==='warning')o.wrn++;else if(r.type==='sick')o.sick++;else o.oth++;o.tot++;});
   const a=[];a.push([T().title]); a.push([LANG==='ar'?'الشهر':'Month', m]); a.push([]);
-  const hh=LANG==='ar'?['الموظف','الرقم الوظيفي','القسم','مخالفات','غيابات','استأذانات','إنذارات','أخرى','الإجمالي']
-                    :['Employee','Job No.','Department','Violations','Absences','Permits','Warnings','Others','Total'];
+  const hh=LANG==='ar'?['الموظف','الرقم الوظيفي','القسم','مخالفات','غيابات','استأذانات','إنذارات','سكليف','أخرى','الإجمالي']
+                    :['Employee','Job No.','Department','Violations','Absences','Permits','Warnings','Sick Leave','Others','Total'];
   a.push(hh);
-  sortedEmp().forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,oth:0,tot:0};
-    a.push([empName(e),e.num||'',e.dept||'',o.vio,o.abs,o.per,o.wrn,o.oth,o.tot]);});
+  sortedEmp().forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0};
+    a.push([empName(e),e.num||'',e.dept||'',o.vio,o.abs,o.per,o.wrn,o.sick,o.oth,o.tot]);});
   a.push([]); a.push([]);
   a.push(LANG==='ar'?['التاريخ','الموظف','الرقم الوظيفي','النوع','سجّله','الملاحظة']
                     :['Date','Employee','Job No.','Type','Recorded by','Note']);
-  const tmap=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',other:'أخرى'}
-                       :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',other:'Other'};
+  const tmap=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',sick:'سكليف',other:'أخرى'}
+                       :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',sick:'Sick Leave',other:'Other'};
   recs.forEach(r=>{ const e=empById(r.empId);
     a.push([r.date, empName(e), e.num||'', tmap[r.type]||r.type, userNameBy(r.by), r.note]); });
   const ws=XLSX.utils.aoa_to_sheet(a);
@@ -1323,8 +1326,8 @@ function openEmpDlg(num, photoSrc){
   const nmEn=e?(e.en||''):'', nmAr=e?(e.ar||''):'';
   const pos=e?(e.dept||''):'', phone=e?(e.phone||''):'', plate=e?(e.plate||''):'';
   const grp=e?empGroup(e):STAFF_GROUP;
-  const LBL=LANG==='ar'?{g:'المجموعة',p:'القسم / المهنة',ph:'رقم الهاتف',pl:'رقم اللوحة',na:'—',ms:'حركات الشهر الحالي',v:'مخالفات',a:'غيابات',pm:'استئذانات',w:'إنذارات'}
-    :{g:'Group',p:'Department',ph:'Phone',pl:'Plate No.',na:'—',ms:'Current month records',v:'Violations',a:'Absences',pm:'Permits',w:'Warnings'};
+  const LBL=LANG==='ar'?{g:'المجموعة',p:'القسم / المهنة',ph:'رقم الهاتف',pl:'رقم اللوحة',na:'—',ms:'حركات الشهر الحالي',v:'مخالفات',a:'غيابات',pm:'استئذانات',w:'إنذارات',sk:'سكليف'}
+    :{g:'Group',p:'Department',ph:'Phone',pl:'Plate No.',na:'—',ms:'Current month records',v:'Violations',a:'Absences',pm:'Permits',w:'Warnings',sk:'Sick'};
   const ph=photoSrc||(e&&e.photo)||null;
   const init=staffInitials(nmEn||nmAr||key);
   document.getElementById('empDlgBody').innerHTML=
@@ -1342,6 +1345,7 @@ function openEmpDlg(num, photoSrc){
     +'<div class="empdlg-stat"><div class="n" style="color:var(--blue)">'+c('absence')+'</div><div class="t">'+LBL.a+'</div></div>'
     +'<div class="empdlg-stat"><div class="n" style="color:var(--green)">'+c('permission')+'</div><div class="t">'+LBL.pm+'</div></div>'
     +'<div class="empdlg-stat"><div class="n" style="color:#b45309">'+c('warning')+'</div><div class="t">'+LBL.w+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:#0284c7">'+c('sick')+'</div><div class="t">'+LBL.sk+'</div></div>'
     +'</div>';
   document.getElementById('empDlg').classList.remove('hide');
 }
