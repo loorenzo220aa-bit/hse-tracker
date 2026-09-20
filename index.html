@@ -1412,7 +1412,7 @@ document.getElementById('attExportBtn').onclick = async () => {
   // --- Sheet A ---
   const wsA = wb.addWorksheet(
     mk === 'ar' ? 'قائمة A ( HDEC + HEC )' : 'List A ( HDEC + HEC )');
-  wsA.properties!.tabColor = { argb: NAVY };
+  wsA.properties = wsA.properties || {}; wsA.properties.tabColor = { argb: NAVY };
   wsA.mergeCells('A1:H1');
   wsA.getCell('A1').value = mk === 'ar'
     ? `${T().att_sheetA} — ${groupA.length} موظف (HDEC + HEC)`
@@ -1444,7 +1444,7 @@ document.getElementById('attExportBtn').onclick = async () => {
   // --- Sheet B ---
   const wsB = wb.addWorksheet(
     mk === 'ar' ? 'قائمة B ( HDEC + HEC )' : 'List B ( HDEC + HEC )');
-  wsB.properties!.tabColor = { argb: BLUE };
+  wsB.properties = wsB.properties || {}; wsB.properties.tabColor = { argb: BLUE };
   wsB.mergeCells('A1:H1');
   wsB.getCell('A1').value = mk === 'ar'
     ? `${T().att_sheetB} — ${groupB.length} موظف (HDEC + HEC)`
@@ -1824,7 +1824,7 @@ document.getElementById('listsExportBtn').onclick=async()=>{
   for(let s=0;s<ws.length;s++){
     const [arTitle,enTitle,body]=ws[s];
     const sh=wb.addWorksheet(arTitle+' / '+enTitle);
-    sh.properties!.tabColor={argb:'FF'+blue3.map(x=>x.toString(16).padStart(2,'0')).join('')};
+    sh.properties.tabColor={argb:'FF'+blue3.map(x=>x.toString(16).padStart(2,'0')).join('')};
     const cols=[{w:6},{w:34},{w:14}];
     cols.forEach((c,i)=>sh.columns.push({w:c.w}));
     // title row
@@ -1939,7 +1939,7 @@ document.getElementById('listsExportBtn').onclick=async()=>{
   for(let s=0;s<ws.length;s++){
     const [arTitle,enTitle,body]=ws[s];
     const sh=wb.addWorksheet(arTitle+' / '+enTitle);
-    sh.properties!.tabColor={argb:'FF0EA5E9'};
+    sh.properties.tabColor={argb:'FF0EA5E9'};
     sh.columns.push({w:6},{w:36},{w:16});
     sh.mergeCells('A1:C1');
     sh.getCell('A1').value=(mk==='ar'?arTitle:enTitle)+' — '+rows.length+' موظف';
@@ -1957,7 +1957,7 @@ document.getElementById('listsExportBtn').onclick=async()=>{
         if(idx%2===0) r.eachCell(c=>c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEBF8FF'}});
       }
     });
-    sh.getRow(1).eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'});c.font={color:'FFFFFF',bold:true};});
+    sh.getRow(1).eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'}};c.font={color:'FFFFFF',bold:true};});
   }
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
