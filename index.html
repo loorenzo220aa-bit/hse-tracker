@@ -1795,16 +1795,6 @@ function renderLists(){
   document.getElementById('listsCountLbl').textContent=totalAll+' موظف';
 }
 
-document.getElementById('listSubA').onclick=()=>{
-  document.getElementById('listSubA').classList.add('active');
-  document.getElementById('listSubB').classList.remove('active');
-  renderLists();
-};
-document.getElementById('listSubB').onclick=()=>{
-  document.getElementById('listSubB').classList.add('active');
-  document.getElementById('listSubA').classList.remove('active');
-  renderLists();
-};
 document.getElementById('listsSearch').oninput=renderLists;
 document.getElementById('listsGroupFilter').onchange=renderLists;
 
@@ -1819,32 +1809,30 @@ document.getElementById('listExportBtn').onclick=async()=>{
     if(gf!=='all' && d.group!==gf) return false;
     return d.list===listN;
   });
-  if(!rows.length){ toast(T().lists_export_a_done); return; }
+  if(!rows.length){ toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN); return; }
   const wb=new ExcelJS.Workbook();
   wb.creator='HSE Tracker';
-  const ws=wb.addWorksheet(mk==='ar'?'قائمة A — HDEC + HEC':'List A — HDEC + HEC');
-  ws.properties.tabColor={argb:'FF0EA5E9'};
-  const cols=[{w:5},{w:32},{w:14},{w:14},{w:16},{w:10},{w:14},{w:14},{w:26}];
+  const ws=wb.addWorksheet(mk==='ar'?('قائمة '+listN+' — HDEC + HEC'):('List '+listN+' — HDEC + HEC'));
+  ws.properties.tabColor={argb:listN==='A'?'FF0EA5E9':'FF0284C7'};
+  const cols=[{w:5},{w:32},{w:14},{w:26},{w:16},{w:10},{w:14},{w:14}];
   cols.forEach(c=>ws.columns.push(c));
-  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','المجموعة','المنطقة','القائمة','مجموعة الدوام','الحالة','القسم / المهنة','الاسم (إنجليزي)']:
-                     ['#','Employee','Job No.','Group','Area','List','Rotation','Status','Department','Name (EN)'];
-  ws.mergeCells('A1:J1');
-  ws.getCell('A1').value=(mk==='ar'?'قائمة A':'List A')+' — '+rows.length+' موظف (HDEC + HEC)';
+  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','القسم / المهنة','المنطقة','القائمة','مجموعة الدوام','الحالة']:['#','Employee','Job No.','Department','Area','List','Rotation','Status'];
+  ws.mergeCells('A1:H1');
+  ws.getCell('A1').value=(mk==='ar'?('قائمة '+listN):('List '+listN))+' — '+rows.length+' موظف (HDEC + HEC)';
   ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
-  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'}};
+  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
   ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
   ws.rowHeight=34;
   hd.forEach((h,i)=>{
-    const c=ws.getCell(2,i+1);
-    c.value=h; c.font={bold:true,color:'FFFFFF'};
-    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'}};
+    const c=ws.getCell(2,i+1); c.value=h; c.font={bold:true,color:'FFFFFF'};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
     c.alignment={horizontal:'center',vertical:'middle'};
   });
   ws.rowHeight=22;
   rows.forEach((d,i)=>{
-    const grp=d.group||'';
-    const isHEC=grp==='HEC';
-    const r=ws.addRow([i+1,d.emp_id||'',grp,d.area||'',d.list||'',d.rotation||'',d.status||'',d.designation||'']);
+    const grp2=d.group||''; const isHEC=grp2==='HEC';
+    ws.addRow([i+1,d.name_en||'',d.emp_id||'',d.designation||'',d.area||'',d.list||'',d.rotation||'',d.status||'']);
+    const r=ws.lastRow;
     r.eachCell(c=>{
       c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
       c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
@@ -1856,61 +1844,13 @@ document.getElementById('listExportBtn').onclick=async()=>{
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url;
-  a.download=(mk==='ar'?'قائمة_A_':'List_A_')+(new Date()).getFullYear()+'.xlsx';
+  a.download=(mk==='ar'?'قائمة_':'List_')+listN+'_'+(new Date()).getFullYear()+'.xlsx';
   a.click(); URL.revokeObjectURL(url);
-  toast(T().list_export_a_done||'✅ تم تصدير قائمة A');
+  toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN);
 };
 
 /* ---- Export List B ---- */
-document.getElementById('listExportB').onclick=async()=>{
-  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
-  const mk=localeKey();
-  const gf=document.getElementById('listsGroupFilter').value;
-  const rows=DEPLOY_DATA.filter(d=>{
-    if(gf!=='all' && d.group!==gf) return false;
-    return d.list==='B';
-  });
-  if(!rows.length){ toast(T().lists_export_b_done); return; }
-  const wb=new ExcelJS.Workbook();
-  wb.creator='HSE Tracker';
-  const ws=wb.addWorksheet(mk==='ar'?'قائمة B — HDEC + HEC':'List B — HDEC + HEC');
-  ws.properties.tabColor={argb:'FF0284C7'};
-  const cols=[{w:5},{w:32},{w:14},{w:14},{w:16},{w:10},{w:14},{w:14},{w:26}];
-  cols.forEach(c=>ws.columns.push(c));
-  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','المجموعة','المنطقة','القائمة','مجموعة الدوام','الحالة','القسم / المهنة','الاسم (إنجليزي)']:
-                     ['#','Employee','Job No.','Group','Area','List','Rotation','Status','Department','Name (EN)'];
-  ws.mergeCells('A1:J1');
-  ws.getCell('A1').value=(mk==='ar'?'قائمة B':'List B')+' — '+rows.length+' موظف (HDEC + HEC)';
-  ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
-  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0284C7'}};
-  ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-  ws.rowHeight=34;
-  hd.forEach((h,i)=>{
-    const c=ws.getCell(2,i+1);
-    c.value=h; c.font={bold:true,color:'FFFFFF'};
-    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0284C7'}};
-    c.alignment={horizontal:'center',vertical:'middle'};
-  });
-  ws.rowHeight=22;
-  rows.forEach((d,i)=>{
-    const grp=d.group||'';
-    const isHEC=grp==='HEC';
-    const r=ws.addRow([i+1,d.emp_id||'',grp,d.area||'',d.list||'',d.rotation||'',d.status||'',d.designation||'']);
-    r.eachCell(c=>{
-      c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
-      c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
-      c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-    });
-    r.height=19;
-  });
-  const buf=await wb.xlsx.writeBuffer();
-  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url;
-  a.download=(mk==='ar'?'قائمة_B_':'List_B_')+(new Date()).getFullYear()+'.xlsx';
-  a.click(); URL.revokeObjectURL(url);
-  toast(T().list_export_b_done||'✅ تم تصدير قائمة B');
-};
+
 
 document.getElementById('depBody').addEventListener('click',async e=>{
   const btn=e.target.closest('[data-depdel]'); if(!btn) return;
@@ -2457,104 +2397,8 @@ renderAuthUI();
 })();
 </script>
 </body>
-</htmldocument.getElementById('listExportBtn').onclick=async()=>{
-  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
-  const mk=localeKey();
-  const grp=document.getElementById('listExportGroup').value;
-  const listN=(grp==='A'?'A':'B');
-  const gf=document.getElementById('listsGroupFilter').value;
-  const rows=DEPLOY_DATA.filter(d=>{
-    if(gf!=='all' && d.group!==gf) return false;
-    return d.list===listN;
-  });
-  if(!rows.length){ toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN); return; }
-  const wb=new ExcelJS.Workbook();
-  wb.creator='HSE Tracker';
-  const ws=wb.addWorksheet(mk==='ar'?('قائمة '+listN+' — HDEC + HEC'):('List '+listN+' — HDEC + HEC'));
-  ws.properties.tabColor={argb:listN==='A'?'FF0EA5E9':'FF0284C7'};
-  const cols=[{w:5},{w:32},{w:14},{w:26},{w:16},{w:10},{w:14},{w:14}];
-  cols.forEach(c=>ws.columns.push(c));
-  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','القسم / المهنة','المنطقة','القائمة','مجموعة الدوام','الحالة']:['#','Employee','Job No.','Department','Area','List','Rotation','Status'];
-  ws.mergeCells('A1:H1');
-  ws.getCell('A1').value=(mk==='ar'?('قائمة '+listN):('List '+listN))+' — '+rows.length+' موظف (HDEC + HEC)';
-  ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
-  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
-  ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-  ws.rowHeight=34;
-  hd.forEach((h,i)=>{
-    const c=ws.getCell(2,i+1); c.value=h; c.font={bold:true,color:'FFFFFF'};
-    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
-    c.alignment={horizontal:'center',vertical:'middle'};
-  });
-  ws.rowHeight=22;
-  rows.forEach((d,i)=>{
-    const grp2=d.group||''; const isHEC=grp2==='HEC';
-    ws.addRow([i+1,d.name_en||'',d.emp_id||'',d.designation||'',d.area||'',d.list||'',d.rotation||'',d.status||'']);
-    const r=ws.lastRow;
-    r.eachCell(c=>{
-      c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
-      c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
-      c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-    });
-    r.height=19;
-  });
-  const buf=await wb.xlsx.writeBuffer();
-  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url;
-  a.download=(mk==='ar'?'قائمة_':'List_')+listN+'_'+(new Date()).getFullYear()+'.xlsx';
-  a.click(); URL.revokeObjectURL(url);
-  toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN);
-};/* ---- Export List B ---- */
-document.getElementById('listExportB').onclick=async()=>{
-  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
-  const mk=localeKey();
-  const gf=document.getElementById('listsGroupFilter').value;
-  const rows=DEPLOY_DATA.filter(d=>{
-    if(gf!=='all' && d.group!==gf) return false;
-    return d.list==='B';
-  });
-  if(!rows.length){ toast(T().lists_export_b_done); return; }
-  const wb=new ExcelJS.Workbook();
-  wb.creator='HSE Tracker';
-  const ws=wb.addWorksheet(mk==='ar'?'قائمة B — HDEC + HEC':'List B — HDEC + HEC');
-  ws.properties.tabColor={argb:'FF0284C7'};
-  const cols=[{w:5},{w:32},{w:14},{w:14},{w:16},{w:10},{w:14},{w:14},{w:26}];
-  cols.forEach(c=>ws.columns.push(c));
-  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','المجموعة','المنطقة','القائمة','مجموعة الدوام','الحالة','القسم / المهنة','الاسم (إنجليزي)']:
-                     ['#','Employee','Job No.','Group','Area','List','Rotation','Status','Department','Name (EN)'];
-  ws.mergeCells('A1:J1');
-  ws.getCell('A1').value=(mk==='ar'?'قائمة B':'List B')+' — '+rows.length+' موظف (HDEC + HEC)';
-  ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
-  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0284C7'}};
-  ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-  ws.rowHeight=34;
-  hd.forEach((h,i)=>{
-    const c=ws.getCell(2,i+1);
-    c.value=h; c.font={bold:true,color:'FFFFFF'};
-    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0284C7'}};
-    c.alignment={horizontal:'center',vertical:'middle'};
-  });
-  ws.rowHeight=22;
-  rows.forEach((d,i)=>{
-    const grp=d.group||'';
-    const isHEC=grp==='HEC';
-    const r=ws.addRow([i+1,d.emp_id||'',grp,d.area||'',d.list||'',d.rotation||'',d.status||'',d.designation||'']);
-    r.eachCell(c=>{
-      c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
-      c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
-      c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-    });
-    r.height=19;
-  });
-  const buf=await wb.xlsx.writeBuffer();
-  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url;
-  a.download=(mk==='ar'?'قائمة_B_':'List_B_')+(new Date()).getFullYear()+'.xlsx';
-  a.click(); URL.revokeObjectURL(url);
-  toast(T().list_export_b_done||'✅ تم تصدير قائمة B');
-};
+</html/* ---- Export List B ---- */
+
 
 document.getElementById('depBody').addEventListener('click',async e=>{
   const btn=e.target.closest('[data-depdel]'); if(!btn) return;
