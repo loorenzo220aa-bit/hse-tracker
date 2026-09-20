@@ -112,9 +112,17 @@
     background:#fff; color:var(--txt); font-size:14px; outline:none; transition:.2s;}
   input:focus,select:focus,textarea:focus{border-color:var(--acc); box-shadow:0 0 0 4px rgba(14,165,233,.12);}
   textarea{resize:vertical; min-height:60px;}
-  .tbl-holder{overflow-x:auto; border-radius:14px;}
-  table{width:100%; border-collapse:collapse; font-size:14px; background:#fff; border-radius:14px; overflow:hidden;}
-  th,td{padding:11px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:normal; word-wrap:break-word; word-break:break-word;}
+  .tbl-holder{overflow-x:hidden; border-radius:14px;}
+    table{width:100%; border-collapse:collapse; font-size:14px; background:#fff; border-radius:14px; overflow:hidden; table-layout:fixed;}
+    th,td{padding:11px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:normal; word-wrap:break-word; word-break:break-word;}
+    @media(max-width:600px){ th,td{padding:8px 8px;font-size:12px;} }
+    .lists-table th:nth-child(1){width:30px;}
+    .lists-table th:nth-child(2){width:80px;}
+    .lists-table th:nth-child(3){width:35%;}
+    .lists-table th:nth-child(4){width:20%;}
+    .lists-table th:nth-child(5){width:15%;}
+    .lists-table th:nth-child(6){width:15%;}
+    .lists-table th:nth-child(7){width:10%;}
   th{color:#0369a1; font-weight:800; font-size:12px; background:#f0f9ff;}
   tr:hover td{background:#f0f9ff;}
   html[dir="ltr"] th,html[dir="ltr"] td{text-align:left;}
@@ -165,7 +173,7 @@
   .staff-init{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#0284c7;}
   .staff-info{padding:10px 12px;}
   .staff-name{font-size:13px;font-weight:800;line-height:1.35;min-height:36px;}
-  .staff-pos{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .staff-pos{font-size:11px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;max-height:2.6em;line-height:1.3;}
   .staff-id{display:inline-block;margin-top:6px;font-size:11px;font-weight:800;color:#047857;background:var(--green-bg);padding:2px 9px;border-radius:8px;direction:ltr;}
   .mut{}
   details.coll{margin-top:16px;background:var(--card2);border:2px solid var(--line);border-radius:14px;overflow:hidden;}
