@@ -999,8 +999,47 @@ document.getElementById('vehExportBtn').onclick=async()=>{
 
 /* ============ TOAST ============ */
 let toastT;
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+function currentUser(){ return D.users.find(u=>u.user===SESSION)||null; }
+function isAdmin(){ const u=currentUser(); return !!u && u.role==='admin'; }
+
+function renderAuthUI(){
+  const u=currentUser();
+  const isAdminUser=isAdmin();
+  document.getElementById('appWrap').classList.toggle('hide', !u);
+  document.getElementById('loginScrim').classList.toggle('hide', !!u);
+  if(!u) return;
+  const who=document.getElementById('whoName');
+  who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
+  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
+  renderUsers();
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh(); renderAppr();
+}
+
+function doLogout(){ SESSION=null; document.getElementById('lgPass').value=''; renderAuthUI(); applyLang(); }
+function buildLogout(){
+  const hd=document.querySelector('.hd-actions');
+  if(document.getElementById('logoutBtn')) return;
+  const b=document.createElement('button'); b.id='logoutBtn'; b.className='btn btn-sm hbtn';
+  b.style.cssText='background:var(--red);color:#fff;border:none;';
+  b.textContent='⇥ '+T().logout; b.onclick=doLogout; hd.appendChild(b);
+}
+buildLogout();
+
+/* ============ LOGIN ============ */
+document.getElementById('lgBtn').onclick = () => {
+  const u = document.getElementById('lgUser').value.trim();
+  const p = document.getElementById('lgPass').value;
+  const err = document.getElementById('lgErr');
+  err.textContent = '';
+  if (!u || !p) { err.textContent = T().err_fill || 'يرجى إدخال اسم المستخدم وكلمة المرور'; return; }
+  const found = (D.users || []).find(x => (x.user || x.username) === u && (x.pass || x.password) === p);
+  if (!found) { err.textContent = T().err_login || 'اسم المستخدم или كلمة المرور غير صحيحة'; return; }
+  SESSION = { id: found.id, name: found.name, role: found.role };
+  document.getElementById('loginScrim').style.display = 'none';
+  renderAuthUI();
+  toast('✅ مرحباً ' + (found.name || u));
+};
+document.getElementById('lgPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('lgBtn').click(); });
 
 /* ============ SEED EMPLOYEES TO SUPABASE ============ */
 
