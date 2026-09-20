@@ -466,32 +466,18 @@
         <option value="HDEC">HDEC</option>
         <option value="HEC">HEC</option>
       </select>
-      <div><button class="btn btn-green" id="listsExportBtn">📥 <span data-i="lists_export">تصدير قوائم A/B Excel</span></button></div>
     </div>
-    <div style="margin-top:14px;">
-      <div id="listsSectionA" style="margin-bottom:18px;"></div>
-      <div id="listsSectionB" style="margin-bottom:18px;"></div>
-      <div id="listsSectionNone" style="margin-bottom:18px;"></div>
+    <div class="subtabs" style="margin-top:14px;margin-bottom:10px;">
+      <button class="btn subtab active" id="listSubA">📋 قائمة A</button>
+      <button class="btn subtab" id="listSubB">📋 قائمة B</button>
     </div>
-  </div>
-  </div><!-- /viewLists -->
-
-  <div id="viewLists" class="hide">
-  <div class="card">
-    <h2><span class="ic">📋</span><span data-i="lists_title">القوائم (A / B) — الموظفين بحسب القائمة</span> <span class="mut" id="listsCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
-    <div class="frow" style="flex-wrap:wrap;gap:10px;">
-      <div class="field" style="max-width:360px;"><input id="listsSearch" placeholder="بحث..."></div>
-      <select id="listsGroupFilter" style="min-width:140px;">
-        <option value="all">كل المجموعات</option>
-        <option value="HDEC">HDEC</option>
-        <option value="HEC">HEC</option>
-      </select>
-      <div><button class="btn btn-green" id="listsExportBtn">📥 <span data-i="lists_export">تصدير قوائم A/B Excel</span></button></div>
+    <div style="margin-top:6px;">
+      <div id="listsSectionA" style="margin-bottom:14px;"></div>
+      <div id="listsSectionB" style="margin-bottom:14px;"></div>
     </div>
-    <div style="margin-top:14px;">
-      <div id="listsSectionA" style="margin-bottom:18px;"></div>
-      <div id="listsSectionB" style="margin-bottom:18px;"></div>
-      <div id="listsSectionNone" style="margin-bottom:18px;"></div>
+    <div class="frow" style="margin-top:6px;gap:10px;">
+      <button class="btn btn-green" id="listExportA">📥 <span data-i="list_export_a">تصدير قائمة A (Excel)</span></button>
+      <button class="btn btn-green" id="listExportB">📥 <span data-i="list_export_b">تصدير قائمة B (Excel)</span></button>
     </div>
   </div>
   </div><!-- /viewLists -->
@@ -675,12 +661,15 @@ const I18N={
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
     dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
-    ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅', tab_lists:'القوائم (A / B)', lists_title:'القوائم (A / B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
+    ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً', set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅', tab_lists:'القوائم (A / B)', lists_title:'القوائم (A / B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export_a:'تصدير قائمة A (Excel)',
+    lists_export_b:'تصدير قائمة B (Excel)',
+    lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
     att_export:'تصدير حضور الموظفين (Excel)', att_arabic:'الاسم العربي', att_english:'الاسم الإنجليزي',
     att_jobno:'الرقم الوظيفي', att_dept:'القسم / المهنة', att_group:'المجموعة', att_list:'القائمة',
     att_rot:'مجموعة الدوام', att_status:'الحالة', att_sheetA:'قائمة A', att_sheetB:'قائمة B',
     att_empty:'لا توجد بيانات للتصدير — سجّل توزيعات من تبويب التوزيع أولاً',
-    tab_lists:'القوائم (A / B)', lists_title:'القوائم (A / B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين'
+    list_export_a_done:'✅ تم تصدير قائمة A',
+    list_export_b_done:'✅ تم تصدير قائمة B',
   },
   en:{
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
@@ -731,7 +720,8 @@ const I18N={
     att_jobno:'Job No.', att_dept:'Department / Job', att_group:'Group', att_list:'List',
     att_rot:'Rotation Group', att_status:'Status', att_sheetA:'List A', att_sheetB:'List B',
     att_empty:'No data to export — save deployments from the Deployment tab first',
-    tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count'
+    list_export_a_done:'✅ List A exported',
+    list_export_b_done:'✅ List B exported',
   }
 };
 const T=()=>I18N[LANG];
@@ -1751,220 +1741,174 @@ function renderLists(){
     return ((e.en||'')+' '+(e.ar||'')+' '+(e.num||'')+' '+(d.area||'')).toLowerCase().includes(q);
   };
   const mk=localeKey();
+  const activeSub=document.getElementById('listSubA').classList.contains('active')?'A':'B';
 
-  const buildSection=(target,listName,rows)=>{
+  function sectionInfo(listName){
+    if(mk==='ar'){
+      if(listName==='A') return ['📋 قائمة A','الموظفين المسجلين في قائمة A'];
+      if(listName==='B') return ['📋 قائمة B','الموظفين المسجلين في قائمة B'];
+    } else {
+      if(listName==='A') return ['📋 List A','Employees registered in List A'];
+      if(listName==='B') return ['📋 List B','Employees registered in List B'];
+    }
+  }
+
+  function companySection(target,company,rows){
     target.innerHTML='';
-    const [secH,secI]=sectionInfo(listName);
-    if(!rows.length){ target.innerHTML='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--mut);font-size:14px;">📭 '+esc(secI)+'</div>'; return; }
+    if(!rows.length){ target.innerHTML='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;color:var(--mut);font-size:13px;margin-bottom:8px;">📭 '+(mk==='ar'?company+' — لا يوجد':(company+(company==='HDEC'?' — Hyundai E&C':' — Consultant')))+'</div>'; return; }
+    const arComp = mk==='ar' ? (company==='HDEC'?'شركة HDEC 💙':'شركة HEC 💛') : (company+' '+(company==='HDEC'?'(Hyundai E&C)':'Consultant'));
     const tbl=document.createElement('div'); tbl.className='tbl-holder';
-    let html='<table><thead><tr><th>#</th><th data-i="lists_col_num">'+(mk==="ar"?T().lists_col_num:T().lists_col_num)+'</th><th data-i="lists_col_emp">'+(mk==="ar"?T().lists_col_emp:T().lists_col_emp)+'</th><th>'+T().lists_col_area+'</th><th>'+T().lists_col_list+'</th><th>'+T().lists_col_rot+'</th><th>'+T().lists_col_status+'</th><th>'+T().lists_col_dept+'</th><th>'+T().lists_col_emp+' (EN)</th></tr></thead><tbody>';
+    let html='<div style="background:'+(company==='HDEC'?'#dbeafe':'#fef3c7')+';border-radius:10px;padding:8px 12px;margin-bottom:10px;font-weight:800;font-size:14px;color:'+(company==='HDEC'?'#1e40af':'#92400e')+';">'+arComp+' ('+rows.length+')</div>';
+    html+='<table><thead><tr><th>#</th><th data-i="lists_col_num">'+(mk==="ar"?T().lists_col_num:T().lists_col_num)+'</th><th data-i="lists_col_emp">'+(mk==="ar"?T().lists_col_emp:T().lists_col_emp)+'</th><th>'+T().lists_col_area+'</th><th>'+T().lists_col_list+'</th><th>'+T().lists_col_rot+'</th><th>'+T().lists_col_status+'</th><th>'+T().lists_col_dept+'</th><th>'+(mk==='ar'?'الاسم (إنجليزي)':'Name (EN)')+'</th></tr></thead><tbody>';
     rows.forEach((d,n)=>{ const e=empById(d.empId);
       html+='<tr><td>'+(n+1)+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(empName(e))+'</td><td>'+esc(d.area||'')+'</td><td>'+esc(d.list||'')+'</td><td>'+esc(d.rot||'')+'</td><td>'+esc(d.status||'')+'</td><td>'+esc(e.dept||'')+'</td><td style="direction:ltr;">'+esc(e.en||'')+'</td></tr>'; });
     html+='</tbody></table>';
     tbl.innerHTML=html;
-    target.insertAdjacentHTML('beforeend','<h3 style="font-size:16px;">'+esc(secH)+' ('+rows.length+')</h3>');
     target.appendChild(tbl);
-  };
-
-  function sectionInfo(listName){
-    if(mk==='ar'){
-      if(listName==='A') return ['📋 القائمة A','الموظفين المسجلين في قائمة A'];
-      if(listName==='B') return ['📋 القائمة B','الموظفين المسجلين في قائمة B'];
-      return ['📋 بدون قائمة','الموظفين الذين لم يحددوا قائمة توزيع بعد'];
-    } else {
-      if(listName==='A') return ['📋 List A','Employees registered in List A'];
-      if(listName==='B') return ['📋 List B','Employees registered in List B'];
-      return ['📋 No List','Employees not assigned to any deployment list yet'];
-    }
   }
 
-  const A=[],B=[],None=[];
-  (D.dep||[]).forEach(d=>{
-    if(gf!=='all' && empGroup(empById(d.empId))!==gf) return;
-    if(!match(d)) return;
-    if(d.list==='A') A.push(d); else if(d.list==='B') B.push(d); else None.push(d);
+  const filtered=(D.dep||[]).filter(d=>{
+    if(gf!=='all' && empGroup(empById(d.empId))!==gf) return false;
+    if(!match(d)) return false;
+    return (d.list||'')===activeSub;
   });
-  buildSection(document.getElementById('listsSectionA'),'A',A);
-  buildSection(document.getElementById('listsSectionB'),'B',B);
-  buildSection(document.getElementById('listsSectionNone'),'(no list)',None);
-  const total=A.length+B.length+None.length;
-  document.getElementById('listsCountLbl').textContent=total+' موظف';
-}
-document.getElementById('listsSearch').oninput=renderLists;
-document.getElementById('listsGroupFilter').onchange=renderLists;
-document.getElementById('listsExportBtn').onclick=async()=>{
-  const mk=localeKey();
-  const gf=document.getElementById('listsGroupFilter').value;
-  const rows=(D.dep||[]).filter(d=>{ if(gf!=='all' && empGroup(empById(d.empId))!==gf) return false; return true; });
-  if(!rows.length){ toast(T().lists_empty); return; }
-  const A=rows.filter(d=>d.list==='A'), B=rows.filter(d=>d.list==='B'), None=rows.filter(d=>d.list&&d.list!=='A'&&d.list!=='B');
-  const buildBlock=(arr,title)=>{
-    let h='';
-    if(mk==='ar'){
-      h='<tr style="background:#0ea5e9;color:#fff;font-weight:800;"><th colspan="3">'+esc(title)+' ('+arr.length+')</th></tr>';
-      arr.forEach((d,i)=>{ const e=empById(d.empId);
-        h+='<tr><td style="direction:ltr;">'+(i+1)+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td></tr>'; });
-      h+='<tr><td colspan="3" style="background:#f0f9ff;font-weight:800;">Consultant موارد / ناخب'+(arr.length)+'</td></tr>';
-    } else {
-      h='<tr style="background:#0ea5e9;color:#fff;font-weight:800;"><th colspan="3">'+esc(title)+' ('+arr.length+')</th></tr>';
-      arr.forEach((d,i)=>{ const e=empById(d.empId);
-        h+='<tr><td>'+(i+1)+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td></tr>'; });
-      h+='<tr><td colspan="3" style="background:#f0f9ff;font-weight:800;">Total check / Consultant'+(arr.length)+'</td></tr>';
-    }
-    return h;
-  };
-  const ws=[];
-  ws.push(['قائمة A','List A',buildBlock(A,'قائمة A')]); 
-  ws.push(['قائمة B','List B',buildBlock(B,'قائمة B')]);
-  ws.push(['بدون قائمة','No List',buildBlock(None,'بدون قائمة')]);
-  const wb=new ExcelJS.Workbook();
-  wb.creator='HSE Tracker';
-  const palette=[],blue3=[26,115,233],orange3=[245,158,11];
-  // build sheets...
-  for(let s=0;s<ws.length;s++){
-    const [arTitle,enTitle,body]=ws[s];
-    const sh=wb.addWorksheet(arTitle+' / '+enTitle);
-    sh.properties.tabColor={argb:'FF'+blue3.map(x=>x.toString(16).padStart(2,'0')).join('')};
-    const cols=[{w:6},{w:34},{w:14}];
-    cols.forEach((c,i)=>sh.columns.push({w:c.w}));
-    // title row
-    sh.mergeCells('A1:C1'); sh.getCell('A1').value= (mk==='ar'?arTitle:enTitle) +' ('+rows.length+')'; sh.getCell('A1').font={bold:true,size:15,color:'FFFFFF'}; sh.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+palette.join('')}};
-    sh.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-    sh.rowHeight=32;
-    // body
-    const lines=body.split('</tr>');
-    lines.forEach((ln,idx)=>{
-      const cleaned=ln.replace(/<[^>]+>/g,'').trim(); if(!cleaned) return;
-      const parts=cleaned.split(/<td>|<td[^>]*>/).map(s=>s.replace(/<\/td>/g,'').trim());
-      if(parts.length>=3){
-        const r=sh.addRow([parts[0],parts[1],parts[2]]);
-        r.eachCell(c=>c.font={size:12}); c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-        if(idx%2===0) r.eachCell(c=>c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+palette.join('')}}); 
-      }
-    });
-    // color header
-    sh.getRow(1).eachCell(c=>{ c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+blue3.map(x=>x.toString(16).padStart(2,'0')).join('')}}; c.font={color:'FFFFFF',bold:true}; });
+
+  const hdec=filtered.filter(d=>empGroup(empById(d.empId))==='HDEC');
+  consthec=filtered.filter(d=>empGroup(empById(d.empId))==='HEC');
+
+  const targetId=activeSub==='A'?'listsSectionA':'listsSectionB';
+  const target=document.getElementById(targetId);
+  target.innerHTML='';
+  const [secH,secI]=sectionInfo(activeSub);
+  target.insertAdjacentHTML('beforeend','<h3 style="font-size:17px;margin-bottom:12px;color:'+(mk==='ar'?'#0c4a6e':'#0c4a6e')+';">'+esc(secH)+' ('+filtered.length+')</h3>');
+
+  if(!filtered.length){
+    target.innerHTML+='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;color:var(--mut);font-size:14px;text-align:center;">📭 '+esc(secI)+'</div>';
+  } else {
+    companySection(target,'HDEC',hdec);
+    companySection(target,'HEC',HEC);
   }
-  const buf=await wb.xlsx.writeBuffer();
-  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='قوائم_A_B_'+(new Date()).getFullYear()+'.xlsx'; a.click(); URL.revokeObjectURL(url);
-  toast(T().lists_export_done||'تم تصدير قوائم A/B ✅');
+  const totalAll=(D.dep||[]).filter(d=>(d.list||'')==='A'||(d.list||'')==='B').length;
+  document.getElementById('listsCountLbl').textContent=totalAll+' موظف';
+}
+
+document.getElementById('listSubA').onclick=()=>{
+  document.getElementById('listSubA').classList.add('active');
+  document.getElementById('listSubB').classList.remove('active');
+  renderLists();
 };
-function renderLists(){
-  const q=(document.getElementById('listsSearch').value||'').trim().toLowerCase();
-  document.getElementById('listsSearch').placeholder=T().lists_search;
-  const gf=document.getElementById('listsGroupFilter').value;
-  const match=d=>{
-    if(!q) return true;
-    const e=empById(d.empId);
-    return ((e.en||'')+' '+(e.ar||'')+' '+(e.num||'')+' '+(d.area||'')).toLowerCase().includes(q);
-  };
-  const mk=localeKey();
-
-  function sectionInfo(listName){
-    if(mk==='ar'){
-      if(listName==='A') return ['📋 القائمة A','الموظفين المسجلين في قائمة A'];
-      if(listName==='B') return ['📋 القائمة B','الموظفين المسجلين في قائمة B'];
-      return ['📋 بدون قائمة','الموظفين الذين لم يحددوا قائمة توزيع بعد'];
-    } else {
-      if(listName==='A') return ['📋 List A','Employees registered in List A'];
-      if(listName==='B') return ['📋 List B','Employees registered in List B'];
-      return ['📋 No List','Employees not assigned to any deployment list yet'];
-    }
-  }
-
-  const buildSection=(target,listName,rows)=>{
-    target.innerHTML='';
-    if(!rows.length){ target.innerHTML='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--mut);font-size:14px;">📭 '+(mk==='ar'?sectionInfo(listName)[1]:sectionInfo(listName)[1])+'</div>'; return; }
-    const [secH,secI]=sectionInfo(listName);
-    const tbl=document.createElement('div'); tbl.className='tbl-holder';
-    let html='<table><thead><tr><th>#</th><th data-i="lists_col_num">'+(mk==='ar'?T().lists_col_num:T().lists_col_num)+'</th><th data-i="lists_col_emp">'+(mk==='ar'?T().lists_col_emp:T().lists_col_emp)+'</th><th>'+T().lists_col_area+'</th><th>'+T().lists_col_list+'</th><th>'+T().lists_col_rot+'</th><th>'+T().lists_col_status+'</th><th>'+T().lists_col_dept+'</th><th>'+(mk==='ar'?'الاسم (إنجليزي)':'Name (EN)')+'</th></tr></thead><tbody>';
-    rows.forEach((d,n)=>{ const e=empById(d.empId);
-      html+='<tr><td>'+(n+1)+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(empName(e))+'</td><td>'+esc(d.area||'')+'</td><td>'+esc(d.list||'')+'</td><td>'+esc(d.rot||'')+'</td><td>'+esc(d.status||'')+'</td><td>'+esc(e.dept||'')+'</td><td style="direction:ltr;">'+esc(e.en||'')+'</td></tr>'; });
-    html+='</tbody></table>';
-    tbl.innerHTML=html;
-    target.insertAdjacentHTML('beforeend','<h3 style="font-size:16px;margin-bottom:8px;">'+esc(secH)+' ('+rows.length+')</h3>');
-    target.appendChild(tbl);
-  };
-
-  const A=[],B=[],None=[];
-  (D.dep||[]).forEach(d=>{
-    if(gf!=='all' && empGroup(empById(d.empId))!==gf) return;
-    if(!match(d)) return;
-    const L=d.list||'';
-    if(L==='A') A.push(d); else if(L==='B') B.push(d); else if(L&&L!=='A'&&L!=='B') None.push(d);
-    else None.push(d);
-  });
-  buildSection(document.getElementById('listsSectionA'),'A',A);
-  buildSection(document.getElementById('listsSectionB'),'B',B);
-  buildSection(document.getElementById('listsSectionNone'),'(no list)',None);
-  document.getElementById('listsCountLbl').textContent=(A.length+B.length+None.length)+' موظف';
-}
+document.getElementById('listSubB').onclick=()=>{
+  document.getElementById('listSubB').classList.add('active');
+  document.getElementById('listSubA').classList.remove('active');
+  renderLists();
+};
 document.getElementById('listsSearch').oninput=renderLists;
 document.getElementById('listsGroupFilter').onchange=renderLists;
-document.getElementById('listsExportBtn').onclick=async()=>{
+
+/* ---- Export List A ---- */
+document.getElementById('listExportA').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
   const mk=localeKey();
   const gf=document.getElementById('listsGroupFilter').value;
   const rows=(D.dep||[]).filter(d=>{
     if(gf!=='all' && empGroup(empById(d.empId))!==gf) return false;
-    return true;
+    return(d.list||'')==='A';
   });
-  if(!rows.length){ toast(T().lists_empty); return; }
-  const A=rows.filter(d=>(d.list||'')==='A');
-  const B=rows.filter(d=>(d.list||'')==='B');
-  const None=rows.filter(d=>(d.list||'')!=='A'&&(d.list||'')!=='B');
-  const titlesA=['قائمة A','List A'];
-  const titlesB=['قائمة B','List B'];
-  const titlesNone=['بدون قائمة','No List'];
-  const buildBlock=(arr,arTitle,enTitle)=>{
-    let h='';
-    if(mk==='ar'){
-      h+='<tr style="background:#0ea5e9;color:#fff;font-weight:800;"><th colspan="3">'+arTitle+' ('+arr.length+')</th></tr>';
-      arr.forEach((d,i)=>{ const e=empById(d.empId); h+='<tr><td style="direction:ltr;">'+(i+1)+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td></tr>'; });
-      h+='<tr><td colspan="3" style="background:#e0f2fe;font-weight:800;">المجموع: '+arr.length+' موظف</td></tr>';
-    } else {
-      h+='<tr style="background:#0ea5e9;color:#fff;font-weight:800;"><th colspan="3">'+enTitle+' ('+arr.length+')</th></tr>';
-      arr.forEach((d,i)=>{ const e=empById(d.empId); h+='<tr><td>'+(i+1)+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td></tr>'; });
-      h+='<tr><td colspan="3" style="background:#e0f2fe;font-weight:800;">Total: '+arr.length+' employees</td></tr>';
-    }
-    return h;
-  };
-  const ws=[];
-  ws.push([titlesA[0],titlesA[1],buildBlock(A,titlesA[0],titlesA[1])]);
-  ws.push([titlesB[0],titlesB[1],buildBlock(B,titlesB[0],titlesB[1])]);
-  ws.push([titlesNone[0],titlesNone[1],buildBlock(None,titlesNone[0],titlesNone[1])]);
+  if(!rows.length){ toast(T().lists_export_a_done); return; }
   const wb=new ExcelJS.Workbook();
   wb.creator='HSE Tracker';
-  for(let s=0;s<ws.length;s++){
-    const [arTitle,enTitle,body]=ws[s];
-    const sh=wb.addWorksheet(arTitle+' / '+enTitle);
-    sh.properties.tabColor={argb:'FF0EA5E9'};
-    sh.columns.push({w:6},{w:36},{w:16});
-    sh.mergeCells('A1:C1');
-    sh.getCell('A1').value=(mk==='ar'?arTitle:enTitle)+' — '+rows.length+' موظف';
-    sh.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
-    sh.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'}};
-    sh.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-    sh.rowHeight=34;
-    const lines=body.split('</tr>');
-    lines.forEach((ln,idx)=>{
-      const t=ln.replace(/<[^>]+>/g,'').trim(); if(!t) return;
-      const parts=t.split(/<td>|<td[^>]*>/).map(s=>s.replace(/<\/td>/g,'').trim());
-      if(parts.length>=3){
-        const r=sh.addRow([parts[0],parts[1],parts[2]]);
-        r.eachCell(c=>{c.font={size:12};c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};});
-        if(idx%2===0) r.eachCell(c=>c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEBF8FF'}});
-      }
+  const ws=wb.addWorksheet(mk==='ar'?'قائمة A — HDEC + HEC':'List A — HDEC + HEC');
+  ws.properties.tabColor={argb:'FF0EA5E9'};
+  const cols=[{w:5},{w:32},{w:14},{w:14},{w:16},{w:10},{w:14},{w:14},{w:26}];
+  cols.forEach(c=>ws.columns.push(c));
+  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','المجموعة','المنطقة','القائمة','مجموعة الدوام','الحالة','القسم / المهنة','الاسم (إنجليزي)']:
+                     ['#','Employee','Job No.','Group','Area','List','Rotation','Status','Department','Name (EN)'];
+  ws.mergeCells('A1:J1');
+  ws.getCell('A1').value=(mk==='ar'?'قائمة A':'List A')+' — '+rows.length+' موظف (HDEC + HEC)';
+  ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
+  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'}};
+  ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
+  ws.rowHeight=34;
+  hd.forEach((h,i)=>{
+    const c=ws.getCell(2,i+1);
+    c.value=h; c.font={bold:true,color:'FFFFFF'};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'}};
+    c.alignment={horizontal:'center',vertical:'middle'};
+  });
+  ws.rowHeight=22;
+  rows.forEach((d,i)=>{
+    const e=empById(d.empId);
+    const grp=empGroup(e)||'';
+    const isHEC=grp==='HEC';
+    const r=ws.addRow([i+1,empName(e),e.num||'',grp,d.area||'',d.list||'',d.rot||'',d.status||'',e.dept||'',e.en||'']);
+    r.eachCell(c=>{
+      c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
+      c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
+      c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
     });
-    sh.getRow(1).eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0EA5E9'}};c.font={color:'FFFFFF',bold:true};});
-  }
+    r.height=19;
+  });
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='قوائم_A_B_'+(new Date()).getFullYear()+'.xlsx'; a.click(); URL.revokeObjectURL(url);
-  toast(T().lists_export_done||'تم تصدير قوائم A/B ✅');
+  const a=document.createElement('a'); a.href=url;
+  a.download=(mk==='ar'?'قائمة_A_':'List_A_')+(new Date()).getFullYear()+'.xlsx';
+  a.click(); URL.revokeObjectURL(url);
+  toast(T().list_export_a_done||'✅ تم تصدير قائمة A');
 };
+
+/* ---- Export List B ---- */
+document.getElementById('listExportB').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
+  const mk=localeKey();
+  const gf=document.getElementById('listsGroupFilter').value;
+  const rows=(D.dep||[]).filter(d=>{
+    if(gf!=='all' && empGroup(empById(d.empId))!==gf) return false;
+    return(d.list||'')==='B';
+  });
+  if(!rows.length){ toast(T().lists_export_b_done); return; }
+  const wb=new ExcelJS.Workbook();
+  wb.creator='HSE Tracker';
+  const ws=wb.addWorksheet(mk==='ar'?'قائمة B — HDEC + HEC':'List B — HDEC + HEC');
+  ws.properties.tabColor={argb:'FF0284C7'};
+  const cols=[{w:5},{w:32},{w:14},{w:14},{w:16},{w:10},{w:14},{w:14},{w:26}];
+  cols.forEach(c=>ws.columns.push(c));
+  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','المجموعة','المنطقة','القائمة','مجموعة الدوام','الحالة','القسم / المهنة','الاسم (إنجليزي)']:
+                     ['#','Employee','Job No.','Group','Area','List','Rotation','Status','Department','Name (EN)'];
+  ws.mergeCells('A1:J1');
+  ws.getCell('A1').value=(mk==='ar'?'قائمة B':'List B')+' — '+rows.length+' موظف (HDEC + HEC)';
+  ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
+  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0284C7'}};
+  ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
+  ws.rowHeight=34;
+  hd.forEach((h,i)=>{
+    const c=ws.getCell(2,i+1);
+    c.value=h; c.font={bold:true,color:'FFFFFF'};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0284C7'}};
+    c.alignment={horizontal:'center',vertical:'middle'};
+  });
+  ws.rowHeight=22;
+  rows.forEach((d,i)=>{
+    const e=empById(d.empId);
+    const grp=empGroup(e)||'';
+    const isHEC=grp==='HEC';
+    const r=ws.addRow([i+1,empName(e),e.num||'',grp,d.area||'',d.list||'',d.rot||'',d.status||'',e.dept||'',e.en||'']);
+    r.eachCell(c=>{
+      c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
+      c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
+      c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
+    });
+    r.height=19;
+  });
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download=(mk==='ar'?'قائمة_B_':'List_B_')+(new Date()).getFullYear()+'.xlsx';
+  a.click(); URL.revokeObjectURL(url);
+  toast(T().list_export_b_done||'✅ تم تصدير قائمة B');
+};
+
 document.getElementById('depBody').addEventListener('click',async e=>{
   const btn=e.target.closest('[data-depdel]'); if(!btn) return;
   if(!confirm(T().askDel)) return;
