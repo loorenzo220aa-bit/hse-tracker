@@ -114,7 +114,7 @@
   textarea{resize:vertical; min-height:60px;}
   .tbl-holder{overflow-x:auto; border-radius:14px;}
   table{width:100%; border-collapse:collapse; font-size:14px; background:#fff; border-radius:14px; overflow:hidden;}
-  th,td{padding:11px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap;}
+  th,td{padding:11px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:normal; word-wrap:break-word; word-break:break-word;}
   th{color:#0369a1; font-weight:800; font-size:12px; background:#f0f9ff;}
   tr:hover td{background:#f0f9ff;}
   html[dir="ltr"] th,html[dir="ltr"] td{text-align:left;}
@@ -779,7 +779,7 @@ function renderUsers(){
     const roleTag=u.role==='admin'?'<span class="tag t-admin">'+T().admin+'</span>':'<span class="tag t-user">User</span>';
     let acts='<button class="btn btn-sm" data-pwd="'+esc(u.user)+'" title="&#128273;">&#128273;</button> ';
     acts+=(isSelf?'':'<button class="del" data-u="'+esc(u.user)+'" title="'+T().u_del+'">🗑</button>');
-    tr.innerHTML='<td>'+esc(u.name)+' '+(isSelf?'<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>':'')+'</td>      <td>'+esc(u.user)+'</td><td>'+roleTag+'</td>      <td style="white-space:nowrap;">'+acts+'</td>';
+    tr.innerHTML='<td>'+esc(u.name)+' '+(isSelf?'<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>':'')+'</td>      <td>'+esc(u.user)+'</td><td>'+roleTag+'</td>      <td style="white-space:normal;">'+acts+'</td>';
     es.appendChild(tr);
     if(pwdEditUser===u.user){
       const tr2=document.createElement('tr');
@@ -2219,7 +2219,7 @@ function renderVeh(){
       +'<td>'+esc(v.make)+'</td><td>'+esc(v.model)+'</td><td>'+esc(v.colour)+'</td>'
       +'<td style="direction:ltr;font-weight:700;">'+(hasP?esc(v.plate):'<span style="color:var(--mut);">—</span>')+'</td>'
       +'<td>'+esc(v.rot)+'</td>'
-      +'<td style="white-space:nowrap;"><button class="btn btn-sm" data-vehedit="'+v.id+'">✏️</button> '
+      +'<td><button class="btn btn-sm" data-vehedit="'+v.id+'">✏️</button> '
       +(isAdmin()?'<button class="del" data-vehdel="'+v.id+'">🗑</button>':'')+'</td>';
     body.appendChild(tr);
   });
@@ -2767,7 +2767,7 @@ function renderVeh(){
       +'<td>'+esc(v.make)+'</td><td>'+esc(v.model)+'</td><td>'+esc(v.colour)+'</td>'
       +'<td style="direction:ltr;font-weight:700;">'+(hasP?esc(v.plate):'<span style="color:var(--mut);">—</span>')+'</td>'
       +'<td>'+esc(v.rot)+'</td>'
-      +'<td style="white-space:nowrap;"><button class="btn btn-sm" data-vehedit="'+v.id+'">✏️</button> '
+      +'<td><button class="btn btn-sm" data-vehedit="'+v.id+'">✏️</button> '
       +(isAdmin()?'<button class="del" data-vehdel="'+v.id+'">🗑</button>':'')+'</td>';
     body.appendChild(tr);
   });
