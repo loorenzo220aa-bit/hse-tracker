@@ -115,15 +115,7 @@
   .tbl-holder{overflow-x:hidden; border-radius:14px;}
     table{width:100%; border-collapse:collapse; font-size:13px; background:#fff; border-radius:14px; overflow:hidden; table-layout:fixed;}
     th,td{padding:11px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:normal; word-wrap:break-word; word-break:break-word;}
-    @media(max-width:600px){ th,td{padding:8px 8px;font-size:12px;} }
-    .lists-table th:nth-child(1){width:30px;}
-    .lists-table th:nth-child(2){width:80px;}
-    .lists-table th:nth-child(3){width:35%;}
-    .lists-table th:nth-child(4){width:20%;}
-    .lists-table th:nth-child(5){width:15%;}
-    .lists-table th:nth-child(6){width:15%;}
-    .lists-table th:nth-child(7){width:10%;}
-  th{color:#0369a1; font-weight:800; font-size:12px; background:#f0f9ff;}
+    @media(max-width:600px){ th,td{padding:8px 8px;font-size:12px;} }  th{color:#0369a1; font-weight:800; font-size:12px; background:#f0f9ff;}
   tr:hover td{background:#f0f9ff;}
   html[dir="ltr"] th,html[dir="ltr"] td{text-align:left;}
   .tag{display:inline-block; padding:4px 12px; border-radius:99px; font-size:12px; font-weight:800;}
@@ -261,8 +253,6 @@
     <button class="btn tab" id="tabVeh">🚗 <span data-i="tab_veh">السيارات</span></button>
     <button class="btn tab" id="tabAppr">🛡️ <span data-i="tab_appr">ابروفل ارامكو</span></button>
     <button class="btn tab" id="tabDep">🗺️ <span data-i="tab_dep">التوزيع</span></button>
-    <button class="btn tab" id="tabLists">📋 <span data-i="tab_lists">القوائم (A/B)</span></button>
-    
     <button class="btn tab" id="tabEmp">👥 <span data-i="tab_emp">الموظفين</span></button>
     <button class="btn tab" id="tabTs">🗓️ <span data-i="tab_ts">التايم شيت</span></button>
   </div>
@@ -437,7 +427,6 @@
       <button class="btn subtab" id="subHec">🟨 HEC (68)</button>
     </div>
     <div class="field" style="max-width:360px;margin-bottom:14px;">
-      <button class="btn btn-green" id="attExportBtn">📥 <span data-i="att_export">تصدير حضور الموظفين (Excel)</span></button>
     </div>
     <div class="field" style="max-width:360px;margin-bottom:14px;"><input id="staffSearch" placeholder="بحث..."></div>
     <div class="staff-grid" id="staffGrid"></div>
@@ -464,30 +453,7 @@
   </div>
   </div><!-- /viewDep -->
 
-  <div id="viewLists" class="hide">
-  <div class="card">
-    <h2><span class="ic">📋</span><span data-i="lists_title">القوائم (A/B) — الموظفين بحسب القائمة</span> <span class="mut" id="listsCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
-    <div class="frow" style="flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-      <div class="field" style="max-width:360px;"><input id="listsSearch" placeholder="بحث..."></div>
-      <select id="listsGroupFilter" style="min-width:140px;">
-        <option value="all">كل الشركات</option>
-        <option value="HDEC">HDEC</option>
-        <option value="HEC">HEC</option>
-      </select>
-      <select id="listExportGroup" style="min-width:150px;">
-        <option value="A">📋 قائمة A</option>
-        <option value="B">📋 قائمة B</option>
-      </select>
-      <div><button class="btn btn-green" id="listExportBtn">📥 <span data-i="list_export_btn">تصدير القائمة (Excel)</span></button></div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div id="listsSectionA"></div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div id="listsSectionB"></div>
-    </div>
-  </div>
-  </div><!-- /viewLists -->
+
 
   <div id="viewVeh" class="hide">
   <div class="card">
@@ -671,10 +637,6 @@ const I18N={
     tab_lists:'القوائم (A/B)', lists_title:'القوائم (A/B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export_a:'تصدير قائمة A (Excel)',
         lists_export_b:'تصدير قائمة B (Excel)',
         lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
-    att_export:'تصدير حضور الموظفين (Excel)', att_arabic:'الاسم العربي', att_english:'الاسم الإنجليزي',
-    att_jobno:'الرقم الوظيفي', att_dept:'القسم / المهنة', att_group:'المجموعة', att_list:'القائمة',
-    att_rot:'مجموعة الدوام', att_status:'الحالة', att_sheetA:'قائمة A', att_sheetB:'قائمة B',
-    att_empty:'لا توجد بيانات للتصدير — سجّل توزيعات من تبويب التوزيع أولاً',
     list_export_a_done:'✅ تم تصدير قائمة A',
     list_export_b_done:'✅ تم تصدير قائمة B',
   },
@@ -723,10 +685,6 @@ const I18N={
     dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
-    att_export:'Export Employee Attendance (Excel)', att_arabic:'Arabic Name', att_english:'English Name',
-    att_jobno:'Job No.', att_dept:'Department / Job', att_group:'Group', att_list:'List',
-    att_rot:'Rotation Group', att_status:'Status', att_sheetA:'List A', att_sheetB:'List B',
-    att_empty:'No data to export — save deployments from the Deployment tab first',
     list_export_a_done:'✅ List A exported',
     list_export_b_done:'✅ List B exported',
   }
@@ -736,7 +694,7 @@ const T=()=>I18N[LANG];
 
 
 /* ============ DEPLOYMENT DATA (from Excel) ============ */
-const DEPLOY_DATA = [{"no": 1, "name_en": "KHALID FEHAID ALQAHTANI", "emp_id": "SASL-0470", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "training_room", "status": "Active", "group": "HDEC", "area": ""}, {"no": 1, "name_en": "NAIF HAMEED A ALSAYED", "emp_id": "SASL-0618", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ auditor office  —  2 personnel"}, {"no": 2, "name_en": "ABDULLAH ALI ALBAQSHI", "emp_id": "SASL-0533", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ auditor office  —  2 personnel"}, {"no": 1, "name_en": "ALWAFI ABDULLAH SAAD ALRASHED", "emp_id": "SASL-0471", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 2, "name_en": "MOHAMMED SAEED AL NASIM", "emp_id": "SASL-0465", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 3, "name_en": "NAWAF HUSSAIN AL SHAIBAN", "emp_id": "SASL-0459", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 4, "name_en": "ABDULAZIZ ABDULLAH ALESSA", "emp_id": "SASL-0479", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 5, "name_en": "FAISAL ABDULKHALIQ ALQARNI", "emp_id": "SASL-0489", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 6, "name_en": "MESHARI ABDULLAH ALBATI", "emp_id": "SASL-0476", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 7, "name_en": "YOUSIF FAHAD AL ISMAIL", "emp_id": "SASL-0507", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 1, "name_en": "ABDULLAH ABDULAZIZ AL NASHMI", "emp_id": "SASL-0481", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 2, "name_en": "ABDULLAH MOHAMMED A ALGHIRASH", "emp_id": "SASL-0607", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 3, "name_en": "SAEED ALI M ALSHAHRANI", "emp_id": "SASL-0619", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 4, "name_en": "SALEH ABDULRAHMAN S BUBSHAIT", "emp_id": "SASL-0622", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 5, "name_en": "MAWAF MOHSEN ALHARTHI", "emp_id": "HECL-0243", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 6, "name_en": "ABDULAZIZ S ABU SHBEEB", "emp_id": "HECL-0222", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 7, "name_en": "AHMED HASSAN SRAHEED", "emp_id": "HECL-0218", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 8, "name_en": "FAISAL SAEED ALHADDAD", "emp_id": "SASL-0490", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 1, "name_en": "HAYF ALI ALQAHTANI", "emp_id": "SASL-0528", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Export  —  2 personnel"}, {"no": 2, "name_en": "ABDULLAH MOHAMMED AL QUSHAYM", "emp_id": "SASL-0387", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Export  —  2 personnel"}, {"no": 1, "name_en": "ABDULAZIZ I ALSULAYBI", "emp_id": "HECL - 0176", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 2, "name_en": "ABDULLAH I ALSULAYBI", "emp_id": "HECL - 0095", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 3, "name_en": "HAMAD A ALDAWSARI", "emp_id": "HECL - 0177", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 4, "name_en": "SAUD ABDULAZIZ ALKHULAIF", "emp_id": "HECL - 0175", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 5, "name_en": "SALEM M ALENAZI", "emp_id": "HECL-0221", "designation": "SAFETY OFFICER", "list": "A", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 6, "name_en": "SALEM FEHAID ALMARRI", "emp_id": "HECL-0203", "designation": "SAFETY OFFICER", "list": "A", "rotation": "training_room", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 7, "name_en": "NASSER ABDULLAH ALDAWSARI", "emp_id": "SASL-0558", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 8, "name_en": "YOUSEF MUBARAK ALHAMDAN", "emp_id": "SASL-0522", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 9, "name_en": "SAUD MOHAMMED ALWADANI", "emp_id": "SASL-0520", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 10, "name_en": "MANA NASSER AL QAHTANI", "emp_id": "SASL-0515", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 11, "name_en": "RAKAN SAAD ALQAHTANI", "emp_id": "SASL-0517", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 12, "name_en": "FEHAID AOWIDAH AL AJMI", "emp_id": "SASL-0491", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 13, "name_en": "NAYEF ABDULLAH AL NUWAIRAN", "emp_id": "SASL-0498", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 14, "name_en": "MUTLIQ OMAR AL WADAANI", "emp_id": "SASL-0529", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 1, "name_en": "ABDULMAJEED SAAD AL BAKHAT", "emp_id": "SASL-0510", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 2, "name_en": "ABDULWAHAB MASTOUR ALALSHYKH", "emp_id": "SASL-0472", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 3, "name_en": "ABDULLAH AHMED ALRAJEH", "emp_id": "HECL-0220", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 4, "name_en": "ABDULLAH MASTOUR AL ALSHAYKH", "emp_id": "SASL-0456", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 5, "name_en": "HASSAN A ALI ALBELADI", "emp_id": "HECL-0224", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 6, "name_en": "HATLAN ALI ALHATLAN", "emp_id": "HECL-0214", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 7, "name_en": "MOHAMMED MESHAEL ALKHALDI", "emp_id": "HECL-0215", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 8, "name_en": "THABET ALI ALSUBAIE", "emp_id": "SASL-0506", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 9, "name_en": "ABDULLAH MUNAHI H ALSUBAIE", "emp_id": "SASL-0608", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 10, "name_en": "MOHAMMED M ALMARRI", "emp_id": "HECL - 0098", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 11, "name_en": "SULTAN MOHAMMED ALMARRI", "emp_id": "HECL - 0094", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 12, "name_en": "AHMED YASIR ALSALEEM", "emp_id": "HECL - 0178", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 13, "name_en": "NASSER ABDULLAH ALSUBAIEI", "emp_id": "SASL-0559", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 1, "name_en": "OMAR IBRAHIM ALANAZI", "emp_id": "SASL-0499", "designation": "SAFETY ENGINEER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ GIS 1 & MS01 & MS02  —  1 personnel"}, {"no": 1, "name_en": "SAEED MOSHWAT ALHAJRI", "emp_id": "SASL-0518", "designation": "SAFETY ENGINEER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Import  —  2 personnel"}, {"no": 2, "name_en": "HADI HAMAD ALYAMI", "emp_id": "SASL-0527", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Import  —  2 personnel"}, {"no": 1, "name_en": "ABDULKHALIQ MOHAMMED ASIRI", "emp_id": "SASL-0453", "designation": "SAFETY OFFICER", "list": "B", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 2, "name_en": "ALI MOHAMMED ASIRI", "emp_id": "SASL-0448", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 3, "name_en": "SAAD MOHAMMED ALSUBAIE", "emp_id": "SASL-0502", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 4, "name_en": "TARIQ AHMED ALQARNI", "emp_id": "SASL-0505", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 5, "name_en": "SULTAN ABDULLAH ALSHAHRANI", "emp_id": "HECL-0197", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HEC", "area": "▸ K9  —  5 personnel"}, {"no": 1, "name_en": "ABDULLAH ADNAN ABDULLAH ALSHAALAN", "emp_id": "HECL-0190", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Ko drumb  —  3 personnel"}, {"no": 2, "name_en": "ABDULAZIZ MAJED ALBAR", "emp_id": "HECL-0226", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Ko drumb  —  3 personnel"}, {"no": 3, "name_en": "MARWAN ABDULMALIK AL ISMAIL", "emp_id": "SASL-0493", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Ko drumb  —  3 personnel"}, {"no": 1, "name_en": "AHMED ABDULRAHMAN ALSHEHRI", "emp_id": "SASL-0460", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 2, "name_en": "MOHAMMED ALI ALGHAMDI", "emp_id": "SASL-0494", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 3, "name_en": "MANSOOR ALI ALGHAMDI", "emp_id": "SASL-0463", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 4, "name_en": "FAHAD ADEL ALSADUN", "emp_id": "HECL - 0100", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 5, "name_en": "HUSSAIN HAMED ALSHAMMARI", "emp_id": "SASL-0492", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 6, "name_en": "RAYAN NAJIM ALSHARIF", "emp_id": "SASL-0462", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 7, "name_en": "HINDI FEHAID ALQAHTANI", "emp_id": "SASL-0461", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 1, "name_en": "NAWAF RABEA AL SAAD", "emp_id": "SASL-0534", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 2, "name_en": "KHALID YAQOUB ALDOSSARY", "emp_id": "SASL-0464", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 3, "name_en": "ALI OBAID ALHARTHI", "emp_id": "SASL-0484", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 4, "name_en": "MOHAMMED GHAZI ALSUHAYMI", "emp_id": "SASL-0455", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 5, "name_en": "ANWAR MOHAMMED ALBISHI", "emp_id": "SASL-0547", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 6, "name_en": "MABKHOOT ABDULLAH AL SAIARI", "emp_id": "HECL-0090", "designation": "", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 7, "name_en": "ZIYAD ABDULLAH ALQAHTANI", "emp_id": "SASL-0508", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 1, "name_en": "ABDULLAH MOHSEN ALOTAIBI", "emp_id": "SASL-0526", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 2, "name_en": "NAWAF BADER ALAYADI", "emp_id": "SASL-0394", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 3, "name_en": "ABDULLAH SALAH BUDI", "emp_id": "HECL-0101", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 4, "name_en": "DYIA RIAD MOHAMED ALHUMAID", "emp_id": "HECL-0185", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 5, "name_en": "HASSAN AMEER ALMUHANNA", "emp_id": "HECL - 0187", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 6, "name_en": "TALAL SAEED ALGHAMDI", "emp_id": "HECL - 0184", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 7, "name_en": "BADER SAAD ALRABAH", "emp_id": "SASL-0512", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 1, "name_en": "ALI MOHAMMED ALQARNI", "emp_id": "SASL-0483", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Maine pipe rake  —  3 personnel"}, {"no": 2, "name_en": "YASIR KHALID ALMEHIYAWI", "emp_id": "SASL-0397", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Maine pipe rake  —  3 personnel"}, {"no": 3, "name_en": "MOHAMMED AYIDH ALHSAN", "emp_id": "SASL-0005", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Maine pipe rake  —  3 personnel"}, {"no": 1, "name_en": "MOHAMMED KHALID ALBARQI", "emp_id": "SASL-0451", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 2, "name_en": "SULTAN ABDULLATIF ALHARBI", "emp_id": "SASL-0504", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 3, "name_en": "MOHAMMED GAZI ALBARGA", "emp_id": "SASL-0495", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 4, "name_en": "ABDULRAHMAN A ALKAMES", "emp_id": "HECL-0217", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 5, "name_en": "RIDHA TAHER MOHAMMED ALKHAMIS", "emp_id": "HECL-0189", "designation": "", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 1, "name_en": "FARIS MESHAL ALSAGOOR", "emp_id": "SASL-0514", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 2, "name_en": "RASHED MOHAMMED ABDEL MOHSEN", "emp_id": "HECL-0194", "designation": "", "list": "B", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 3, "name_en": "ALI MESHAL ALSAGOOR", "emp_id": "SASL-0482", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 4, "name_en": "SAUD MOHAMMED AL GMAL", "emp_id": "SASL-0530", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 5, "name_en": "AHMAD ALI H ASIRI", "emp_id": "SASL-0611", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 6, "name_en": "SALEH SAEED ALSAEED", "emp_id": "SASL-0503", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 7, "name_en": "IBRAHIM ALI IBRAHIM", "emp_id": "HECL-0548", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 1, "name_en": "AHMED ABDULLATIF AL DOSSARI", "emp_id": "SASL-0396", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HDEC", "area": "▸ Office  —  4 personnel"}, {"no": 2, "name_en": "ALI TAHER ALMUMTIN", "emp_id": "SASL-0374", "designation": "DOCUMENTS CONTROLLER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HDEC", "area": "▸ Office  —  4 personnel"}, {"no": 3, "name_en": "ALI AHMED ALHABIB", "emp_id": "SASL-0524", "designation": "DOCUMENTS CONTROLLER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HDEC", "area": "▸ Office  —  4 personnel"}, {"no": 4, "name_en": "KHALID ABDLUAZIZ ALHAMMADI", "emp_id": "HECL-0212", "designation": "SAFETY ENGINEER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HEC", "area": "▸ Office  —  4 personnel"}, {"no": 1, "name_en": "SAUD HAMOUD SAULM", "emp_id": "HECL-0992", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR-003C  —  3 personnel"}, {"no": 2, "name_en": "TURKI SALEM ALJOHAR", "emp_id": "SASL-0523", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ PR-003C  —  3 personnel"}, {"no": 3, "name_en": "AHMAD MOHAMMD MAJRASHI", "emp_id": "HECL-0211", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR-003C  —  3 personnel"}, {"no": 1, "name_en": "SALEH MUSLIH ALFARSI", "emp_id": "HECL-0237", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 2, "name_en": "ABDULLAH Y ALMUZAYEL", "emp_id": "HECL-0225", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 3, "name_en": "MUSAAD ABDULAZIZ ALDHUWAIHI", "emp_id": "SASL-0555", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 4, "name_en": "SULTAN MUIDH ALQAHTANI", "emp_id": "HECL - 0193", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 1, "name_en": "TYYAM MAJEED ALMETHEN", "emp_id": "HECL-0238", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 2, "name_en": "TAHER HUSSAIN T ALBUKHAYTAN", "emp_id": "SASL-0624", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 3, "name_en": "HUSSAM NAJEH ALSHARARI", "emp_id": "HECL-0233", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 4, "name_en": "MAJED MOHAMMED DAAK", "emp_id": "HECL-0235", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 5, "name_en": "KHALED MISFER ALMUDARHAM", "emp_id": "HECL-0219", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 1, "name_en": "HASSAN MUNEER A AL MAHDI", "emp_id": "SASL-0614", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Sliver  —  1 personnel"}, {"no": 1, "name_en": "AHMED MOUSA A ALHABRATI", "emp_id": "SASL-0612", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 2, "name_en": "AALI KHALID B ALOTAIBI", "emp_id": "SASL-0606", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 3, "name_en": "MESHAL THAWAB M AL OTAIBI", "emp_id": "SASL-0615", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 4, "name_en": "MOHAMMED MOHSEN M ALDAWSARI", "emp_id": "SASL-0616", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 5, "name_en": "SALEM ABDULLAH A ALAYED", "emp_id": "SASL-0623", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 6, "name_en": "SALMAN ZIKRIYAA ALSALMAN", "emp_id": "SASL-0561", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 7, "name_en": "OMAR MOHAMMED ALMARRI", "emp_id": "HECL-0236", "designation": "SAFETY OFFICER", "list": "A", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 8, "name_en": "NAWAF SAAD AlGHAMDI", "emp_id": "SASL-0497", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 9, "name_en": "RAYAN MOHAMMED AL ZUHAYR", "emp_id": "SASL-0466", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 10, "name_en": "ABDULRAHMAN SAMI ALKURDI", "emp_id": "HECL-0227", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 11, "name_en": "AHMED A ALSULTAN", "emp_id": "HECL-0102", "designation": "", "list": "B", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 12, "name_en": "HAIDAR ABDULELAH ALSURAYJ", "emp_id": "SASL-0596", "designation": "RIGGER III", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 13, "name_en": "RAYAN SAAD ALRABAH", "emp_id": "SASL-0501", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 14, "name_en": "FAHAD SALEH ALZAHRANI", "emp_id": "SASL-0488", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 1, "name_en": "GHAZI AMER ALBARQI", "emp_id": "SASL-0452", "designation": "SAFETY OFFICER", "list": "B", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 2, "name_en": "AHMED S ALKHALDI", "emp_id": "HECL-0223", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 3, "name_en": "MOHAMMED SAEED ALAHMARI", "emp_id": "HECL-0241", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 4, "name_en": "MOHAMMED SAMEER ALKHUDHAYR", "emp_id": "HECL-0242", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 5, "name_en": "FAISAL AHMED HUSSEIN", "emp_id": "HECL-0240", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 6, "name_en": "ABDULRAHMAN OMAR S ALSALEH", "emp_id": "SASL-0609", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 7, "name_en": "YOUSIF MUSTAFA Y ALYOUSIF", "emp_id": "SASL-0625", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 8, "name_en": "ALI HASSAN ALBANNAY", "emp_id": "SASL-0473", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 9, "name_en": "MUHANNAD SAAD E ALGUNAIM", "emp_id": "SASL-0617", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 10, "name_en": "SAJJAD HUSSAIN H ALSAYAFI", "emp_id": "SASL-0620", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 11, "name_en": "SULTAN SHULAYWIH ALHARBI", "emp_id": "SASL-0532", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 12, "name_en": "KHALID NASSER ALSULAITEEN", "emp_id": "HECL-0234", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 13, "name_en": "WALEED MASOUD ALQAHTANI", "emp_id": "SASL-0392", "designation": "SAFETY ENGINEER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 14, "name_en": "HUSSAIN IBRAHIM ALESSA", "emp_id": "SASL-0469", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 1, "name_en": "FAHAD ABDULLAH ALYOUSIF", "emp_id": "SASL-0513", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 2, "name_en": "ALI SALEH ALSALEH", "emp_id": "SASL-0485", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 3, "name_en": "MUHANNAD KHUWAYLID ALANAZI", "emp_id": "SASL-0496", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 4, "name_en": "OMAR SAAD ALMAKHAYITAH", "emp_id": "SASL-0500", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 5, "name_en": "HUSSAM NAJIM ALSHARIF", "emp_id": "SASL-0449", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 6, "name_en": "MAHMOUD ALI ALWABARI", "emp_id": "SASL-0003", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 1, "name_en": "HUSSAIN ALI ALAJWAD", "emp_id": "HECL-0232", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 2, "name_en": "BASIM ADEL ALNASSER", "emp_id": "HECL-0230", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 3, "name_en": "ALI YASEEN M AL JABER", "emp_id": "SASL-0613", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 4, "name_en": "MEGREN HABIB ALMEGREN", "emp_id": "HECL-0216", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 5, "name_en": "AHMED YOUSEF ALSULTAN", "emp_id": "HECL-0239", "designation": "SAFETY OFFICER", "list": "A", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 6, "name_en": "ABDULAZIZ GHAZI ALSUHAYMI", "emp_id": "SASL-0480", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 1, "name_en": "FAHAD M ALDOSSARY", "emp_id": "HECL - 0091", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-A  —  2 personnel"}, {"no": 2, "name_en": "TURKI SULTAN ALSULTAN", "emp_id": "HECL - 0093", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TR-A  —  2 personnel"}, {"no": 1, "name_en": "ABDULLAH KHALED ALTAMIMI", "emp_id": "HECL - 0191", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 2, "name_en": "SHAMAN M ALDOSSARY", "emp_id": "HECL - 0104", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 3, "name_en": "OBAID MOHAMMED ALDOSSARI", "emp_id": "HECL - 0097", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 4, "name_en": "OMAR ABDULLAH ALAHMARI", "emp_id": "SASL-0516", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 5, "name_en": "MOHAMMED E ALMINHALI", "emp_id": "HECL - 0182", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 6, "name_en": "MUSAAD AHMED ALSULTAN", "emp_id": "HECL - 0096", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 7, "name_en": "SALEH KHALID ALRUMAYH", "emp_id": "SASL-0560", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 1, "name_en": "AHMED SALAH ABDULAZIZ  BUDI", "emp_id": "HECL-0103", "designation": "", "list": "(no list)", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Training room  —  3 personnel"}, {"no": 2, "name_en": "ABDULRAHMAN SALEH S ALSHAMRANI", "emp_id": "SASL-0610", "designation": "SAFETY OFFICER ASSISTANT", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Training room  —  3 personnel"}, {"no": 3, "name_en": "ABDULAZIZ NAJEA ALSUBEIA", "emp_id": "SASL-0458", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "training_room", "status": "Active", "group": "HDEC", "area": "▸ Training room  —  3 personnel"}, {"no": 1, "name_en": "MOHAMMED FAISAL ALSUHALI", "emp_id": "SASL-0450", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Utlity  —  2 personnel"}, {"no": 2, "name_en": "ABDULLAH KANAN ALKANAN", "emp_id": "HECL-0084", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HEC", "area": "▸ Utlity  —  2 personnel"}, {"no": 1, "name_en": "ABDULWAHAB HUSSAIN KAABI", "emp_id": "HECL-0228", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 2, "name_en": "AMER AHMED ASIRI", "emp_id": "HECL-0229", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 3, "name_en": "HASSAN YAHYA MAJRASHI", "emp_id": "HECL-0231", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 4, "name_en": "FAHAD ABDULAZIZ ALWASMI", "emp_id": "SASL-0487", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 5, "name_en": "HAMAD MOHAMMED ALFEHAID", "emp_id": "SASL-0537", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 6, "name_en": "FAISAL FEHAID ALGETHAMI", "emp_id": "HECL-0188", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 7, "name_en": "MUATH MANDR ALZAHRANI", "emp_id": "HECL-0181", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 8, "name_en": "KHALID NAJIM ALSHARIF", "emp_id": "SASL-0474", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Walter bound  —  8 personnel"}];
+
 
 /* ============ AUTH ============ */
 function currentUser(){ return D.users.find(u=>u.user===SESSION)||null; }
@@ -1269,12 +1227,6 @@ function switchView(v){
   if(v==='ts') renderTs();
   if(v==='emp') renderStaff();
   if(v==='dep') renderDep();
-  if(v==='lists') renderLists();
-  document.getElementById('viewLists').classList.toggle('hide', v!=='lists');
-  document.getElementById('tabLists').classList.toggle('active', v==='lists');
-  if(v==='lists') renderLists();
-  document.getElementById('viewLists').classList.toggle('hide', v!=='lists');
-  document.getElementById('tabLists').classList.toggle('active', v==='lists');
   if(v==='veh') renderVeh();
   if(v==='appr') renderAppr();
 }
@@ -1325,8 +1277,6 @@ document.getElementById('tabVio').onclick=()=>switchView('vio');
 document.getElementById('tabTs').onclick=()=>switchView('ts');
 document.getElementById('tabEmp').onclick=()=>switchView('emp');
 document.getElementById('tabDep').onclick=()=>switchView('dep');
-document.getElementById('tabLists').onclick=()=>switchView('lists');
-document.getElementById('tabLists').onclick=()=>switchView('lists');
 document.getElementById('tabVeh').onclick=()=>switchView('veh');
 document.getElementById('tabAppr').onclick=()=>switchView('appr');
 document.getElementById('tsEmp').onchange=loadTsForm;
@@ -1371,121 +1321,6 @@ function renderStaff(){
     grid.appendChild(div);
   });
 }
-document.getElementById('attExportBtn').onclick = async () => {
-  if (typeof ExcelJS === 'undefined') { toast('ExcelJS lib not loaded — check internet'); return; }
-  const dep = D.dep || [];
-  const byEmp = {};
-  dep.forEach(d => { byEmp[d.empId] = d; });
-  const mk = LANG === 'ar' ? 'ar' : 'en';
-  const employees = D.emp.filter(e => {
-    const d = byEmp[e.id];
-    return d && (d.list === 'A' || d.list === 'B');
-  });
-  if (!employees.length) { toast(T().att_empty); return; }
-  const groupA = employees.filter(e => byEmp[e.id].list === 'A');
-  const groupB = employees.filter(e => byEmp[e.id].list === 'B');
-  const sortByAr = arr => arr.sort((a, b) =>
-    (empName(a) || '').localeCompare(empName(b) || '', 'ar'));
-  sortByAr(groupA);
-  sortByAr(groupB);
-  const arHeaders = [T().att_arabic, T().att_english, T().att_jobno,
-    T().att_dept, T().att_group, T().att_list, T().att_rot, T().att_status];
-  const enHeaders = [T().att_english, T().att_arabic, T().att_jobno,
-    T().att_dept, T().att_group, T().att_list, T().att_rot, T().att_status];
-  const headers = mk === 'ar' ? arHeaders : enHeaders;
-  function buildRows(listArr) {
-    return listArr.map(e => {
-      const d = byEmp[e.id];
-      if (mk === 'ar') {
-        return [e.ar || empName(e), e.en || '', e.num || '', e.dept || '',
-          empGroup(e) || '', d.list || '', d.rot || '', d.status || ''];
-      } else {
-        return [e.en || empName(e), e.ar || '', e.num || '', e.dept || '',
-          empGroup(e) || '', d.list || '', d.rot || '', d.status || ''];
-      }
-    });
-  }
-  const wb = new ExcelJS.Workbook();
-  wb.creator = 'HSE Tracker';
-  wb.company = 'Hyundai Engineering & Construction';
-  const HDEC_BG = { argb: 'FFDFEAF2' }, HEC_BG = { argb: 'FFFFF2CC' };
-  const HDEC_FONT = { argb: 'FF1F4E79' }, HEC_FONT = { argb: 'FF7F6000' };
-  const NAVY = 'FF0EA5E9', BLUE = 'FF0284C7';
-  // --- Sheet A ---
-  const wsA = wb.addWorksheet(
-    mk === 'ar' ? 'قائمة A ( HDEC + HEC )' : 'List A ( HDEC + HEC )');
-  wsA.properties = wsA.properties || {}; wsA.properties.tabColor = { argb: NAVY };
-  wsA.mergeCells('A1:H1');
-  wsA.getCell('A1').value = mk === 'ar'
-    ? `${T().att_sheetA} — ${groupA.length} موظف (HDEC + HEC)`
-    : `${T().att_sheetA} — ${groupA.length} employees (HDEC + HEC)`;
-  wsA.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-  wsA.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
-  wsA.getCell('A1').alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
-  wsA.rowHeight = 30;
-  headers.forEach((h, i) => {
-    const cell = wsA.getCell(2, i + 1);
-    cell.value = h;
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
-    cell.alignment = { horizontal: 'center', vertical: 'middle' };
-  });
-  wsA.rowHeight = 22;
-  const rowsA = buildRows(groupA);
-  rowsA.forEach((row, idx) => {
-    const r = wsA.addRow(row);
-    const group = empGroup(employees[idx]);
-    const isHEC = group === 'HEC';
-    r.eachCell(cell => {
-      cell.font = { size: 11, color: isHEC ? HEC_FONT : HDEC_FONT };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: isHEC ? HEC_BG : HDEC_BG };
-      cell.alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
-    });
-    r.height = 18;
-  });
-  // --- Sheet B ---
-  const wsB = wb.addWorksheet(
-    mk === 'ar' ? 'قائمة B ( HDEC + HEC )' : 'List B ( HDEC + HEC )');
-  wsB.properties = wsB.properties || {}; wsB.properties.tabColor = { argb: BLUE };
-  wsB.mergeCells('A1:H1');
-  wsB.getCell('A1').value = mk === 'ar'
-    ? `${T().att_sheetB} — ${groupB.length} موظف (HDEC + HEC)`
-    : `${T().att_sheetB} — ${groupB.length} employees (HDEC + HEC)`;
-  wsB.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
-  wsB.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BLUE } };
-  wsB.getCell('A1').alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
-  wsB.rowHeight = 30;
-  headers.forEach((h, i) => {
-    const cell = wsB.getCell(2, i + 1);
-    cell.value = h;
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BLUE } };
-    cell.alignment = { horizontal: 'center', vertical: 'middle' };
-  });
-  wsB.rowHeight = 22;
-  const rowsB = buildRows(groupB);
-  rowsB.forEach((row, idx) => {
-    const r = wsB.addRow(row);
-    const group = empGroup(employees[idx]);
-    const isHEC = group === 'HEC';
-    r.eachCell(cell => {
-      cell.font = { size: 11, color: isHEC ? HEC_FONT : HDEC_FONT };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: isHEC ? HEC_BG : HDEC_BG };
-      cell.alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
-    });
-    r.height = 18;
-  });
-  const buf = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `تسجيل_حضور_${new Date().getFullYear()}_قوائم_A_B.xlsx`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast(`✅ تم تصدير ${groupA.length + groupB.length} موظف (قائمة A: ${groupA.length} | قائمة B: ${groupB.length})`);
-};
-
 document.getElementById('subHdec').onclick=()=>{ STAFF_GROUP='HDEC'; renderStaff(); };
 document.getElementById('subHec').onclick=()=>{ STAFF_GROUP='HEC'; renderStaff(); };
 document.getElementById('staffSearch').oninput=e=>{ STAFF_Q=e.target.value; renderStaff(); };
@@ -1743,121 +1578,8 @@ document.getElementById('depSaveBtn').onclick=async()=>{
   document.getElementById('depArea').value=''; document.getElementById('depRot').value='';
   renderDep(); toast(T().dep_saved);
 };
-function renderLists(){
-  const q=(document.getElementById('listsSearch').value||'').trim().toLowerCase();
-  document.getElementById('listsSearch').placeholder=T().lists_search;
-  const gf=document.getElementById('listsGroupFilter').value;
-  const mk=localeKey();
-
-  function sectionInfo(listName){
-    if(mk==='ar'){
-      if(listName==='A') return ['📋 قائمة A','الموظفين المسجلين في قائمة A'];
-      if(listName==='B') return ['📋 قائمة B','الموظفين المسجلين في قائمة B'];
-    } else {
-      if(listName==='A') return ['📋 List A','Employees registered in List A'];
-      if(listName==='B') return ['📋 List B','Employees registered in List B'];
-    }
-  }
-
-  function companySection(target,company,rows){
-    target.innerHTML='';
-    if(!rows.length){ target.innerHTML='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;color:var(--mut);font-size:13px;margin-bottom:8px;">📭 '+(mk==='ar'?company+' — لا يوجد':(company+(company==='HDEC'?' — Hyundai E&C':' — Consultant')))+'</div>'; return; }
-    const arComp = mk==='ar' ? (company==='HDEC'?'شركة HDEC 💙':'شركة HEC 💛') : (company+' '+(company==='HDEC'?'(Hyundai E&C)':'Consultant'));
-    const tbl=document.createElement('div'); tbl.className='tbl-holder';
-    let html='<div style="background:'+(company==='HDEC'?'#dbeafe':'#fef3c7')+';border-radius:10px;padding:8px 12px;margin-bottom:10px;font-weight:800;font-size:14px;color:'+(company==='HDEC'?'#1e40af':'#92400e')+';">'+arComp+' ('+rows.length+')</div>';
-    html+='<table><thead><tr><th>#</th><th>'+(mk==="ar"?'الرقم الوظيفي':'Job No.')+'</th><th>'+(mk==="ar"?'الموظف':'Employee')+'</th><th>'+(mk==="ar"?'المسمى':'Designation')+'</th><th>'+(mk==="ar"?'المنطقة':'Area')+'</th><th>'+(mk==="ar"?'مجموعة الدوام':'Rotation')+'</th><th>'+(mk==="ar"?'الحالة':'Status')+'</th></tr></thead><tbody>';
-    rows.forEach((d,n)=>{
-      html+='<tr><td>'+(n+1)+'</td><td style="direction:ltr;">'+esc(d.emp_id||d.no||'')+'</td><td style="font-weight:600;">'+esc(d.name_en||'')+'</td><td>'+esc(d.designation||'')+'</td><td>'+esc(d.area||'')+'</td><td style="direction:ltr;">'+esc(d.rotation||'')+'</td><td>'+esc(d.status||'')+'</td></tr>';
-    });
-    html+='</tbody></table>';
-    tbl.innerHTML=html;
-    target.appendChild(tbl);
-  }
-
-  function renderOne(listName){
-    const target=document.getElementById('listsSection'+listName);
-    const filtered=DEPLOY_DATA.filter(d=>{
-      if(gf!=='all' && d.group!==gf) return false;
-      if(q){
-        const name=d.name_en||'';
-        if(!name.toLowerCase().includes(q)) return false;
-      }
-      return d.list===listName;
-    });
-    const hdec=filtered.filter(d=>d.group==='HDEC');
-    const HEC=filtered.filter(d=>d.group==='HEC');
-    target.innerHTML='';
-    const [secH,secI]=sectionInfo(listName);
-    target.insertAdjacentHTML('beforeend','<h3 style="font-size:17px;margin-bottom:12px;color:'+(mk==='ar'?'#0c4a6e':'#0c4a6e')+';">'+esc(secH)+' ('+filtered.length+' موظف)</h3>');
-    if(!filtered.length){
-      target.innerHTML+='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;color:var(--mut);font-size:14px;text-align:center;">📭 '+esc(secI)+'</div>';
-    } else {
-      companySection(target,'HDEC',hdec);
-      companySection(target,'HEC',HEC);
-    }
-  }
-
-  renderOne('A');
-  renderOne('B');
-  const totalAll=DEPLOY_DATA.filter(d=>d.list==='A'||d.list==='B').length;
-  document.getElementById('listsCountLbl').textContent=totalAll+' موظف';
-}
-
-document.getElementById('listsSearch').oninput=renderLists;
-document.getElementById('listsGroupFilter').onchange=renderLists;
 
 /* ---- Export List ---- */
-document.getElementById('listExportBtn').onclick=async()=>{
-  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
-  const mk=localeKey();
-  const grp=document.getElementById('listExportGroup').value;
-  const listN=(grp==='A'?'A':'B');
-  const gf=document.getElementById('listsGroupFilter').value;
-  const rows=DEPLOY_DATA.filter(d=>{
-    if(gf!=='all' && d.group!==gf) return false;
-    return d.list===listN;
-  });
-  if(!rows.length){ toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN); return; }
-  const wb=new ExcelJS.Workbook();
-  wb.creator='HSE Tracker';
-  const ws=wb.addWorksheet(mk==='ar'?('قائمة '+listN+' — HDEC + HEC'):('List '+listN+' — HDEC + HEC'));
-  ws.properties.tabColor={argb:listN==='A'?'FF0EA5E9':'FF0284C7'};
-  const cols=[{w:5},{w:32},{w:14},{w:26},{w:16},{w:10},{w:14},{w:14}];
-  cols.forEach(c=>ws.columns.push(c));
-  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','القسم / المهنة','المنطقة','القائمة','مجموعة الدوام','الحالة']:['#','Employee','Job No.','Department','Area','List','Rotation','Status'];
-  ws.mergeCells('A1:H1');
-  ws.getCell('A1').value=(mk==='ar'?('قائمة '+listN):('List '+listN))+' — '+rows.length+' موظف (HDEC + HEC)';
-  ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
-  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
-  ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-  ws.rowHeight=34;
-  hd.forEach((h,i)=>{
-    const c=ws.getCell(2,i+1); c.value=h; c.font={bold:true,color:'FFFFFF'};
-    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
-    c.alignment={horizontal:'center',vertical:'middle'};
-  });
-  ws.rowHeight=22;
-  rows.forEach((d,i)=>{
-    const grp2=d.group||''; const isHEC=grp2==='HEC';
-    ws.addRow([i+1,d.name_en||'',d.emp_id||'',d.designation||'',d.area||'',d.list||'',d.rotation||'',d.status||'']);
-    const r=ws.lastRow;
-    r.eachCell(c=>{
-      c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
-      c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
-      c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
-    });
-    r.height=19;
-  });
-  const buf=await wb.xlsx.writeBuffer();
-  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url;
-  a.download=(mk==='ar'?'قائمة_':'List_')+listN+'_'+(new Date()).getFullYear()+'.xlsx';
-  a.click(); URL.revokeObjectURL(url);
-  toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN);
-};
-
-/* ---- Export List B ---- */
 
 
 document.getElementById('depBody').addEventListener('click',async e=>{
