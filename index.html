@@ -261,6 +261,7 @@
     <button class="btn tab" id="tabVeh">🚗 <span data-i="tab_veh">السيارات</span></button>
     <button class="btn tab" id="tabAppr">🛡️ <span data-i="tab_appr">ابروفل ارامكو</span></button>
     <button class="btn tab" id="tabDep">🗺️ <span data-i="tab_dep">التوزيع</span></button>
+    <button class="btn tab" id="tabLists">📋 <span data-i="tab_lists">القوائم (A/B)</span></button>
     
     <button class="btn tab" id="tabEmp">👥 <span data-i="tab_emp">الموظفين</span></button>
     <button class="btn tab" id="tabTs">🗓️ <span data-i="tab_ts">التايم شيت</span></button>
@@ -435,6 +436,9 @@
       <button class="btn subtab active" id="subHdec">🟦 HDEC (120)</button>
       <button class="btn subtab" id="subHec">🟨 HEC (68)</button>
     </div>
+    <div class="field" style="max-width:360px;margin-bottom:14px;">
+      <button class="btn btn-green" id="attExportBtn">📥 <span data-i="att_export">تصدير حضور الموظفين (Excel)</span></button>
+    </div>
     <div class="field" style="max-width:360px;margin-bottom:14px;"><input id="staffSearch" placeholder="بحث..."></div>
     <div class="staff-grid" id="staffGrid"></div>
   </div>
@@ -460,6 +464,30 @@
   </div>
   </div><!-- /viewDep -->
 
+  <div id="viewLists" class="hide">
+  <div class="card">
+    <h2><span class="ic">📋</span><span data-i="lists_title">القوائم (A/B) — الموظفين بحسب القائمة</span> <span class="mut" id="listsCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="frow" style="flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div class="field" style="max-width:360px;"><input id="listsSearch" placeholder="بحث..."></div>
+      <select id="listsGroupFilter" style="min-width:140px;">
+        <option value="all">كل الشركات</option>
+        <option value="HDEC">HDEC</option>
+        <option value="HEC">HEC</option>
+      </select>
+      <select id="listExportGroup" style="min-width:150px;">
+        <option value="A">📋 قائمة A</option>
+        <option value="B">📋 قائمة B</option>
+      </select>
+      <div><button class="btn btn-green" id="listExportBtn">📥 <span data-i="list_export_btn">تصدير القائمة (Excel)</span></button></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div id="listsSectionA"></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div id="listsSectionB"></div>
+    </div>
+  </div>
+  </div><!-- /viewLists -->
 
   <div id="viewVeh" class="hide">
   <div class="card">
@@ -643,6 +671,10 @@ const I18N={
     tab_lists:'القوائم (A/B)', lists_title:'القوائم (A/B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export_a:'تصدير قائمة A (Excel)',
         lists_export_b:'تصدير قائمة B (Excel)',
         lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
+    att_export:'تصدير حضور الموظفين (Excel)', att_arabic:'الاسم العربي', att_english:'الاسم الإنجليزي',
+    att_jobno:'الرقم الوظيفي', att_dept:'القسم / المهنة', att_group:'المجموعة', att_list:'القائمة',
+    att_rot:'مجموعة الدوام', att_status:'الحالة', att_sheetA:'قائمة A', att_sheetB:'قائمة B',
+    att_empty:'لا توجد بيانات للتصدير — سجّل توزيعات من تبويب التوزيع أولاً',
     list_export_a_done:'✅ تم تصدير قائمة A',
     list_export_b_done:'✅ تم تصدير قائمة B',
   },
@@ -691,6 +723,10 @@ const I18N={
     dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
+    att_export:'Export Employee Attendance (Excel)', att_arabic:'Arabic Name', att_english:'English Name',
+    att_jobno:'Job No.', att_dept:'Department / Job', att_group:'Group', att_list:'List',
+    att_rot:'Rotation Group', att_status:'Status', att_sheetA:'List A', att_sheetB:'List B',
+    att_empty:'No data to export — save deployments from the Deployment tab first',
     list_export_a_done:'✅ List A exported',
     list_export_b_done:'✅ List B exported',
   }
@@ -700,6 +736,1346 @@ const T=()=>I18N[LANG];
 
 
 /* ============ DEPLOYMENT DATA (from Excel) ============ */
+const DEPLOY_DATA = [{"no": 1, "name_en": "KHALID FEHAID ALQAHTANI", "emp_id": "SASL-0470", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "training_room", "status": "Active", "group": "HDEC", "area": ""}, {"no": 1, "name_en": "NAIF HAMEED A ALSAYED", "emp_id": "SASL-0618", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ auditor office  —  2 personnel"}, {"no": 2, "name_en": "ABDULLAH ALI ALBAQSHI", "emp_id": "SASL-0533", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ auditor office  —  2 personnel"}, {"no": 1, "name_en": "ALWAFI ABDULLAH SAAD ALRASHED", "emp_id": "SASL-0471", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 2, "name_en": "MOHAMMED SAEED AL NASIM", "emp_id": "SASL-0465", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 3, "name_en": "NAWAF HUSSAIN AL SHAIBAN", "emp_id": "SASL-0459", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 4, "name_en": "ABDULAZIZ ABDULLAH ALESSA", "emp_id": "SASL-0479", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 5, "name_en": "FAISAL ABDULKHALIQ ALQARNI", "emp_id": "SASL-0489", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 6, "name_en": "MESHARI ABDULLAH ALBATI", "emp_id": "SASL-0476", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 7, "name_en": "YOUSIF FAHAD AL ISMAIL", "emp_id": "SASL-0507", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Chemical Storage  —  7 personnel"}, {"no": 1, "name_en": "ABDULLAH ABDULAZIZ AL NASHMI", "emp_id": "SASL-0481", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 2, "name_en": "ABDULLAH MOHAMMED A ALGHIRASH", "emp_id": "SASL-0607", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 3, "name_en": "SAEED ALI M ALSHAHRANI", "emp_id": "SASL-0619", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 4, "name_en": "SALEH ABDULRAHMAN S BUBSHAIT", "emp_id": "SASL-0622", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 5, "name_en": "MAWAF MOHSEN ALHARTHI", "emp_id": "HECL-0243", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 6, "name_en": "ABDULAZIZ S ABU SHBEEB", "emp_id": "HECL-0222", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 7, "name_en": "AHMED HASSAN SRAHEED", "emp_id": "HECL-0218", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 8, "name_en": "FAISAL SAEED ALHADDAD", "emp_id": "SASL-0490", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ compressor area  —  8 personnel"}, {"no": 1, "name_en": "HAYF ALI ALQAHTANI", "emp_id": "SASL-0528", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Export  —  2 personnel"}, {"no": 2, "name_en": "ABDULLAH MOHAMMED AL QUSHAYM", "emp_id": "SASL-0387", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Export  —  2 personnel"}, {"no": 1, "name_en": "ABDULAZIZ I ALSULAYBI", "emp_id": "HECL - 0176", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 2, "name_en": "ABDULLAH I ALSULAYBI", "emp_id": "HECL - 0095", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 3, "name_en": "HAMAD A ALDAWSARI", "emp_id": "HECL - 0177", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 4, "name_en": "SAUD ABDULAZIZ ALKHULAIF", "emp_id": "HECL - 0175", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 5, "name_en": "SALEM M ALENAZI", "emp_id": "HECL-0221", "designation": "SAFETY OFFICER", "list": "A", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 6, "name_en": "SALEM FEHAID ALMARRI", "emp_id": "HECL-0203", "designation": "SAFETY OFFICER", "list": "A", "rotation": "training_room", "status": "Active", "group": "HEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 7, "name_en": "NASSER ABDULLAH ALDAWSARI", "emp_id": "SASL-0558", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 8, "name_en": "YOUSEF MUBARAK ALHAMDAN", "emp_id": "SASL-0522", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 9, "name_en": "SAUD MOHAMMED ALWADANI", "emp_id": "SASL-0520", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 10, "name_en": "MANA NASSER AL QAHTANI", "emp_id": "SASL-0515", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 11, "name_en": "RAKAN SAAD ALQAHTANI", "emp_id": "SASL-0517", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 12, "name_en": "FEHAID AOWIDAH AL AJMI", "emp_id": "SASL-0491", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 13, "name_en": "NAYEF ABDULLAH AL NUWAIRAN", "emp_id": "SASL-0498", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 14, "name_en": "MUTLIQ OMAR AL WADAANI", "emp_id": "SASL-0529", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team day  —  14 personnel"}, {"no": 1, "name_en": "ABDULMAJEED SAAD AL BAKHAT", "emp_id": "SASL-0510", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 2, "name_en": "ABDULWAHAB MASTOUR ALALSHYKH", "emp_id": "SASL-0472", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 3, "name_en": "ABDULLAH AHMED ALRAJEH", "emp_id": "HECL-0220", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 4, "name_en": "ABDULLAH MASTOUR AL ALSHAYKH", "emp_id": "SASL-0456", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 5, "name_en": "HASSAN A ALI ALBELADI", "emp_id": "HECL-0224", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 6, "name_en": "HATLAN ALI ALHATLAN", "emp_id": "HECL-0214", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 7, "name_en": "MOHAMMED MESHAEL ALKHALDI", "emp_id": "HECL-0215", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 8, "name_en": "THABET ALI ALSUBAIE", "emp_id": "SASL-0506", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 9, "name_en": "ABDULLAH MUNAHI H ALSUBAIE", "emp_id": "SASL-0608", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 10, "name_en": "MOHAMMED M ALMARRI", "emp_id": "HECL - 0098", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 11, "name_en": "SULTAN MOHAMMED ALMARRI", "emp_id": "HECL - 0094", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 12, "name_en": "AHMED YASIR ALSALEEM", "emp_id": "HECL - 0178", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 13, "name_en": "NASSER ABDULLAH ALSUBAIEI", "emp_id": "SASL-0559", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Fire team night  —  13 personnel"}, {"no": 1, "name_en": "OMAR IBRAHIM ALANAZI", "emp_id": "SASL-0499", "designation": "SAFETY ENGINEER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ GIS 1 & MS01 & MS02  —  1 personnel"}, {"no": 1, "name_en": "SAEED MOSHWAT ALHAJRI", "emp_id": "SASL-0518", "designation": "SAFETY ENGINEER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Import  —  2 personnel"}, {"no": 2, "name_en": "HADI HAMAD ALYAMI", "emp_id": "SASL-0527", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Import  —  2 personnel"}, {"no": 1, "name_en": "ABDULKHALIQ MOHAMMED ASIRI", "emp_id": "SASL-0453", "designation": "SAFETY OFFICER", "list": "B", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 2, "name_en": "ALI MOHAMMED ASIRI", "emp_id": "SASL-0448", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 3, "name_en": "SAAD MOHAMMED ALSUBAIE", "emp_id": "SASL-0502", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 4, "name_en": "TARIQ AHMED ALQARNI", "emp_id": "SASL-0505", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ K9  —  5 personnel"}, {"no": 5, "name_en": "SULTAN ABDULLAH ALSHAHRANI", "emp_id": "HECL-0197", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HEC", "area": "▸ K9  —  5 personnel"}, {"no": 1, "name_en": "ABDULLAH ADNAN ABDULLAH ALSHAALAN", "emp_id": "HECL-0190", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Ko drumb  —  3 personnel"}, {"no": 2, "name_en": "ABDULAZIZ MAJED ALBAR", "emp_id": "HECL-0226", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Ko drumb  —  3 personnel"}, {"no": 3, "name_en": "MARWAN ABDULMALIK AL ISMAIL", "emp_id": "SASL-0493", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Ko drumb  —  3 personnel"}, {"no": 1, "name_en": "AHMED ABDULRAHMAN ALSHEHRI", "emp_id": "SASL-0460", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 2, "name_en": "MOHAMMED ALI ALGHAMDI", "emp_id": "SASL-0494", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 3, "name_en": "MANSOOR ALI ALGHAMDI", "emp_id": "SASL-0463", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 4, "name_en": "FAHAD ADEL ALSADUN", "emp_id": "HECL - 0100", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 5, "name_en": "HUSSAIN HAMED ALSHAMMARI", "emp_id": "SASL-0492", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 6, "name_en": "RAYAN NAJIM ALSHARIF", "emp_id": "SASL-0462", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 7, "name_en": "HINDI FEHAID ALQAHTANI", "emp_id": "SASL-0461", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown A  —  7 personnel"}, {"no": 1, "name_en": "NAWAF RABEA AL SAAD", "emp_id": "SASL-0534", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 2, "name_en": "KHALID YAQOUB ALDOSSARY", "emp_id": "SASL-0464", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 3, "name_en": "ALI OBAID ALHARTHI", "emp_id": "SASL-0484", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 4, "name_en": "MOHAMMED GHAZI ALSUHAYMI", "emp_id": "SASL-0455", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 5, "name_en": "ANWAR MOHAMMED ALBISHI", "emp_id": "SASL-0547", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 6, "name_en": "MABKHOOT ABDULLAH AL SAIARI", "emp_id": "HECL-0090", "designation": "", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 7, "name_en": "ZIYAD ABDULLAH ALQAHTANI", "emp_id": "SASL-0508", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown B  —  7 personnel"}, {"no": 1, "name_en": "ABDULLAH MOHSEN ALOTAIBI", "emp_id": "SASL-0526", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 2, "name_en": "NAWAF BADER ALAYADI", "emp_id": "SASL-0394", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 3, "name_en": "ABDULLAH SALAH BUDI", "emp_id": "HECL-0101", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 4, "name_en": "DYIA RIAD MOHAMED ALHUMAID", "emp_id": "HECL-0185", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 5, "name_en": "HASSAN AMEER ALMUHANNA", "emp_id": "HECL - 0187", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 6, "name_en": "TALAL SAEED ALGHAMDI", "emp_id": "HECL - 0184", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 7, "name_en": "BADER SAAD ALRABAH", "emp_id": "SASL-0512", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Laydown C  —  7 personnel"}, {"no": 1, "name_en": "ALI MOHAMMED ALQARNI", "emp_id": "SASL-0483", "designation": "SAFETY ENGINEER", "list": "B", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ Maine pipe rake  —  3 personnel"}, {"no": 2, "name_en": "YASIR KHALID ALMEHIYAWI", "emp_id": "SASL-0397", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Maine pipe rake  —  3 personnel"}, {"no": 3, "name_en": "MOHAMMED AYIDH ALHSAN", "emp_id": "SASL-0005", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Maine pipe rake  —  3 personnel"}, {"no": 1, "name_en": "MOHAMMED KHALID ALBARQI", "emp_id": "SASL-0451", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 2, "name_en": "SULTAN ABDULLATIF ALHARBI", "emp_id": "SASL-0504", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 3, "name_en": "MOHAMMED GAZI ALBARGA", "emp_id": "SASL-0495", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 4, "name_en": "ABDULRAHMAN A ALKAMES", "emp_id": "HECL-0217", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 5, "name_en": "RIDHA TAHER MOHAMMED ALKHAMIS", "emp_id": "HECL-0189", "designation": "", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-03  —  5 personnel"}, {"no": 1, "name_en": "FARIS MESHAL ALSAGOOR", "emp_id": "SASL-0514", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 2, "name_en": "RASHED MOHAMMED ABDEL MOHSEN", "emp_id": "HECL-0194", "designation": "", "list": "B", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 3, "name_en": "ALI MESHAL ALSAGOOR", "emp_id": "SASL-0482", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 4, "name_en": "SAUD MOHAMMED AL GMAL", "emp_id": "SASL-0530", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 5, "name_en": "AHMAD ALI H ASIRI", "emp_id": "SASL-0611", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 6, "name_en": "SALEH SAEED ALSAEED", "emp_id": "SASL-0503", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 7, "name_en": "IBRAHIM ALI IBRAHIM", "emp_id": "HECL-0548", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ MS-04  —  7 personnel"}, {"no": 1, "name_en": "AHMED ABDULLATIF AL DOSSARI", "emp_id": "SASL-0396", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HDEC", "area": "▸ Office  —  4 personnel"}, {"no": 2, "name_en": "ALI TAHER ALMUMTIN", "emp_id": "SASL-0374", "designation": "DOCUMENTS CONTROLLER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HDEC", "area": "▸ Office  —  4 personnel"}, {"no": 3, "name_en": "ALI AHMED ALHABIB", "emp_id": "SASL-0524", "designation": "DOCUMENTS CONTROLLER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HDEC", "area": "▸ Office  —  4 personnel"}, {"no": 4, "name_en": "KHALID ABDLUAZIZ ALHAMMADI", "emp_id": "HECL-0212", "designation": "SAFETY ENGINEER", "list": "(no list)", "rotation": "office", "status": "Active", "group": "HEC", "area": "▸ Office  —  4 personnel"}, {"no": 1, "name_en": "SAUD HAMOUD SAULM", "emp_id": "HECL-0992", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR-003C  —  3 personnel"}, {"no": 2, "name_en": "TURKI SALEM ALJOHAR", "emp_id": "SASL-0523", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ PR-003C  —  3 personnel"}, {"no": 3, "name_en": "AHMAD MOHAMMD MAJRASHI", "emp_id": "HECL-0211", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR-003C  —  3 personnel"}, {"no": 1, "name_en": "SALEH MUSLIH ALFARSI", "emp_id": "HECL-0237", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 2, "name_en": "ABDULLAH Y ALMUZAYEL", "emp_id": "HECL-0225", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 3, "name_en": "MUSAAD ABDULAZIZ ALDHUWAIHI", "emp_id": "SASL-0555", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 4, "name_en": "SULTAN MUIDH ALQAHTANI", "emp_id": "HECL - 0193", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR-005  —  4 personnel"}, {"no": 1, "name_en": "TYYAM MAJEED ALMETHEN", "emp_id": "HECL-0238", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 2, "name_en": "TAHER HUSSAIN T ALBUKHAYTAN", "emp_id": "SASL-0624", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 3, "name_en": "HUSSAM NAJEH ALSHARARI", "emp_id": "HECL-0233", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 4, "name_en": "MAJED MOHAMMED DAAK", "emp_id": "HECL-0235", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 5, "name_en": "KHALED MISFER ALMUDARHAM", "emp_id": "HECL-0219", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ PR003   A/B  —  5 personnel"}, {"no": 1, "name_en": "HASSAN MUNEER A AL MAHDI", "emp_id": "SASL-0614", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Sliver  —  1 personnel"}, {"no": 1, "name_en": "AHMED MOUSA A ALHABRATI", "emp_id": "SASL-0612", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 2, "name_en": "AALI KHALID B ALOTAIBI", "emp_id": "SASL-0606", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 3, "name_en": "MESHAL THAWAB M AL OTAIBI", "emp_id": "SASL-0615", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 4, "name_en": "MOHAMMED MOHSEN M ALDAWSARI", "emp_id": "SASL-0616", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 5, "name_en": "SALEM ABDULLAH A ALAYED", "emp_id": "SASL-0623", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 6, "name_en": "SALMAN ZIKRIYAA ALSALMAN", "emp_id": "SASL-0561", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 7, "name_en": "OMAR MOHAMMED ALMARRI", "emp_id": "HECL-0236", "designation": "SAFETY OFFICER", "list": "A", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 8, "name_en": "NAWAF SAAD AlGHAMDI", "emp_id": "SASL-0497", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 9, "name_en": "RAYAN MOHAMMED AL ZUHAYR", "emp_id": "SASL-0466", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 10, "name_en": "ABDULRAHMAN SAMI ALKURDI", "emp_id": "HECL-0227", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 11, "name_en": "AHMED A ALSULTAN", "emp_id": "HECL-0102", "designation": "", "list": "B", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 12, "name_en": "HAIDAR ABDULELAH ALSURAYJ", "emp_id": "SASL-0596", "designation": "RIGGER III", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 13, "name_en": "RAYAN SAAD ALRABAH", "emp_id": "SASL-0501", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 14, "name_en": "FAHAD SALEH ALZAHRANI", "emp_id": "SASL-0488", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU 4  —  14 personnel"}, {"no": 1, "name_en": "GHAZI AMER ALBARQI", "emp_id": "SASL-0452", "designation": "SAFETY OFFICER", "list": "B", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 2, "name_en": "AHMED S ALKHALDI", "emp_id": "HECL-0223", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 3, "name_en": "MOHAMMED SAEED ALAHMARI", "emp_id": "HECL-0241", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 4, "name_en": "MOHAMMED SAMEER ALKHUDHAYR", "emp_id": "HECL-0242", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 5, "name_en": "FAISAL AHMED HUSSEIN", "emp_id": "HECL-0240", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 6, "name_en": "ABDULRAHMAN OMAR S ALSALEH", "emp_id": "SASL-0609", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 7, "name_en": "YOUSIF MUSTAFA Y ALYOUSIF", "emp_id": "SASL-0625", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 8, "name_en": "ALI HASSAN ALBANNAY", "emp_id": "SASL-0473", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 9, "name_en": "MUHANNAD SAAD E ALGUNAIM", "emp_id": "SASL-0617", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 10, "name_en": "SAJJAD HUSSAIN H ALSAYAFI", "emp_id": "SASL-0620", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 11, "name_en": "SULTAN SHULAYWIH ALHARBI", "emp_id": "SASL-0532", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 12, "name_en": "KHALID NASSER ALSULAITEEN", "emp_id": "HECL-0234", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 13, "name_en": "WALEED MASOUD ALQAHTANI", "emp_id": "SASL-0392", "designation": "SAFETY ENGINEER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 14, "name_en": "HUSSAIN IBRAHIM ALESSA", "emp_id": "SASL-0469", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ SRU-5  —  14 personnel"}, {"no": 1, "name_en": "FAHAD ABDULLAH ALYOUSIF", "emp_id": "SASL-0513", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 2, "name_en": "ALI SALEH ALSALEH", "emp_id": "SASL-0485", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 3, "name_en": "MUHANNAD KHUWAYLID ALANAZI", "emp_id": "SASL-0496", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 4, "name_en": "OMAR SAAD ALMAKHAYITAH", "emp_id": "SASL-0500", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 5, "name_en": "HUSSAM NAJIM ALSHARIF", "emp_id": "SASL-0449", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 6, "name_en": "MAHMOUD ALI ALWABARI", "emp_id": "SASL-0003", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "ssc", "status": "Active", "group": "HDEC", "area": "▸ SSC  —  6 personnel"}, {"no": 1, "name_en": "HUSSAIN ALI ALAJWAD", "emp_id": "HECL-0232", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 2, "name_en": "BASIM ADEL ALNASSER", "emp_id": "HECL-0230", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 3, "name_en": "ALI YASEEN M AL JABER", "emp_id": "SASL-0613", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 4, "name_en": "MEGREN HABIB ALMEGREN", "emp_id": "HECL-0216", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 5, "name_en": "AHMED YOUSEF ALSULTAN", "emp_id": "HECL-0239", "designation": "SAFETY OFFICER", "list": "A", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 6, "name_en": "ABDULAZIZ GHAZI ALSUHAYMI", "emp_id": "SASL-0480", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ TANKAGE  —  6 personnel"}, {"no": 1, "name_en": "FAHAD M ALDOSSARY", "emp_id": "HECL - 0091", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-A  —  2 personnel"}, {"no": 2, "name_en": "TURKI SULTAN ALSULTAN", "emp_id": "HECL - 0093", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TR-A  —  2 personnel"}, {"no": 1, "name_en": "ABDULLAH KHALED ALTAMIMI", "emp_id": "HECL - 0191", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 2, "name_en": "SHAMAN M ALDOSSARY", "emp_id": "HECL - 0104", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 3, "name_en": "OBAID MOHAMMED ALDOSSARI", "emp_id": "HECL - 0097", "designation": "Safety Officer", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 4, "name_en": "OMAR ABDULLAH ALAHMARI", "emp_id": "SASL-0516", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 5, "name_en": "MOHAMMED E ALMINHALI", "emp_id": "HECL - 0182", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 6, "name_en": "MUSAAD AHMED ALSULTAN", "emp_id": "HECL - 0096", "designation": "Safety Officer", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 7, "name_en": "SALEH KHALID ALRUMAYH", "emp_id": "SASL-0560", "designation": "SAFETY OFFICER ASSISTANT", "list": "A", "rotation": "A", "status": "Active", "group": "HDEC", "area": "▸ TR-B  —  7 personnel"}, {"no": 1, "name_en": "AHMED SALAH ABDULAZIZ  BUDI", "emp_id": "HECL-0103", "designation": "", "list": "(no list)", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Training room  —  3 personnel"}, {"no": 2, "name_en": "ABDULRAHMAN SALEH S ALSHAMRANI", "emp_id": "SASL-0610", "designation": "SAFETY OFFICER ASSISTANT", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Training room  —  3 personnel"}, {"no": 3, "name_en": "ABDULAZIZ NAJEA ALSUBEIA", "emp_id": "SASL-0458", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "training_room", "status": "Active", "group": "HDEC", "area": "▸ Training room  —  3 personnel"}, {"no": 1, "name_en": "MOHAMMED FAISAL ALSUHALI", "emp_id": "SASL-0450", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Utlity  —  2 personnel"}, {"no": 2, "name_en": "ABDULLAH KANAN ALKANAN", "emp_id": "HECL-0084", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HEC", "area": "▸ Utlity  —  2 personnel"}, {"no": 1, "name_en": "ABDULWAHAB HUSSAIN KAABI", "emp_id": "HECL-0228", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 2, "name_en": "AMER AHMED ASIRI", "emp_id": "HECL-0229", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 3, "name_en": "HASSAN YAHYA MAJRASHI", "emp_id": "HECL-0231", "designation": "SAFETY OFFICER", "list": "A", "rotation": "A", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 4, "name_en": "FAHAD ABDULAZIZ ALWASMI", "emp_id": "SASL-0487", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 5, "name_en": "HAMAD MOHAMMED ALFEHAID", "emp_id": "SASL-0537", "designation": "SAFETY OFFICER", "list": "B", "rotation": "B", "status": "Active", "group": "HDEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 6, "name_en": "FAISAL FEHAID ALGETHAMI", "emp_id": "HECL-0188", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 7, "name_en": "MUATH MANDR ALZAHRANI", "emp_id": "HECL-0181", "designation": "", "list": "B", "rotation": "B", "status": "Active", "group": "HEC", "area": "▸ Walter bound  —  8 personnel"}, {"no": 8, "name_en": "KHALID NAJIM ALSHARIF", "emp_id": "SASL-0474", "designation": "SAFETY OFFICER", "list": "(no list)", "rotation": "daily_duty", "status": "Active", "group": "HDEC", "area": "▸ Walter bound  —  8 personnel"}];
+
+/* ============ AUTH ============ */
+function currentUser(){ return D.users.find(u=>u.user===SESSION)||null; }
+function isAdmin(){ const u=currentUser(); return !!u && u.role==='admin'; }
+
+function renderAuthUI(){
+  const u=currentUser();
+  const isAdminUser=isAdmin();
+  document.getElementById('appWrap').classList.toggle('hide', !u);
+  document.getElementById('loginScrim').classList.toggle('hide', !!u);
+  if(!u) return;
+  const who=document.getElementById('whoName');
+  who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
+  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
+  renderUsers();
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh(); renderAppr();
+}
+
+function applyLang(){
+  document.querySelectorAll('#appWrap [data-i]').forEach(el=>{
+    const k=el.getAttribute('data-i');
+    if(T()[k]!==undefined) el.textContent=T()[k];
+  });
+  document.querySelectorAll('#loginScrim [data-i]').forEach(el=>{
+    const k=el.getAttribute('data-i');
+    if(T()[k]!==undefined) el.textContent=T()[k];
+  });
+  document.documentElement.lang=LANG==='ar'?'ar':'en';
+  document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
+  document.getElementById('langBtn').textContent=(LANG==='ar')?'English / الإنجليزية':'عربي';
+  document.getElementById('lgBtn').textContent=T().login;
+  if(SESSION) renderAuthUI();
+  refreshTypeLabels();
+}
+function refreshTypeLabels(){}
+
+/* ============ USERS (admin) ============ */
+let pwdEditUser=null;
+function renderUsers(){
+  const es=document.getElementById('userBody'); if(!es) return;
+  es.innerHTML='';
+  const isEmpty=document.getElementById('userEmpty');
+  if(!D.users.length){ isEmpty.textContent=T().emptyUsers; isEmpty.classList.remove('hide'); return;}
+  isEmpty.classList.add('hide');
+  D.users.forEach(u=>{
+    const tr=document.createElement('tr');
+    const isSelf=u.user===SESSION;
+    const roleTag=u.role==='admin'?'<span class="tag t-admin">'+T().admin+'</span>':'<span class="tag t-user">User</span>';
+    let acts='<button class="btn btn-sm" data-pwd="'+esc(u.user)+'" title="&#128273;">&#128273;</button> ';
+    acts+=(isSelf?'':'<button class="del" data-u="'+esc(u.user)+'" title="'+T().u_del+'">🗑</button>');
+    tr.innerHTML='<td>'+esc(u.name)+' '+(isSelf?'<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>':'')+'</td>      <td>'+esc(u.user)+'</td><td>'+roleTag+'</td>      <td style="white-space:normal;">'+acts+'</td>';
+    es.appendChild(tr);
+    if(pwdEditUser===u.user){
+      const tr2=document.createElement('tr');
+      tr2.innerHTML='<td colspan="4"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f0f9ff;padding:10px;border-radius:12px;">'+
+        '<input type="text" id="pwdNew" placeholder="'+esc(T().set_new_pass)+'" style="max-width:220px;" autocomplete="new-password">'+
+        '<button class="btn btn-sm btn-green" id="pwdSaveBtn">💾 '+esc(T().save_edit)+'</button>'+
+        '<button class="btn btn-sm" id="pwdCancelBtn">✖</button></div></td>';
+      es.appendChild(tr2);
+    }
+  });
+}
+
+document.getElementById('addUserBtn').onclick=async()=>{
+  const name=document.getElementById('uName').value.trim();
+  const user=document.getElementById('uUser').value.trim().toLowerCase();
+  const pass=document.getElementById('uPass').value.trim();
+  const role=document.getElementById('uRole').value;
+  if(!name||!user||!pass){ toast(T().err_fill); return; }
+  if(D.users.find(u=>u.user===user)){ toast(T().err_userExists); return; }
+  const u={id:uid(),name,user,pass,role};
+  D.users.push(u);
+  await saveUser(u);
+  renderAuthUI();
+  document.getElementById('uName').value='';document.getElementById('uUser').value='';document.getElementById('uPass').value='';
+  toast(T().toast_addUser);
+};
+
+document.getElementById('userBody').addEventListener('click',async e=>{
+  const pwdBtn=e.target.closest('[data-pwd]');
+  const saveBtn=e.target.closest('#pwdSaveBtn');
+  const cancelBtn=e.target.closest('#pwdCancelBtn');
+  if(pwdBtn){ pwdEditUser=pwdBtn.dataset.pwd; renderUsers(); const inp=document.getElementById('pwdNew'); if(inp) inp.focus(); return; }
+  if(cancelBtn){ pwdEditUser=null; renderUsers(); return; }
+  if(saveBtn){
+    const np=document.getElementById('pwdNew').value.trim();
+    if(np.length<4){ toast(T().err_short); return; }
+    const tu=D.users.find(x=>x.user===pwdEditUser);
+    if(tu){ tu.pass=np; await updateUser(tu.id,{password:np}); toast(T().pwd_changed); }
+    pwdEditUser=null; renderUsers(); return;
+  }
+  const btn=e.target.closest('.del'); if(!btn) return;
+  if(btn.dataset.u===SESSION){ toast(T().toast_cantSelf); return; }
+  if(!confirm(LANG==='ar'?'حذف هذا الزميل وجميع بياناته؟':'Delete this colleague and all their data?')) return;
+  const u=D.users.find(x=>x.user===btn.dataset.u);
+  D.users=D.users.filter(u=>u.user!==btn.dataset.u);
+  if(u) await delUser(u.id);
+  renderAuthUI(); toast(T().toast_delUser);
+});
+
+/* ============ LOGIN ============ */
+async function doLogin(){
+  const user=document.getElementById('lgUser').value.trim().toLowerCase();
+  const pass=document.getElementById('lgPass').value;
+  const errEl=document.getElementById('lgErr');
+  const btn=document.getElementById('lgBtn');
+  errEl.textContent=''; btn.textContent='⏳...'; btn.disabled=true;
+  // Check in-memory users FIRST (instant)
+  const found=D.users.find(u=>u.user===user && u.pass===pass);
+  if(found){
+    SESSION=user;
+    document.getElementById('lgPass').value='';
+    btn.textContent=T().login; btn.disabled=false;
+    // Load emp+rec from Supabase in background (don't wait)
+    (async()=>{
+      try{
+        const [emp,rec]=await Promise.all([sb('employees'),sb('records')]);
+        if(emp&&emp.length) D.emp=emp.map(mapEmp);
+        if(rec&&rec.length) D.rec=rec.map(mapRec);
+        SB_CONNECTED=true;
+        fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+      }catch(e){}
+    })();
+    renderAuthUI(); applyLang();
+    return;
+  }
+  // Try Supabase as fallback
+  try{
+    const users = await Promise.race([
+      sb('users','GET',null,'?username=eq.'+encodeURIComponent(user)+'&password=eq.'+encodeURIComponent(pass)),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
+    ]);
+    if(users && users.length){
+      SESSION=user;
+      D.users=users.map(u=>({id:u.id,name:u.name,user:u.username||u.user,pass:u.password||u.pass,role:u.role}));
+      document.getElementById('lgPass').value='';
+      btn.textContent=T().login; btn.disabled=false;
+      SB_CONNECTED=true;
+      // Load emp+rec in background
+      (async()=>{
+        try{
+          const [emp,rec]=await Promise.all([sb('employees'),sb('records')]);
+          if(emp&&emp.length) D.emp=emp.map(mapEmp);
+          if(rec&&rec.length) D.rec=rec.map(mapRec);
+          fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+        }catch(e){}
+      })();
+      renderAuthUI(); applyLang();
+      return;
+    }
+  }catch(e){ console.warn('SB login fallback:', e.message); }
+  // Not found
+  btn.textContent=T().login; btn.disabled=false;
+  errEl.textContent=T().err_login;
+}
+document.getElementById('lgBtn').onclick=doLogin;
+document.getElementById('lgPass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('lgUser').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('lgPass').focus(); });
+function doLogout(){ SESSION=null; document.getElementById('lgPass').value=''; renderAuthUI(); applyLang(); }
+function buildLogout(){
+  const hd=document.querySelector('.hd-actions');
+  if(document.getElementById('logoutBtn')) return;
+  const b=document.createElement('button'); b.id='logoutBtn'; b.className='btn btn-sm hbtn';
+  b.style.cssText='background:var(--red);color:#fff;border:none;';
+  b.textContent='⇥ '+T().logout; b.onclick=doLogout; hd.appendChild(b);
+}
+buildLogout();
+
+/* ============ SETTINGS DRAWER ============ */
+(function(){
+  const dr=document.getElementById('settingsDrawer'), ov=document.getElementById('drawerOverlay');
+  const db=document.getElementById('drawerBody');
+  db.appendChild(document.getElementById('usersCard'));
+  window.openSettings=()=>{dr.classList.add('open');ov.classList.add('show');};
+  window.closeSettings=()=>{dr.classList.remove('open');ov.classList.remove('show');};
+  document.getElementById('settingsBtn').onclick=openSettings;
+  document.getElementById('drawerClose').onclick=closeSettings;
+  ov.onclick=closeSettings;
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSettings(); });
+})();
+
+
+
+/* ============ EMPLOYEES ============ */
+function dispName(e){ return LANG==='ar'?(e.ar||e.en):(e.en||e.ar); }
+function sortedEmp(){ const L=LANG==='ar'?'ar':'en'; return [...D.emp].sort((a,b)=>String(dispName(a)||'').localeCompare(String(dispName(b)||''),L)); }
+function fillEmpSel(){
+  const es=[document.getElementById('recEmp')];
+  es.forEach(sel=>{
+    if(!sel) return;
+    const cur=sel.value; sel.innerHTML='';
+    const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
+    sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+      const nm=LANG==='ar'?(e.ar||e.en):(e.en||e.ar); o.textContent=nm+' — '+e.num; sel.appendChild(o);});
+    if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
+  });
+  const fs=document.getElementById('filtEmp'); if(!fs) return;
+  const fc=fs.value; fs.innerHTML='';
+  const a=document.createElement('option'); a.value=''; a.textContent=T().f_all; fs.appendChild(a);
+  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+    o.textContent=LANG==='ar'?(e.ar||e.en):(e.en||e.ar); fs.appendChild(o);});
+  if(fc) fs.value=fc;
+}
+
+let editingEmpId=null;
+function renderEmps(){
+  const body=document.getElementById('empBody'); if(!body) return;
+  body.innerHTML='';
+  const emptyDiv=document.getElementById('empEmpty');
+  if(!D.emp.length){ emptyDiv.textContent=T().emptyEmp; emptyDiv.classList.remove('hide'); return;}
+  emptyDiv.classList.add('hide');
+  sortedEmp().forEach(e=>{
+    const tr=document.createElement('tr');
+    if(editingEmpId===e.id){
+      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td><td><select id="edGrp" style="width:90px;direction:ltr"><option value="HDEC">HDEC</option><option value="HEC">HEC</option></select><input type="file" id="edPhoto" accept="image/*" style="margin-top:6px;font-size:11px;max-width:130px;"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
+    } else {
+      const nm=empName(e);
+      const thumb=e.photo?'<img src="'+e.photo+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-inline-end:6px;">':'';
+      const gbadge='<span class="tag '+(empGroup(e)==='HEC'?'t-user':'t-admin')+'" style="direction:ltr;">'+esc(empGroup(e))+'</span>';
+      tr.innerHTML='<td>'+thumb+esc(nm)+'</td><td>'+gbadge+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.plate||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del" data-del="'+e.id+'">🗑</button>        </td>';
+    }
+    body.appendChild(tr);
+  });
+  const ec=document.getElementById('empCountLbl'); if(ec) ec.textContent=D.emp.length;
+}
+
+document.getElementById('empBody').addEventListener('click',async e=>{
+  const edBtn=e.target.closest('[data-edit]');
+  const delBtn=e.target.closest('[data-del]');
+  const saveBtn=e.target.closest('#saveEditBtn');
+  const cancelBtn=e.target.closest('#cancelEditBtn');
+  if(edBtn){ editingEmpId=edBtn.dataset.edit; renderEmps(); const _em=D.emp.find(x=>x.id===editingEmpId); const _g=document.getElementById('edGrp'); if(_g&&_em) _g.value=empGroup(_em); return; }
+  if(cancelBtn){ editingEmpId=null; renderEmps(); return; }
+  if(saveBtn){
+    const em=D.emp.find(x=>x.id===editingEmpId); if(!em){editingEmpId=null;renderEmps();return;}
+    em.ar=document.getElementById('edAr').value.trim();
+    em.en=document.getElementById('edEn').value.trim();
+    em.num=document.getElementById('edNum').value.trim();
+    em.phone=document.getElementById('edPhone').value.trim();
+    em.plate=document.getElementById('edPlate').value.trim();
+    em.dept=document.getElementById('edDept').value.trim();
+    em.grp=document.getElementById('edGrp').value;
+    const edf=document.getElementById('edPhoto').files[0];
+    if(edf){ em.photo=await fileToPhoto(edf); }
+    await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, plate:em.plate, dept:em.dept, grp:em.grp, photo:em.photo});
+    editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+    toast(T().emp_updated); return;
+  }
+  if(delBtn){
+    if(!confirm(T().ask_del_emp)) return;
+    const id=delBtn.dataset.del;
+    D.emp=D.emp.filter(x=>x.id!==id);
+    D.rec=D.rec.filter(r=>r.empId!==id);
+    await delEmp(id);
+    editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+    toast(T().emp_deleted);
+  }
+});
+
+/* ============ IMPORT / EXPORT EMPLOYEES ============ */
+document.getElementById('importBtn').onclick=()=>{ document.getElementById('importFile').click(); };
+document.getElementById('importFile').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+      let added=0;
+      const knownIds=new Set(D.emp.map(x=>(x.num||'').replace(/\s/g,'').toUpperCase()));
+      const newEmps=[];
+      rows.forEach(r=>{
+        const cells=(r||[]).map(c=>(c===null||c===undefined)?'':String(c).trim());
+        const name=cells[1]; const id=cells[2];
+        if(!name || !name.match(/[A-Za-z]/)) return;
+        const cleanId=(id||'').replace(/\s/g,'').toUpperCase();
+        if(!cleanId || !/\d/.test(cleanId)) return;
+        if(knownIds.has(cleanId)) return;
+        knownIds.add(cleanId);
+        const emp={id:uid(),ar:'',en:name,num:cleanId,dept:'',phone:''};
+        D.emp.push(emp);
+        newEmps.push(emp);
+        added++;
+      });
+      // Save all new employees to Supabase
+      if(newEmps.length) await Promise.all(newEmps.map(e=>saveEmp(e)));
+      fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+      toast(added>0 ? T().import_ok+' ('+added+')' : T().s_emp);
+    }catch(err){ toast(T().err_parse); }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value='';
+});
+
+document.getElementById('exportEmpBtn').onclick=()=>{
+  const a=[[T().s_emp],['']];
+  const hh=LANG==='ar'?['الاسم العربي','الاسم الإنجليزي','الرقم الوظيفي','المجموعة','رقم الهاتف','رقم لوحة المركبة','القسم / المهنة']
+                      :['Arabic Name','English Name','Job No.','Group','Phone','Vehicle Plate No.','Department'];
+  a.push(hh);
+  sortedEmp().forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',empGroup(e),e.phone||'',e.plate||'',e.dept||'']));
+  const ws=XLSX.utils.aoa_to_sheet(a);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Employees');
+  XLSX.writeFile(wb,'Employees_list.xlsx');
+  toast(T().export_emp_ok);
+};
+
+const TYPE_TAG={violation:'t-vio',absence:'t-abs',permission:'t-per',warning:'t-wrn',sick:'t-sick',other:'t-oth'};
+function monthKey(dateStr){ return (dateStr||'').slice(0,7); }
+function curMonth(){ return document.getElementById('monthPicker').value; }
+function empName(e){ return LANG==='ar'?(e.ar||e.en):(e.en||e.ar); }
+function empById(id){ return D.emp.find(e=>e.id===id)||{}; }
+function userNameBy(user){ const u=D.users.find(x=>x.user===user); return u?u.name:user; }
+
+function renderStats(){
+  const m=curMonth();
+  const recs=D.rec.filter(r=>monthKey(r.date)===m);
+  document.getElementById('statEmp').textContent=D.emp.length;
+  document.getElementById('statUsers').textContent=D.users.length;
+  const cnt=t=>recs.filter(r=>r.type===t).length;
+  document.getElementById('statVio').textContent=cnt('violation');
+  document.getElementById('statAbs').textContent=cnt('absence');
+  document.getElementById('statPer').textContent=cnt('permission');
+  document.getElementById('statWrn').textContent=cnt('warning');
+  document.getElementById('statSick').textContent=cnt('sick');
+}
+
+function renderRecs(){
+  const m=curMonth(); const fe=document.getElementById('filtEmp').value; const ft=document.getElementById('filtType').value;
+  let recs=D.rec.filter(r=>monthKey(r.date)===m);
+  if(fe) recs=recs.filter(r=>r.empId===fe);
+  if(ft) recs=recs.filter(r=>r.type===ft);
+  recs.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const body=document.getElementById('recBody'); body.innerHTML='';
+  const emptyDiv=document.getElementById('recEmpty');
+  if(!recs.length){ emptyDiv.textContent=T().empty; emptyDiv.classList.remove('hide'); return;}
+  emptyDiv.classList.add('hide');
+  recs.forEach(r=>{
+    const e=empById(r.empId); const tr=document.createElement('tr');
+    const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',sick:'سكليف',other:'أخرى'}[r.type]
+                  :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',sick:'Sick Leave',other:'Other'}[r.type];
+    let noteDisplay = esc(r.note);
+    let fileLink = '';
+    try {
+      const noteObj = JSON.parse(r.note);
+      if(noteObj && noteObj.file){
+        noteDisplay = esc(noteObj.note||'');
+        fileLink = ' <a href="'+noteObj.file.data+'" download="'+esc(noteObj.file.name)+'" style="color:var(--acc);text-decoration:none;font-size:12px;" target="_blank">📎 '+esc(noteObj.file.name)+'</a>';
+      }
+    } catch(ex){}
+    tr.innerHTML='<td>'+esc(r.date)+'</td><td>'+esc(empName(e))+'</td><td>'+esc(e.num||'')+'</td>      <td><span class="tag '+(TYPE_TAG[r.type]||'t-oth')+'">'+tn+'</span></td>      <td>'+esc(userNameBy(r.by))+'</td>      <td style="white-space:normal;min-width:200px;">'+noteDisplay+fileLink+'</td>      <td>'+(isAdmin()?'<button class="del" data-id="'+r.id+'" title="🗑">🗑</button>':'')+'</td>';
+    body.appendChild(tr);
+  });
+}
+
+function renderSum(){
+  const m=curMonth(); const recs=D.rec.filter(r=>monthKey(r.date)===m);
+  const body=document.getElementById('sumBody'); body.innerHTML='';
+  const eDiv=document.getElementById('sumEmpty');
+  if(!recs.length || !D.emp.length){ eDiv.classList.remove('hide'); return;}
+  eDiv.classList.add('hide');
+  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0});
+  recs.forEach(r=>{ if(!map[r.empId]) return; const o=map[r.empId];
+    if(r.type==='violation')o.vio++; else if(r.type==='absence')o.abs++; else if(r.type==='permission')o.per++; else if(r.type==='warning')o.wrn++; else if(r.type==='sick')o.sick++; else o.oth++; o.tot++; });
+  sortedEmp().forEach(e=>{
+    const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0};
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+esc(empName(e))+'</td><td style="color:var(--red);font-weight:700">'+o.vio+'</td>      <td style="color:var(--blue);font-weight:700">'+o.abs+'</td><td style="color:var(--green);font-weight:700">'+o.per+'</td><td style="color:#b45309;font-weight:700">'+o.wrn+'</td><td style="color:#0284c7;font-weight:700">'+o.sick+'</td>      <td>'+o.oth+'</td><td style="font-weight:800">'+o.tot+'</td>';
+    body.appendChild(tr);
+  });
+  const sc=document.getElementById('sumCountLbl'); if(sc) sc.textContent=document.querySelectorAll('#sumBody tr').length;
+}
+
+/* photo helper: resize to max 480px JPEG */
+function fileToPhoto(file){ return new Promise(res=>{ if(!file) return res(null);
+  const img=new Image();
+  img.onload=()=>{ try{ const mx=480, sc=Math.min(1,mx/Math.max(img.width,img.height));
+    const cv=document.createElement('canvas'); cv.width=Math.max(1,Math.round(img.width*sc)); cv.height=Math.max(1,Math.round(img.height*sc));
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); res(cv.toDataURL('image/jpeg',0.7));
+  }catch(e){ res(null); } };
+  img.onerror=()=>res(null);
+  const rd=new FileReader(); rd.onload=e=>{ img.src=e.target.result; }; rd.onerror=()=>res(null); rd.readAsDataURL(file); }); }
+let pendingAddPhoto=null, pendingEditPhoto=null;
+document.getElementById('empPhoto').addEventListener('change',e=>{
+  const f=e.target.files[0]; const pv=document.getElementById('empPhotoPrev');
+  pendingAddPhoto=f||null;
+  if(!f){ pv.innerHTML=''; return; }
+  fileToPhoto(f).then(d=>{ pv.innerHTML=d?'<img src="'+d+'" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--acc);">':''; });
+});
+
+/* ============ EVENTS ============ */
+document.getElementById('addEmpBtn').onclick=async()=>{
+  const ar=document.getElementById('empNameAr').value.trim();
+  const en=document.getElementById('empNameEn').value.trim();
+  const num=document.getElementById('empNum').value.trim();
+  const dept=document.getElementById('empDept').value.trim();
+  const phone=document.getElementById('empPhone').value.trim();
+  const plate=document.getElementById('empPlate').value.trim();
+  const grp=document.getElementById('empGrp').value;
+  if(!ar && !en){ toast(T().err_emp); return; }
+  const photo=await fileToPhoto(pendingAddPhoto);
+  const emp={id:uid(),ar,en,num,dept,phone,plate,grp,photo};
+  D.emp.push(emp);
+  await saveEmp(emp);
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+  document.getElementById('empNameAr').value='';document.getElementById('empNameEn').value='';
+  document.getElementById('empNum').value='';document.getElementById('empDept').value='';document.getElementById('empPhone').value='';document.getElementById('empPlate').value='';
+  document.getElementById('empPhoto').value='';document.getElementById('empPhotoPrev').innerHTML='';pendingAddPhoto=null;
+  toast(T().toast_addEmp);
+};
+
+let pendingFile = null;
+document.getElementById('recFile').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  const preview = document.getElementById('filePreview');
+  if(!file){ preview.textContent=''; pendingFile=null; return; }
+  if(file.size > 5*1024*1024){ toast('الملف كبير جداً (الحد الأقصى 5MB)'); e.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    pendingFile = { name:file.name, type:file.type, data:ev.target.result };
+    preview.innerHTML = '📎 <b>'+esc(file.name)+'</b> ('+Math.round(file.size/1024)+'KB) <span style="color:var(--red);cursor:pointer;" onclick="document.getElementById(\'recFile\').value=\'\';document.getElementById(\'filePreview\').textContent=\'\';pendingFile=null;">✕ إزالة</span>';
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('addRecBtn').onclick=async()=>{
+  const empId=document.getElementById('recEmp').value;
+  const type=document.getElementById('recType').value;
+  const date=document.getElementById('recDate').value;
+  const note=document.getElementById('recNote').value.trim();
+  if(!empId){ toast(T().err_emp); return; }
+  if(!note){ toast(T().err_note); return; }
+  if(!date){ toast(T().err_note); return; }
+  let noteData = note;
+  if(pendingFile){
+    noteData = JSON.stringify({note:note, file:{name:pendingFile.name, type:pendingFile.type, data:pendingFile.data}});
+  }
+  const rec={id:uid(),empId,type,date,note:noteData,by:SESSION,ts:Date.now()};
+  D.rec.push(rec);
+  await saveRec(rec);
+  renderStats(); renderRecs(); renderSum();
+  document.getElementById('recNote').value='';
+  document.getElementById('recDate').value=today();
+  document.getElementById('recFile').value='';
+  document.getElementById('filePreview').textContent='';
+  pendingFile=null;
+  toast(T().toast_addRec);
+};
+
+document.getElementById('recBody').addEventListener('click',async e=>{
+  const btn=e.target.closest('.del'); if(!btn) return;
+  if(!confirm(T().askDel)) return;
+  const id=btn.dataset.id;
+  D.rec=D.rec.filter(r=>r.id!==id);
+  await delRec(id);
+  renderStats(); renderRecs(); renderSum(); toast(T().toast_del);
+});
+
+document.getElementById('clearFilt').onclick=()=>{
+  document.getElementById('filtEmp').value=''; document.getElementById('filtType').value=''; renderRecs();
+};
+document.getElementById('filtEmp').onchange=renderRecs;
+document.getElementById('filtType').onchange=renderRecs;
+document.getElementById('monthPicker').onchange=()=>{
+  document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
+  renderStats(); renderRecs(); renderSum(); renderTs(); };
+
+document.getElementById('langBtn').onclick=()=>{ LANG=LANG==='ar'?'en':'ar'; applyLang(); };
+
+function today(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+
+/* ============ EXPORT ============ */
+document.getElementById('exportBtn').onclick=()=>{
+  const m=curMonth();
+  const recs=D.rec.filter(r=>monthKey(r.date)===m).sort((a,b)=>a.date.localeCompare(b.date));
+  const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0});
+  recs.forEach(r=>{ const o=map[r.empId]; if(!o) return;
+    if(r.type==='violation')o.vio++;else if(r.type==='absence')o.abs++;else if(r.type==='permission')o.per++;else if(r.type==='warning')o.wrn++;else if(r.type==='sick')o.sick++;else o.oth++;o.tot++;});
+  const a=[];a.push([T().title]); a.push([LANG==='ar'?'الشهر':'Month', m]); a.push([]);
+  const hh=LANG==='ar'?['الموظف','الرقم الوظيفي','القسم','مخالفات','غيابات','استأذانات','إنذارات','سكليف','أخرى','الإجمالي']
+                    :['Employee','Job No.','Department','Violations','Absences','Permits','Warnings','Sick Leave','Others','Total'];
+  a.push(hh);
+  sortedEmp().forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0};
+    a.push([empName(e),e.num||'',e.dept||'',o.vio,o.abs,o.per,o.wrn,o.sick,o.oth,o.tot]);});
+  a.push([]); a.push([]);
+  a.push(LANG==='ar'?['التاريخ','الموظف','الرقم الوظيفي','النوع','سجّله','الملاحظة']
+                    :['Date','Employee','Job No.','Type','Recorded by','Note']);
+  const tmap=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',sick:'سكليف',other:'أخرى'}
+                       :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',sick:'Sick Leave',other:'Other'};
+  recs.forEach(r=>{ const e=empById(r.empId);
+    a.push([r.date, empName(e), e.num||'', tmap[r.type]||r.type, userNameBy(r.by), r.note]); });
+  const ws=XLSX.utils.aoa_to_sheet(a);
+  ws['!cols']=[{wch:22},{wch:14},{wch:14},{wch:12},{wch:12},{wch:12},{wch:10},{wch:12}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Report');
+  XLSX.writeFile(wb,'HSE_Report_'+m+'.xlsx');
+  toast(T().toast_xlsx);
+};
+
+
+/* ============ STAFF DIRECTORY (HDEC + HEC) ============ */
+const STAFF_HDEC=[{"n":"ABDULMAJEED ZAKARYA ALBANNAY","p":"Supervisor","i":"SASL-0605","f":"photo-1.jpg"},{"n":"FAISAL SAAD ALQAHTANI","p":"Supervisor","i":"SASL-0598","f":"photo-2.jpg"},{"n":"AHMED ABDULLATIF AL DOSSARI","p":"Document Control","i":"SASL-0396","f":"photo-3.jpg"},{"n":"ALI AHMED ALHABIB","p":"Document Control","i":"SASL-0524","f":"photo-4.jpg"},{"n":"ALI TAHER ALMUMTIN","p":"Document Control","i":"SASL-0374","f":"photo-5.jpg"},{"n":"ABDULWAHAB MASTOUR ALALSHYKH","p":"Safety Engineer","i":"SASL-0472","f":"photo-6.jpg"},{"n":"HUSSAIN ALI ALHOADAR","p":"Safety Engineer","i":"SASL-0543","f":"photo-7.jpg"},{"n":"OMAR IBRAHIM ALANAZI","p":"Safety Engineer","i":"SASL-0499","f":"photo-8.jpg"},{"n":"SAEED MOSHWAT ALHAJRI","p":"Safety Engineer","i":"SASL-0518","f":"photo-9.jpg"},{"n":"WALEED MASOUD ALQAHTANI","p":"Safety Engineer","i":"SASL-0392","f":"photo-10.jpg"},{"n":"AALI KHALID B ALOTAIBI","p":"Safety Officer","i":"SASL-0606","f":"photo-11.jpg"},{"n":"ABDULAZIZ ABDULLAH ALESSA","p":"Safety Officer","i":"SASL-0479","f":"photo-12.jpg"},{"n":"ABDULAZIZ ALI HARTHI","p":"Safety Officer","i":"SASL-0509","f":"photo-13.jpg"},{"n":"ABDULAZIZ NAJEA ALSUBEIA","p":"Safety Officer","i":"SASL-0458","f":"photo-14.jpg"},{"n":"ABDULKHALIQ MOHAMMED ASIRI","p":"Safety Officer","i":"SASL-0453","f":"photo-15.jpg"},{"n":"ABDULLAH ABDULAZIZ AL NASHMI","p":"Safety Officer","i":"SASL-0481","f":"photo-16.jpg"},{"n":"ABDULLAH ALI ALBAQSHI","p":"Safety Officer","i":"SASL-0533","f":"photo-17.jpg"},{"n":"ABDULLAH MOHAMMED A ALGHIRASH","p":"Safety Officer","i":"SASL-0607","f":"photo-18.jpg"},{"n":"ABDULLAH MOHAMMED AL QUSHAYM","p":"Safety Officer","i":"SASL-0387","f":"photo-19.jpg"},{"n":"ABDULLAH MOHSEN ALOTAIBI","p":"Safety Officer","i":"SASL-0526","f":"photo-20.jpg"},{"n":"ABDULLAH MUNAHI H ALSUBAIE","p":"Safety Officer","i":"SASL-0608","f":"photo-21.jpg"},{"n":"ABDULMAJEED SAAD AL BAKHAT","p":"Safety Officer","i":"SASL-0510","f":"photo-22.jpg"},{"n":"ABDULRAHMAN OMAR S ALSALEH","p":"Safety Officer","i":"SASL-0609","f":"photo-23.jpg"},{"n":"ABDULRAHMAN SALEH S ALSHAMRANI","p":"Safety Officer","i":"SASL-0610","f":"photo-24.jpg"},{"n":"ADI HAMAD ALHARTHI","p":"Safety Officer","i":"SASL-0389","f":"photo-25.jpg"},{"n":"AHMAD ALI H ASIRI","p":"Safety Officer","i":"SASL-0611","f":"photo-26.jpg"},{"n":"AHMED ABDULRAHMAN ALSHEHRI","p":"Safety Officer","i":"SASL-0460","f":"photo-27.jpg"},{"n":"AHMED MOHAMMED ALRASHIDI","p":"Safety Officer","i":"SASL-0521","f":"photo-28.jpg"},{"n":"AHMED MOUSA A ALHABRATI","p":"Safety Officer","i":"SASL-0612","f":"photo-29.jpg"},{"n":"ALI HASSAN ALBANNAY","p":"Safety Officer","i":"SASL-0473","f":"photo-30.jpg"},{"n":"ALI MESHAL ALSAGOOR","p":"Safety Officer","i":"SASL-0482","f":"photo-31.jpg"},{"n":"ALI MOHAMMED ALQARNI","p":"Safety Officer","i":"SASL-0483","f":"photo-32.jpg"},{"n":"ALI OBAID ALHARTHI","p":"Safety Officer","i":"SASL-0484","f":"photo-33.jpg"},{"n":"ALI SALEH ALSALEH","p":"Safety Officer","i":"SASL-0485","f":"photo-34.jpg"},{"n":"ALI YASEEN M AL JABER","p":"Safety Officer","i":"SASL-0613","f":"photo-35.jpg"},{"n":"ALWAFI ABDULLAH SAAD ALRASHED","p":"Safety Officer","i":"SASL-0471","f":"photo-36.jpg"},{"n":"AMMAR HUSSAIN AL BELADI","p":"Safety Officer","i":"SASL-0467","f":"photo-37.jpg"},{"n":"ANWAR MOHAMMED ALBISHI","p":"Safety Officer","i":"SASL-0547","f":"photo-38.jpg"},{"n":"BADER SAAD ALRABAH","p":"Safety Officer","i":"SASL-0512","f":"photo-39.jpg"},{"n":"FAHAD ABDULAZIZ ALWASMI","p":"Safety Officer","i":"SASL-0487","f":"photo-40.jpg"},{"n":"FAHAD ABDULLAH ALYOUSIF","p":"Safety Officer","i":"SASL-0513","f":"photo-41.jpg"},{"n":"FAISAL SAEED ALHADDAD","p":"Safety Officer","i":"SASL-0490","f":"photo-42.jpg"},{"n":"FARIS MESHAL ALSAGOOR","p":"Safety Officer","i":"SASL-0514","f":"photo-43.jpg"},{"n":"FEHAID AOWIDAH AL AJMI","p":"Safety Officer","i":"SASL-0491","f":"photo-44.jpg"},{"n":"GHAZI AMER ALBARQI","p":"Safety Officer","i":"SASL-0452","f":"photo-45.jpg"},{"n":"HADI HAMAD ALYAMI","p":"Safety Officer","i":"SASL-0527","f":"photo-46.jpg"},{"n":"HAIDAR ABDULELAH ALSURAYJ","p":"Safety Officer","i":"SASL-0596","f":"photo-47.jpg"},{"n":"HAMAD MOHAMMED ALFEHAID","p":"Safety Officer","i":"SASL-0537","f":"photo-48.jpg"},{"n":"HASSAN MUNEER A AL MAHDI","p":"Safety Officer","i":"SASL-0614","f":"photo-49.jpg"},{"n":"HAYF ALI ALQAHTANI","p":"Safety Officer","i":"SASL-0528","f":"photo-50.jpg"},{"n":"HINDI FEHAID ALQAHTANI","p":"Safety Officer","i":"SASL-0461","f":"photo-51.jpg"},{"n":"HUSSAIN HAMED ALSHAMMARI","p":"Safety Officer","i":"SASL-0492","f":"photo-52.jpg"},{"n":"HUSSAIN IBRAHIM ALESSA","p":"Safety Officer","i":"SASL-0469","f":"photo-53.jpg"},{"n":"HUSSAM NAJIM ALSHARIF","p":"Safety Officer","i":"SASL-0449","f":"photo-54.jpg"},{"n":"KHALID FEHAID ALQAHTANI","p":"Safety Officer","i":"SASL-0470","f":"photo-55.jpg"},{"n":"KHALID NAJIM ALSHARIF","p":"Safety Officer","i":"SASL-0474","f":"photo-56.jpg"},{"n":"MAHMOUD ALI ALWABARI","p":"Safety Officer","i":"SASL-0003","f":"photo-57.jpg"},{"n":"MANA NASSER AL QAHTANI","p":"Safety Officer","i":"SASL-0515","f":"photo-58.jpg"},{"n":"MANSOOR ALI ALGHAMDI","p":"Safety Officer","i":"SASL-0463","f":"photo-59.jpg"},{"n":"MARWAN ABDULMALIK AL ISMAIL","p":"Safety Officer","i":"SASL-0493","f":"photo-60.jpg"},{"n":"MESHAL THAWAB M AL OTAIBI","p":"Safety Officer","i":"SASL-0615","f":"photo-61.jpg"},{"n":"MOHAMMED ALI ALGHAMDI","p":"Safety Officer","i":"SASL-0494","f":"photo-62.jpg"},{"n":"MOHAMMED AYIDH ALHSAN","p":"Safety Officer","i":"SASL-0005","f":"photo-63.jpg"},{"n":"MOHAMMED FAISAL ALSUHALI","p":"Safety Officer","i":"SASL-0450","f":"photo-64.jpg"},{"n":"MOHAMMED IBRAHIM ALANAZI","p":"Safety Officer","i":"SASL-0468","f":"photo-65.jpg"},{"n":"MOHAMMED MOHSEN M ALDAWSARI","p":"Safety Officer","i":"SASL-0616","f":"photo-66.jpg"},{"n":"MUHANNAD KHUWAYLID ALANAZI","p":"Safety Officer","i":"SASL-0496","f":"photo-67.jpg"},{"n":"MUHANNAD SAAD E ALGUNAIM","p":"Safety Officer","i":"SASL-0617","f":"photo-68.jpg"},{"n":"MUSAAD ABDULAZIZ ALDHUWAIHI","p":"Safety Officer","i":"SASL-0555","f":"photo-69.jpg"},{"n":"MUTLIQ OMAR AL WADAANI","p":"Safety Officer","i":"SASL-0529","f":"photo-70.jpg"},{"n":"NAIF HAMEED A ALSAYED","p":"Safety Officer","i":"SASL-0618","f":"photo-71.jpg"},{"n":"NASSER ABDULLAH ALSUBAIEI","p":"Safety Officer","i":"SASL-0559","f":"photo-72.jpg"},{"n":"NAWAF BADER ALAYADI","p":"Safety Officer","i":"SASL-0394","f":"photo-73.jpg"},{"n":"NAYEF ABDULLAH AL NUWAIRAN","p":"Safety Officer","i":"SASL-0498","f":"photo-74.jpg"},{"n":"OMAR ABDULLAH ALAHMARI","p":"Safety Officer","i":"SASL-0516","f":"photo-75.jpg"},{"n":"OMAR SAAD ALMAKHAYITAH","p":"Safety Officer","i":"SASL-0500","f":"photo-76.jpg"},{"n":"RAKAN SAAD ALQAHTANI","p":"Safety Officer","i":"SASL-0517","f":"photo-77.jpg"},{"n":"RAYAN MOHAMMED AL ZUHAYR","p":"Safety Officer","i":"SASL-0466","f":"photo-78.jpg"},{"n":"RAYAN NAJIM ALSHARIF","p":"Safety Officer","i":"SASL-0462","f":"photo-79.jpg"},{"n":"RAYAN SAAD ALRABAH","p":"Safety Officer","i":"SASL-0501","f":"photo-80.jpg"},{"n":"RIDHA YOUSEF ALWABARI","p":"Safety Officer","i":"SASL-0475","f":"photo-81.jpg"},{"n":"SAAD HANDI AL QAHTANI","p":"Safety Officer","i":"SASL-0021","f":"photo-82.jpg"},{"n":"SAAD MOHAMMED ALSUBAIE","p":"Safety Officer","i":"SASL-0502","f":"photo-83.jpg"},{"n":"SAEED ALI M ALSHAHRANI","p":"Safety Officer","i":"SASL-0619","f":"photo-84.jpg"},{"n":"SAJJAD HUSSAIN H ALSAYAFI","p":"Safety Officer","i":"SASL-0620","f":"photo-85.jpg"},{"n":"SAJJAD YAQOUB Y ALOWAYYIDH","p":"Safety Officer","i":"SASL-0621","f":"photo-86.jpg"},{"n":"SALEH ABDULRAHMAN S BUBSHAIT","p":"Safety Officer","i":"SASL-0622","f":"photo-87.jpg"},{"n":"SALEH SAEED ALSAEED","p":"Safety Officer","i":"SASL-0503","f":"photo-88.jpg"},{"n":"SALEM ABDULLAH A ALAYED","p":"Safety Officer","i":"SASL-0623","f":"photo-89.jpg"},{"n":"SALMAN ZIKRIYAA ALSALMAN","p":"Safety Officer","i":"SASL-0561","f":"photo-90.jpg"},{"n":"ABDULLAH MASTOUR AL ALSHAYKH","p":"Safety Engineer","i":"SASL-0456","f":null},{"n":"ABDULAZIZ GHAZI ALSUHAYMI","p":"Safety Officer","i":"SASL-0480","f":null},{"n":"ABDULLAH KHADEM ALNUWAYSIR","p":"Safety Officer","i":"SASL-0386","f":null},{"n":"ALI MOHAMMED ASIRI","p":"Safety Officer","i":"SASL-0448","f":null},{"n":"FAHAD SALEH ALZAHRANI","p":"Safety Officer","i":"SASL-0488","f":null},{"n":"FAISAL ABDULKHALIQ ALQARNI","p":"Safety Officer","i":"SASL-0489","f":null},{"n":"KHALID YAQOUB ALDOSSARY","p":"Safety Officer","i":"SASL-0464","f":null},{"n":"MESHARI ABDULLAH ALBATI","p":"Safety Officer","i":"SASL-0476","f":null},{"n":"MOHAMMED GAZI ALBARGA","p":"Safety Officer","i":"SASL-0495","f":null},{"n":"MOHAMMED GHAZI ALSUHAYMI","p":"Safety Officer","i":"SASL-0455","f":null},{"n":"MOHAMMED KHALID ALBARQI","p":"Safety Officer","i":"SASL-0451","f":null},{"n":"MOHAMMED SAEED AL NASIM","p":"Safety Officer","i":"SASL-0465","f":null},{"n":"NASSER ABDULLAH ALDAWSARI","p":"Safety Officer","i":"SASL-0558","f":null},{"n":"NAWAF HUSSAIN AL SHAIBAN","p":"Safety Officer","i":"SASL-0459","f":null},{"n":"NAWAF RABEA AL SAAD","p":"Safety Officer","i":"SASL-0534","f":null},{"n":"NAWAF SAAD AlGHAMDI","p":"Safety Officer","i":"SASL-0497","f":null},{"n":"SALEH KHALID ALRUMAYH","p":"Safety Officer","i":"SASL-0560","f":null},{"n":"SAUD MOHAMMED AL GMAL","p":"Safety Officer","i":"SASL-0530","f":null},{"n":"SAUD MOHAMMED ALWADANI","p":"Safety Officer","i":"SASL-0520","f":null},{"n":"SULTAN ABDULLATIF ALHARBI","p":"Safety Officer","i":"SASL-0504","f":null},{"n":"SULTAN SHULAYWIH ALHARBI","p":"Safety Officer","i":"SASL-0532","f":null},{"n":"TAHER HUSSAIN T ALBUKHAYTAN","p":"Safety Officer","i":"SASL-0624","f":null},{"n":"TARIQ AHMED ALQARNI","p":"Safety Officer","i":"SASL-0505","f":null},{"n":"THABET ALI ALSUBAIE","p":"Safety Officer","i":"SASL-0506","f":null},{"n":"TURKI SALEM ALJOHAR","p":"Safety Officer","i":"SASL-0523","f":null},{"n":"YASIR KHALID ALMEHIYAWI","p":"Safety Officer","i":"SASL-0397","f":null},{"n":"YOUSEF MUBARAK ALHAMDAN","p":"Safety Officer","i":"SASL-0522","f":null},{"n":"YOUSIF FAHAD AL ISMAIL","p":"Safety Officer","i":"SASL-0507","f":null},{"n":"YOUSIF MUSTAFA Y ALYOUSIF","p":"Safety Officer","i":"SASL-0625","f":null},{"n":"ZIYAD ABDULLAH ALQAHTANI","p":"Safety Officer","i":"SASL-0508","f":null}];
+const STAFF_HEC=[{"n":"KHALID ABDLUAZIZ ALHAMMADI","p":"Safety Engineer","i":"HECL-0212","f":"photo-1.jpg"},{"n":"MOHAMMED E ALMINHALI","p":"Safety Engineer","i":"HECL-0182","f":"photo-2.jpg"},{"n":"ABDULAZIZ I ALSULAYBI","p":"Safety Officer","i":"HECL-0176","f":"photo-3.jpg"},{"n":"ABDULAZIZ MAJED ALBAR","p":"Safety Officer","i":"HECL-0226","f":"photo-4.jpg"},{"n":"ABDULAZIZ S ABU SHBEEB","p":"Safety Officer","i":"HECL-0222","f":"photo-5.jpg"},{"n":"ABDULLAH AHMED ALRAJEH","p":"Safety Officer","i":"HECL-0220","f":"photo-6.jpg"},{"n":"ABDULLAH I ALSULAYBI","p":"Safety Officer","i":"HECL-0095","f":"photo-7.jpg"},{"n":"ABDULLAH KANAN ALKANAN","p":"Safety Officer","i":"HECL-0084","f":"photo-8.jpg"},{"n":"ABDULLAH SALAH BUDI","p":"Safety Officer","i":"HECL-0101","f":"photo-9.jpg"},{"n":"ABDULLAH Y ALMUZAYEL","p":"Safety Officer","i":"HECL-0225","f":"photo-10.jpg"},{"n":"ABDULRAHMAN A ALKAMES","p":"Safety Officer","i":"HECL-0217","f":"photo-11.jpg"},{"n":"ABDULRAHMAN SAMI ALKURDI","p":"Safety Officer","i":"HECL-0227","f":"photo-12.jpg"},{"n":"ABDULWAHAB HUSSAIN KAABI","p":"Safety Officer","i":"HECL-0228","f":"photo-13.jpg"},{"n":"AHMAD MOHAMMD MAJRASHI","p":"Safety Officer","i":"HECL-0211","f":"photo-14.jpg"},{"n":"AHMED A ALSULTAN","p":"Safety Officer","i":"HECL-0102","f":"photo-15.jpg"},{"n":"AHMED ALMUBARAK","p":"Safety Officer","i":"HECL-0196","f":"photo-16.jpg"},{"n":"AHMED HASSAN SRAHEED","p":"Safety Officer","i":"HECL-0218","f":"photo-17.jpg"},{"n":"AHMED S ALKHALDI","p":"Safety Officer","i":"HECL-0223","f":"photo-18.jpg"},{"n":"AHMED YASIR ALSALEEM","p":"Safety Officer","i":"HECL-0178","f":"photo-19.jpg"},{"n":"AHMED YOUSEF ALSULTAN","p":"Safety Officer","i":"HECL-0239","f":"photo-20.jpg"},{"n":"AMER AHMED ASIRI","p":"Safety Officer","i":"HECL-0229","f":"photo-21.jpg"},{"n":"BASIM ADEL ALNASSER","p":"Safety Officer","i":"HECL-0230","f":"photo-22.jpg"},{"n":"DYIA RIAD MOHAMED ALHUMAID","p":"Safety Officer","i":"HECL-0185","f":"photo-23.jpg"},{"n":"FAHAD ADEL ALSADUN","p":"Safety Officer","i":"HECL-0100","f":"photo-24.jpg"},{"n":"FAHAD M ALDOSSARY","p":"Safety Officer","i":"HECL-0091","f":"photo-25.jpg"},{"n":"FAISAL AHMED HUSSEIN","p":"Safety Officer","i":"HECL-0240","f":"photo-26.jpg"},{"n":"FAISAL FEHAID ALGETHAMI","p":"Safety Officer","i":"HECL-0188","f":"photo-27.jpg"},{"n":"HAMAD A ALDAWSARI","p":"Safety Officer","i":"HECL-0177","f":"photo-28.jpg"},{"n":"HASSAN A ALI ALBELADI","p":"Safety Officer","i":"HECL-0224","f":"photo-29.jpg"},{"n":"HASSAN AMEER ALMUHANNA","p":"Safety Officer","i":"HECL-0187","f":"photo-30.jpg"},{"n":"HASSAN YAHYA MAJRASHI","p":"Safety Officer","i":"HECL-0231","f":"photo-31.jpg"},{"n":"HATLAN ALI ALHATLAN","p":"Safety Officer","i":"HECL-0214","f":"photo-32.jpg"},{"n":"Hussain Ahmed Al-wabari","p":"Safety Officer","i":"HECL-0209","f":"photo-33.jpg"},{"n":"HUSSAIN ALI ALAJWAD","p":"Safety Officer","i":"HECL-0232","f":"photo-34.jpg"},{"n":"HUSSAM NAJEH ALSHARARI","p":"Safety Officer","i":"HECL-0233","f":"photo-35.jpg"},{"n":"IBRAHIM ALI IBRAHIM","p":"Safety Officer","i":"HECL-0548","f":"photo-36.jpg"},{"n":"JABER NASSER ALMARRI","p":"Safety Officer","i":"HECL-0246","f":"photo-37.jpg"},{"n":"KHALED MISFER ALMUDARHAM","p":"Safety Officer","i":"HECL-0219","f":"photo-38.jpg"},{"n":"KHALID NASSER ALSULAITEEN","p":"Safety Officer","i":"HECL-0234","f":"photo-39.jpg"},{"n":"MABKHOOT ABDULLAH AL SAIARI","p":"Safety Officer","i":"HECL-0090","f":"photo-40.jpg"},{"n":"MAJED MOHAMMED DAAK","p":"Safety Officer","i":"HECL-0235","f":"photo-41.jpg"},{"n":"MAWAF MOHSEN ALHARTHI","p":"Safety Officer","i":"HECL-0243","f":"photo-42.jpg"},{"n":"MEGREN HABIB ALMEGREN","p":"Safety Officer","i":"HECL-0216","f":"photo-43.jpg"},{"n":"MOHAMMED M ALMARRI","p":"Safety Officer","i":"HECL-0098","f":"photo-44.jpg"},{"n":"MOHAMMED MESHAEL ALKHALDI","p":"Safety Officer","i":"HECL-0215","f":"photo-45.jpg"},{"n":"MOHAMMED SAEED ALAHMARI","p":"Safety Officer","i":"HECL-0241","f":"photo-46.jpg"},{"n":"MOHAMMED SAMEER ALKHUDHAYR","p":"Safety Officer","i":"HECL-0242","f":"photo-47.jpg"},{"n":"MUSAAD AHMED ALSULTAN","p":"Safety Officer","i":"HECL-0096","f":"photo-48.jpg"},{"n":"OBAID MOHAMMED ALDOSSARI","p":"Safety Officer","i":"HECL-0097","f":"photo-49.jpg"},{"n":"OMAR MOHAMMED ALMARRI","p":"Safety Officer","i":"HECL-0236","f":"photo-50.jpg"},{"n":"RIDHA TAHER MOHAMMED ALKHAMIS","p":"Safety Officer","i":"HECL-0189","f":"photo-51.jpg"},{"n":"SALEH MUSLIH ALFARSI","p":"Safety Officer","i":"HECL-0237","f":"photo-52.jpg"},{"n":"SALEM M ALENAZI","p":"Safety Officer","i":"HECL-0221","f":"photo-53.jpg"},{"n":"SAUD ABDULAZIZ ALKHULAIF","p":"Safety Officer","i":"HECL-0175","f":"photo-54.jpg"},{"n":"SAUD HAMOUD SAULM","p":"Safety Officer","i":"HECL-0992","f":"photo-55.jpg"},{"n":"ABDULLAH ADNAN ABDULLAH ALSHAALAN","p":"Safety Officer","i":"HECL-0190","f":null},{"n":"ABDULLAH KHALED ALTAMIMI","p":"Safety Officer","i":"HECL-0191","f":null},{"n":"AHMED SALAH ABDULAZIZ  BUDI","p":"Safety Officer","i":"HECL-0103","f":null},{"n":"MUATH MANDR ALZAHRANI","p":"Safety Officer","i":"HECL-0181","f":null},{"n":"RASHED MOHAMMED ABDEL MOHSEN","p":"Safety Officer","i":"HECL-0194","f":null},{"n":"SALEM FEHAID ALMARRI","p":"Safety Officer","i":"HECL-0203","f":null},{"n":"SHAMAN M ALDOSSARY","p":"Safety Officer","i":"HECL-0104","f":null},{"n":"SULTAN ABDULLAH ALSHAHRANI","p":"Safety Officer","i":"HECL-0197","f":null},{"n":"SULTAN MOHAMMED ALMARRI","p":"Safety Officer","i":"HECL-0094","f":null},{"n":"SULTAN MUIDH ALQAHTANI","p":"Safety Officer","i":"HECL-0193","f":null},{"n":"TALAL SAEED ALGHAMDI","p":"Safety Officer","i":"HECL-0184","f":null},{"n":"TURKI SULTAN ALSULTAN","p":"Safety Officer","i":"HECL-0093","f":null},{"n":"TYYAM MAJEED ALMETHEN","p":"Safety Officer","i":"HECL-0238","f":null}];
+/* ============ TIMESHEET ============ */
+let TS_VIEW=false;
+function tsMonth(){ return document.getElementById('monthPicker').value; }
+function tsPeriodDays(){
+  const m=tsMonth()||''; const p=m.split('-'); if(p.length<2) return [];
+  const y=+p[0], mo=+p[1];
+  const out=[]; const d=new Date(y, mo-2, 21);
+  for(let i=0;i<31;i++){ const dt=new Date(d); dt.setDate(d.getDate()+i);
+    out.push(dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')); }
+  return out;
+}
+function tsEntry(empId){ const m=tsMonth(); return ((D.ts||[]).find(t=>t.emp_id===empId&&t.month===m))||null; }
+function switchView(v){
+  if(v===true) v='ts'; if(v===false||v===undefined||v===null) v='vio';
+  TS_VIEW=(v==='ts');
+  document.getElementById('viewVio').classList.toggle('hide', v!=='vio');
+  document.getElementById('viewTs').classList.toggle('hide', v!=='ts');
+  document.getElementById('viewEmp').classList.toggle('hide', v!=='emp');
+  document.getElementById('viewDep').classList.toggle('hide', v!=='dep');
+  document.getElementById('viewVeh').classList.toggle('hide', v!=='veh');
+  document.getElementById('viewAppr').classList.toggle('hide', v!=='appr');
+  document.getElementById('tabVio').classList.toggle('active', v==='vio');
+  document.getElementById('tabTs').classList.toggle('active', v==='ts');
+  document.getElementById('tabEmp').classList.toggle('active', v==='emp');
+  document.getElementById('tabDep').classList.toggle('active', v==='dep');
+  document.getElementById('tabVeh').classList.toggle('active', v==='veh');
+  document.getElementById('tabAppr').classList.toggle('active', v==='appr');
+  if(v==='ts') renderTs();
+  if(v==='emp') renderStaff();
+  if(v==='dep') renderDep();
+  if(v==='lists') renderLists();
+  document.getElementById('viewLists').classList.toggle('hide', v!=='lists');
+  document.getElementById('tabLists').classList.toggle('active', v==='lists');
+  if(v==='lists') renderLists();
+  document.getElementById('viewLists').classList.toggle('hide', v!=='lists');
+  document.getElementById('tabLists').classList.toggle('active', v==='lists');
+  if(v==='veh') renderVeh();
+  if(v==='appr') renderAppr();
+}
+function renderTs(){
+  const sel=document.getElementById('tsEmp'); if(!sel) return;
+  const cur=sel.value; sel.innerHTML='';
+  if(!D.emp.length){ const o=document.createElement('option'); o.value=''; o.textContent=T().ts_noemp; sel.appendChild(o);
+    document.getElementById('tsBody').innerHTML=''; document.getElementById('tsPeriodLabel').textContent=''; return; }
+  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+    o.textContent=(LANG==='ar'?(e.ar||e.en):(e.en||e.ar))+' — '+(e.num||''); sel.appendChild(o); });
+  if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
+  const days=tsPeriodDays();
+  document.getElementById('tsPeriodLabel').textContent = days.length? days[0].split('-')[2]+'/'+days[0].split('-')[1]+' - '+days[days.length-1].split('-')[2]+'/'+days[days.length-1].split('-')[1] : '';
+  loadTsForm();
+}
+function loadTsForm(){
+  const empId=document.getElementById('tsEmp').value;
+  const e=empById(empId);
+  const saved=empId?tsEntry(empId):null;
+  document.getElementById('tsPosition').value=(saved&&saved.position!==undefined&&saved.position!==null)?saved.position:(e.dept||'');
+  document.getElementById('tsNationality').value=(saved&&saved.nationality!==undefined&&saved.nationality!==null)?saved.nationality:'Saudi';
+  const days=tsPeriodDays();
+  const body=document.getElementById('tsBody'); body.innerHTML='';
+  const dn=LANG==='ar'?['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  days.forEach(ds=>{
+    const d=new Date(ds+'T00:00:00'); const fri=d.getDay()===5;
+    const sv=(saved&&saved.days&&saved.days[ds])?saved.days[ds]:{};
+    const tr=document.createElement('tr'); tr.dataset.date=ds;
+    let h='<td>'+esc(ds)+'</td><td>'+dn[d.getDay()]+'</td>';
+    ['in1','out1','in2','out2','in3','out3'].forEach(k=>{ h+='<td><input type="time" data-k="'+k+'" value="'+esc(sv[k]||'')+'"></td>'; });
+    h+='<td><input type="text" data-k="remark" value="'+esc(sv.remark||'')+'" style="min-width:110px;"></td>';
+    tr.innerHTML=h;
+    if(fri) tr.querySelectorAll('td').forEach(td=>td.classList.add('fri'));
+    body.appendChild(tr);
+  });
+}
+function readTsGrid(){
+  const days={};
+  document.querySelectorAll('#tsBody tr').forEach(tr=>{
+    const ds=tr.dataset.date; const o={};
+    tr.querySelectorAll('input').forEach(inp=>{ o[inp.dataset.k]=(inp.value||'').trim(); });
+    if(o.in1||o.out1||o.in2||o.out2||o.in3||o.out3||o.remark) days[ds]=o;
+  });
+  return days;
+}
+async function reloadTs(){ try{ const t=await sb('timesheets'); D.ts=t||[]; }catch(e){ D.ts=D.ts||[]; } renderTs(); }
+document.getElementById('tabVio').onclick=()=>switchView('vio');
+document.getElementById('tabTs').onclick=()=>switchView('ts');
+document.getElementById('tabEmp').onclick=()=>switchView('emp');
+document.getElementById('tabDep').onclick=()=>switchView('dep');
+document.getElementById('tabLists').onclick=()=>switchView('lists');
+document.getElementById('tabLists').onclick=()=>switchView('lists');
+document.getElementById('tabVeh').onclick=()=>switchView('veh');
+document.getElementById('tabAppr').onclick=()=>switchView('appr');
+document.getElementById('tsEmp').onchange=loadTsForm;
+
+/* ============ STAFF DIRECTORY UI ============ */
+let STAFF_GROUP='HDEC', STAFF_Q='';
+function empGroup(e){ let g=(e&&e.grp)||''; if(!g){ const m=((e&&(e.num||''))||'').toUpperCase().match(/^(SASL|HECL)/); g=m?m[1]:''; } if(g==='SASL') return 'HDEC'; if(g==='HECL') return 'HEC'; return (g==='HDEC'||g==='HEC')?g:'HDEC'; }
+function staffInitials(n){ return n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function renderStaff(){
+  const grid=document.getElementById('staffGrid'); if(!grid) return;
+  document.getElementById('staffSearch').placeholder=T().staff_search;
+  const st=(STAFF_GROUP==='HDEC'?STAFF_HDEC:STAFF_HEC).map(s=>{
+    const de=D.emp.find(x=>(x.num||'').replace(/\s/g,'').toUpperCase()===(s.i||'').replace(/\s/g,'').toUpperCase());
+    return de?{...s,ar:de.ar||''}:s;
+  });
+  const haveIds=new Set(st.map(s=>(s.i||'').replace(/\s/g,'').toUpperCase()));
+  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP&&!haveIds.has((e.num||'').replace(/\s/g,'').toUpperCase())).map(e=>({n:(e.en||e.num||''),ar:e.ar||'',p:e.dept||'',i:e.num||'',u:e.photo||null,f:null}));
+  const list=st.concat(dyn).sort((a,b)=>String(a.n||'').localeCompare(String(b.n||''),'en'));
+  const q=STAFF_Q.trim().toLowerCase();
+  const items=list.filter(s=>!q||s.n.toLowerCase().includes(q)||s.i.toLowerCase().includes(q)||s.p.toLowerCase().includes(q)||(s.ar||'').includes(q));
+  document.getElementById('staffCount').textContent=items.length+' / '+list.length;
+  document.getElementById('subHdec').classList.toggle('active', STAFF_GROUP==='HDEC');
+  document.getElementById('subHec').classList.toggle('active', STAFF_GROUP==='HEC');
+  try{
+    const idsH=new Set(STAFF_HDEC.map(s=>(s.i||'').replace(/\s/g,'').toUpperCase()));
+    const idsE=new Set(STAFF_HEC.map(s=>(s.i||'').replace(/\s/g,'').toUpperCase()));
+    const nH=STAFF_HDEC.length+D.emp.filter(e=>empGroup(e)==='HDEC'&&!idsH.has((e.num||'').replace(/\s/g,'').toUpperCase())).length;
+    const nE=STAFF_HEC.length+D.emp.filter(e=>empGroup(e)==='HEC'&&!idsE.has((e.num||'').replace(/\s/g,'').toUpperCase())).length;
+    document.getElementById('subHdec').textContent='🟦 HDEC ('+nH+')';
+    document.getElementById('subHec').textContent='🟨 HEC ('+nE+')';
+  }catch(e){}
+  grid.innerHTML='';
+  items.forEach(s=>{
+    const div=document.createElement('div'); div.className='staff-card'; div.dataset.num=s.i||'';
+    const src=s.u||(s.f?('employees/'+STAFF_GROUP+'/'+s.f):null);
+    const photo=src?'<div class="staff-init">'+esc(staffInitials(s.n))+'</div><img src="'+src+'" alt="'+esc(s.n)+'" loading="lazy" onload="this.classList.add(\'ld\')" onerror="this.remove()">'
+                   :'<div class="staff-init">'+esc(staffInitials(s.n))+'</div>';
+    div.innerHTML='<div class="staff-photo">'+photo+'</div>'+
+      '<div class="staff-info"><div class="staff-name">'+esc(s.n)+'</div>'+
+      '<div class="staff-pos">'+esc(s.p)+'</div>'+
+      '<span class="staff-id">'+esc(s.i)+'</span></div>';
+    grid.appendChild(div);
+  });
+}
+document.getElementById('attExportBtn').onclick = async () => {
+  if (typeof ExcelJS === 'undefined') { toast('ExcelJS lib not loaded — check internet'); return; }
+  const dep = D.dep || [];
+  const byEmp = {};
+  dep.forEach(d => { byEmp[d.empId] = d; });
+  const mk = LANG === 'ar' ? 'ar' : 'en';
+  const employees = D.emp.filter(e => {
+    const d = byEmp[e.id];
+    return d && (d.list === 'A' || d.list === 'B');
+  });
+  if (!employees.length) { toast(T().att_empty); return; }
+  const groupA = employees.filter(e => byEmp[e.id].list === 'A');
+  const groupB = employees.filter(e => byEmp[e.id].list === 'B');
+  const sortByAr = arr => arr.sort((a, b) =>
+    (empName(a) || '').localeCompare(empName(b) || '', 'ar'));
+  sortByAr(groupA);
+  sortByAr(groupB);
+  const arHeaders = [T().att_arabic, T().att_english, T().att_jobno,
+    T().att_dept, T().att_group, T().att_list, T().att_rot, T().att_status];
+  const enHeaders = [T().att_english, T().att_arabic, T().att_jobno,
+    T().att_dept, T().att_group, T().att_list, T().att_rot, T().att_status];
+  const headers = mk === 'ar' ? arHeaders : enHeaders;
+  function buildRows(listArr) {
+    return listArr.map(e => {
+      const d = byEmp[e.id];
+      if (mk === 'ar') {
+        return [e.ar || empName(e), e.en || '', e.num || '', e.dept || '',
+          empGroup(e) || '', d.list || '', d.rot || '', d.status || ''];
+      } else {
+        return [e.en || empName(e), e.ar || '', e.num || '', e.dept || '',
+          empGroup(e) || '', d.list || '', d.rot || '', d.status || ''];
+      }
+    });
+  }
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'HSE Tracker';
+  wb.company = 'Hyundai Engineering & Construction';
+  const HDEC_BG = { argb: 'FFDFEAF2' }, HEC_BG = { argb: 'FFFFF2CC' };
+  const HDEC_FONT = { argb: 'FF1F4E79' }, HEC_FONT = { argb: 'FF7F6000' };
+  const NAVY = 'FF0EA5E9', BLUE = 'FF0284C7';
+  // --- Sheet A ---
+  const wsA = wb.addWorksheet(
+    mk === 'ar' ? 'قائمة A ( HDEC + HEC )' : 'List A ( HDEC + HEC )');
+  wsA.properties = wsA.properties || {}; wsA.properties.tabColor = { argb: NAVY };
+  wsA.mergeCells('A1:H1');
+  wsA.getCell('A1').value = mk === 'ar'
+    ? `${T().att_sheetA} — ${groupA.length} موظف (HDEC + HEC)`
+    : `${T().att_sheetA} — ${groupA.length} employees (HDEC + HEC)`;
+  wsA.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+  wsA.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+  wsA.getCell('A1').alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
+  wsA.rowHeight = 30;
+  headers.forEach((h, i) => {
+    const cell = wsA.getCell(2, i + 1);
+    cell.value = h;
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  });
+  wsA.rowHeight = 22;
+  const rowsA = buildRows(groupA);
+  rowsA.forEach((row, idx) => {
+    const r = wsA.addRow(row);
+    const group = empGroup(employees[idx]);
+    const isHEC = group === 'HEC';
+    r.eachCell(cell => {
+      cell.font = { size: 11, color: isHEC ? HEC_FONT : HDEC_FONT };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: isHEC ? HEC_BG : HDEC_BG };
+      cell.alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
+    });
+    r.height = 18;
+  });
+  // --- Sheet B ---
+  const wsB = wb.addWorksheet(
+    mk === 'ar' ? 'قائمة B ( HDEC + HEC )' : 'List B ( HDEC + HEC )');
+  wsB.properties = wsB.properties || {}; wsB.properties.tabColor = { argb: BLUE };
+  wsB.mergeCells('A1:H1');
+  wsB.getCell('A1').value = mk === 'ar'
+    ? `${T().att_sheetB} — ${groupB.length} موظف (HDEC + HEC)`
+    : `${T().att_sheetB} — ${groupB.length} employees (HDEC + HEC)`;
+  wsB.getCell('A1').font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+  wsB.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BLUE } };
+  wsB.getCell('A1').alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
+  wsB.rowHeight = 30;
+  headers.forEach((h, i) => {
+    const cell = wsB.getCell(2, i + 1);
+    cell.value = h;
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BLUE } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  });
+  wsB.rowHeight = 22;
+  const rowsB = buildRows(groupB);
+  rowsB.forEach((row, idx) => {
+    const r = wsB.addRow(row);
+    const group = empGroup(employees[idx]);
+    const isHEC = group === 'HEC';
+    r.eachCell(cell => {
+      cell.font = { size: 11, color: isHEC ? HEC_FONT : HDEC_FONT };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: isHEC ? HEC_BG : HDEC_BG };
+      cell.alignment = { horizontal: mk === 'ar' ? 'right' : 'left', vertical: 'middle' };
+    });
+    r.height = 18;
+  });
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `تسجيل_حضور_${new Date().getFullYear()}_قوائم_A_B.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`✅ تم تصدير ${groupA.length + groupB.length} موظف (قائمة A: ${groupA.length} | قائمة B: ${groupB.length})`);
+};
+
+document.getElementById('subHdec').onclick=()=>{ STAFF_GROUP='HDEC'; renderStaff(); };
+document.getElementById('subHec').onclick=()=>{ STAFF_GROUP='HEC'; renderStaff(); };
+document.getElementById('staffSearch').oninput=e=>{ STAFF_Q=e.target.value; renderStaff(); };
+document.getElementById('staffGrid').addEventListener('click',e=>{
+  const card=e.target.closest('.staff-card'); if(!card||!card.dataset.num) return;
+  openEmpDlg(card.dataset.num, card.querySelector('img')?card.querySelector('img').src:null);
+});
+document.getElementById('empDlgX').onclick=closeEmpDlg;
+document.getElementById('empDlg').addEventListener('click',e=>{ if(e.target.id==='empDlg') closeEmpDlg(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeEmpDlg(); });
+function closeEmpDlg(){ document.getElementById('empDlg').classList.add('hide'); }
+function openEmpDlg(num, photoSrc){
+  const key=(num||'').replace(/\s/g,'').toUpperCase();
+  const e=D.emp.find(x=>((x.num||'').replace(/\s/g,'').toUpperCase())===key);
+  const m=curMonth();
+  const recs=e?(D.rec||[]).filter(r=>r.empId===e.id&&monthKey(r.date)===m):[];
+  const c=t=>recs.filter(r=>r.type===t).length;
+  const nmEn=e?(e.en||''):'', nmAr=e?(e.ar||''):'';
+  const pos=e?(e.dept||''):'', phone=e?(e.phone||''):'', plate=e?(e.plate||''):'';
+  const grp=e?empGroup(e):STAFF_GROUP;
+  const LBL=LANG==='ar'?{g:'المجموعة',p:'القسم / المهنة',ph:'رقم الهاتف',pl:'رقم اللوحة',na:'—',ms:'حركات الشهر الحالي',v:'مخالفات',a:'غيابات',pm:'استئذانات',w:'إنذارات',sk:'سكليف'}
+    :{g:'Group',p:'Department',ph:'Phone',pl:'Plate No.',na:'—',ms:'Current month records',v:'Violations',a:'Absences',pm:'Permits',w:'Warnings',sk:'Sick'};
+  const ph=photoSrc||(e&&e.photo)||null;
+  const init=staffInitials(nmEn||nmAr||key);
+  document.getElementById('empDlgBody').innerHTML=
+    (ph?'<img class="empdlg-photo" src="'+esc(ph)+'">':'<div class="empdlg-init">'+esc(init)+'</div>')
+    +'<div class="empdlg-name">'+esc(nmEn||key)+'</div>'
+    +(nmAr?'<div class="empdlg-sub">'+esc(nmAr)+'</div>':'')
+    +'<div class="empdlg-sub" style="direction:ltr;">'+esc(key)+'</div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.g+'</span><span class="v">'+esc(grp)+'</span></div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.p+'</span><span class="v">'+esc(pos||LBL.na)+'</span></div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.ph+'</span><span class="v" style="direction:ltr;">'+esc(phone||LBL.na)+'</span></div>'
+    +'<div class="empdlg-row"><span class="k">'+LBL.pl+'</span><span class="v" style="direction:ltr;">'+esc(plate||LBL.na)+'</span></div>'
+    +'<div class="empdlg-sub" style="margin:12px 0 0;">'+LBL.ms+' ('+esc(m)+')</div>'
+    +'<div class="empdlg-stats">'
+    +'<div class="empdlg-stat"><div class="n" style="color:var(--red)">'+c('violation')+'</div><div class="t">'+LBL.v+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:var(--blue)">'+c('absence')+'</div><div class="t">'+LBL.a+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:var(--green)">'+c('permission')+'</div><div class="t">'+LBL.pm+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:#b45309">'+c('warning')+'</div><div class="t">'+LBL.w+'</div></div>'
+    +'<div class="empdlg-stat"><div class="n" style="color:#0284c7">'+c('sick')+'</div><div class="t">'+LBL.sk+'</div></div>'
+    +'</div>';
+  document.getElementById('empDlg').classList.remove('hide');
+}
+document.getElementById('tsFillBtn').onclick=()=>{
+  const empId=document.getElementById('tsEmp').value;
+  document.querySelectorAll('#tsBody tr').forEach(tr=>{
+    const ds=tr.dataset.date; const d=new Date(ds+'T00:00:00');
+    const set=(k,v)=>{ const i=tr.querySelector('input[data-k="'+k+'"]'); if(i) i.value=v; };
+    const isAbs=D.rec.some(r=>r.empId===empId&&r.date===ds&&r.type==='absence');
+    if(isAbs){ ['in1','out1','in2','out2','in3','out3'].forEach(k=>set(k,'')); set('remark','Absent'); }
+    else if(d.getDay()===5){ ['in1','out1','in2','out2','in3','out3','remark'].forEach(k=>set(k,'')); }
+    else{ set('in1','07:00'); set('out1','12:00'); set('in2','13:00'); set('out2','16:00'); set('in3',''); set('out3',''); }
+  });
+};
+document.getElementById('tsSaveBtn').onclick=async()=>{
+  const empId=document.getElementById('tsEmp').value; if(!empId){ toast(T().ts_noemp); return; }
+  const m=tsMonth();
+  const obj={position:document.getElementById('tsPosition').value.trim(), nationality:document.getElementById('tsNationality').value.trim(), days:readTsGrid()};
+  const id='ts-'+empId+'-'+m;
+  const payload={id:id, emp_id:empId, month:m, position:obj.position, nationality:obj.nationality, days:obj.days};
+  const patched=await sb('timesheets','PATCH',payload,'?id=eq.'+id);
+  if(!patched||!patched.length) await sb('timesheets','POST',payload);
+  const row={id:id, emp_id:empId, month:m, position:obj.position, nationality:obj.nationality, days:obj.days};
+  D.ts=D.ts||[];
+  const ix=D.ts.findIndex(t=>t.emp_id===empId&&t.month===m);
+  if(ix>=0) D.ts[ix]=row; else D.ts.push(row);
+  toast(T().ts_saved);
+};
+
+/* ---- Timesheet export: user's own file is the single template ---- */
+let TS_TEMPLATE=null;
+function tsSerVal(v){
+  if(v===undefined||v===null) return null;
+  if(v instanceof Date) return {__d:v.toISOString()};
+  if(typeof v==='object'&&v.formula!==undefined) return {__f:v.formula};
+  if(typeof v==='object'&&v.text!==undefined) return {__t:v.text};
+  return {__v:v};
+}
+function tsUnserVal(o){
+  if(!o) return null;
+  if(o.__d!==undefined) return new Date(o.__d);
+  if(o.__f!==undefined) return {formula:o.__f};
+  if(o.__t!==undefined) return o.__t;
+  return o.__v;
+}
+async function loadTsTemplate(){
+  if(TS_TEMPLATE) return TS_TEMPLATE;
+  const resp=await fetch('Time_Sheet_Template.xlsx');
+  if(!resp.ok) throw new Error('template HTTP '+resp.status);
+  const buf=await resp.arrayBuffer();
+  const twb=new ExcelJS.Workbook();
+  await twb.xlsx.load(buf);
+  const ms=twb.worksheets[0];
+  const M={merges:[],widths:{},heights:{},cells:{},views:null,ps:null,pm:null};
+  try{ M.merges=(ms.model.merges||[]).slice(); }catch(e){}
+  try{ ms.columns.forEach((c,i)=>{ if(c.width) M.widths[i+1]=c.width; }); }catch(e){}
+  for(let r=1;r<=60;r++){ try{ const h=ms.getRow(r).height; if(h) M.heights[r]=h; }catch(e){} }
+  ms.eachRow({includeEmpty:true},(row,r)=>{ row.eachCell({includeEmpty:true},(c,cn)=>{
+    let s=null; try{ s=JSON.parse(JSON.stringify(c.style)); }catch(e){}
+    M.cells[r+','+cn]={v:tsSerVal(c.value),s:s,n:c.numFmt||null};
+  });});
+  try{ M.views=JSON.parse(JSON.stringify(ms.views)); }catch(e){}
+  try{ M.ps=JSON.parse(JSON.stringify(ms.pageSetup)); }catch(e){}
+  try{ M.pm=JSON.parse(JSON.stringify(ms.pageSetup&&ms.pageSetup.margins)); }catch(e){}
+  TS_TEMPLATE=M;
+  return M;
+}
+function tsApplyModel(ws,M){
+  Object.keys(M.widths).forEach(k=>{ ws.getColumn(+k).width=M.widths[k]; });
+  Object.keys(M.heights).forEach(k=>{ ws.getRow(+k).height=M.heights[k]; });
+  (M.merges||[]).forEach(r=>{ try{ws.mergeCells(r);}catch(e){} });
+  Object.keys(M.cells).forEach(k=>{
+    const p=k.split(','); const cell=M.cells[k];
+    const c=ws.getCell(+p[0],+p[1]);
+    const v=tsUnserVal(cell.v);
+    if(v!==null&&v!==undefined) c.value=v;
+    if(cell.s) c.style=cell.s;
+    if(cell.n) c.numFmt=cell.n;
+  });
+  if(M.views){ try{ws.views=M.views;}catch(e){} }
+  if(M.ps){ try{ Object.keys(M.ps).forEach(k=>{ if(k!=='margins') ws.pageSetup[k]=M.ps[k]; }); }catch(e){} }
+  if(M.pm){ try{ ws.pageSetup.margins=M.pm; }catch(e){} }
+}
+function tsFillSheet(ws,e,days,pos,nat,dd){
+  const S=(addr,v)=>{ const c=ws.getCell(addr); if(v===null||v===undefined) c.value=null; else c.value=v; };
+  const d0=days[0].split('-'), d1=days[days.length-1].split('-');
+  S('B2','( '+d0[2]+' '+TS_MON[+d0[1]-1]+' '+d0[0]+' -'+d1[2]+' '+TS_MON[+d1[1]-1]+' '+d1[0]+')');
+  S('C4',e.num||'');
+  let nm=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm)) nm=nm.toUpperCase();
+  S('H4',nm);
+  S('C6',pos||''); S('H6',nat||'');
+  const p0=days[0].split('-');
+  S('B12',new Date(Date.UTC(+p0[0],+p0[1]-1,+p0[2])));
+  let tot=0;
+  days.forEach((ds,i)=>{
+    const r=12+i; const o=dd[ds]||{};
+    const hasT=o.in1||o.out1||o.in2||o.out2||o.in3||o.out3;
+    const isFri=new Date(ds+'T00:00:00').getDay()===5;
+    const cols={D:o.in1,E:o.out1,F:o.in2,G:o.out2,H:o.in3,I:o.out3};
+    Object.keys(cols).forEach(col=>{ S(col+r,tsTimeVal(cols[col])); });
+    if(hasT||!isFri){ const fr=tsDayTotal(o); tot+=fr;
+      ws.getCell('J'+r).value={formula:'E'+r+'-D'+r+'+G'+r+'-F'+r+'+I'+r+'-H'+r+'+K'+r,result:fr};
+    } else S('J'+r,null);
+    S('L'+r,o.remark||null);
+  });
+  ws.getCell('J43').value={formula:'SUM(J12:J42)',result:tot};
+}
+/* ---- Timesheet Excel export (ExcelJS, exact template replica) ---- */
+function tsTimeVal(s){ if(!s) return null; const p=s.split(':'); if(p.length<2) return null;
+  return new Date(Date.UTC(1899,11,30,+p[0],+p[1])); }
+function tsFrac(s){ if(!s) return 0; const p=s.split(':'); return ((+p[0])*60+(+p[1]))/1440; }
+function tsSerial(y,mo,d){ return (Date.UTC(y,mo-1,d)-Date.UTC(1899,11,30))/86400000; }
+function tsDayTotal(o){ let h=0;
+  [['in1','out1'],['in2','out2'],['in3','out3']].forEach(pr=>{ const a=tsFrac(o[pr[0]]), b=tsFrac(o[pr[1]]); if(b>a) h+=(b-a); });
+  return h; }
+const TS_MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+document.getElementById('tsExportBtn').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
+  const m=tsMonth(); if(!m||!D.emp.length){ toast(T().ts_noemp); return; }
+  try{
+    toast('⏳ جاري تجهيز الملف من القالب...');
+    const M=await loadTsTemplate();
+    const wb=new ExcelJS.Workbook(); wb.creator='HSE Tracker'; wb.created=new Date();
+    const days=tsPeriodDays();
+    D.emp.forEach(e=>{
+      const saved=tsEntry(e.id);
+      const pos=(saved&&saved.position!=null)?saved.position:(e.dept||'');
+      const nat=(saved&&saved.nationality!=null)?saved.nationality:'Saudi';
+      const ws=wb.addWorksheet(((e.num||e.en||e.ar||'emp').toString().slice(0,31)));
+      tsApplyModel(ws,M);
+      tsFillSheet(ws,e,days,pos,nat,(saved&&saved.days)?saved.days:{});
+    });
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='Time_Sheet_'+m+'_Group-office.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast(T().toast_xlsx);
+  }catch(err){ console.error(err); toast('Export failed: '+err.message); }
+};
+
+
+/* ============ DEPLOYMENT ============ */
+function mapDep(d){ return {id:d.id, empId:d.emp_id||d.empId, area:d.area||'', list:d.list||'A', rot:d.rotation||d.rot||'', status:d.status||'Active'}; }
+function depGroups(){
+  const groups=[]; const idx={};
+  (D.dep||[]).forEach(d=>{
+    const a=d.area||'—';
+    if(!(a in idx)){ idx[a]=groups.length; groups.push({area:a,lists:[],lidx:{}}); }
+    const g=groups[idx[a]];
+    const l=d.list||'(no list)';
+    if(!(l in g.lidx)){ g.lidx[l]=g.lists.length; g.lists.push({list:l,rows:[]}); }
+    g.lists[g.lidx[l]].rows.push(d);
+  });
+  return groups;
+}
+function fillDepEmp(){
+  const sel=document.getElementById('depEmp'); if(!sel) return;
+  const cur=sel.value; sel.innerHTML='';
+  const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
+  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+    o.textContent=((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num)+' — '+(e.num||''); sel.appendChild(o); });
+  if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
+}
+function renderDep(){
+  const wrap=document.getElementById('depBody'); if(!wrap) return;
+  fillDepEmp();
+  document.getElementById('depSearch').placeholder=T().dep_search;
+  const areas=[...new Set((D.dep||[]).map(d=>d.area).filter(Boolean))].sort();
+  document.getElementById('depAreasList').innerHTML=areas.map(a=>'<option value="'+esc(a)+'">').join('');
+  const rots=[...new Set((D.dep||[]).map(d=>d.rot).filter(Boolean))];
+  ['A','B','daily_duty','ssc','office','training_room'].forEach(r=>{ if(!rots.includes(r)) rots.push(r); });
+  document.getElementById('depRotsList').innerHTML=rots.map(a=>'<option value="'+esc(a)+'">').join('');
+  const q=(document.getElementById('depSearch').value||'').trim().toLowerCase();
+  const match=d=>{ if(!q) return true; const e=empById(d.empId);
+    return ((e.en||'')+' '+(e.ar||'')+' '+(e.num||'')+' '+(d.area||'')).toLowerCase().includes(q); };
+  const groups=depGroups();
+  let total=0;
+  wrap.innerHTML='';
+  groups.forEach(g=>{
+    const rows=g.lists.flatMap(l=>l.rows).filter(match);
+    if(!rows.length) return;
+    total+=rows.length;
+    const det=document.createElement('details'); det.className='coll';
+    let h='<summary>🗺️ '+esc(g.area)+' ('+rows.length+')</summary><div class="tbl-holder" style="margin-top:0;"><table><thead><tr><th>#</th><th data-i="c_emp">'+esc(T().c_emp||'Employee')+'</th><th data-i="c_num">'+esc(T().c_num||'Job No.')+'</th><th data-i="l_dept">'+esc(T().l_dept||'Department')+'</th><th>'+esc(T().dep_list)+'</th><th>'+esc(T().dep_rot)+'</th><th>'+esc(T().dep_status)+'</th><th></th></tr></thead><tbody>';
+    let n=0;
+    g.lists.forEach(l=>{
+      const lr=l.rows.filter(match); if(!lr.length) return;
+      h+='<tr><td colspan="8" style="background:#f0f9ff;font-weight:800;">'+esc(l.list)+' — '+lr.length+'</td></tr>';
+      lr.forEach(d=>{ n++; const e=empById(d.empId);
+        h+='<tr><td>'+n+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(e.dept||'')+'</td><td>'+esc(d.list)+'</td><td>'+esc(d.rot)+'</td><td>'+esc(d.status)+'</td><td>'+(isAdmin()?'<button class="del" data-depdel="'+d.id+'">🗑</button>':'')+'</td></tr>'; });
+    });
+    h+='</tbody></table></div>';
+    det.innerHTML=h;
+    wrap.appendChild(det);
+  });
+  if(!total) wrap.innerHTML='<div class="empty">'+esc(T().empty)+'</div>';
+  document.getElementById('depCountLbl').textContent=groups.length+' / '+total;
+}
+document.getElementById('depSearch').oninput=renderDep;
+document.getElementById('depSaveBtn').onclick=async()=>{
+  const empId=document.getElementById('depEmp').value;
+  const area=document.getElementById('depArea').value.trim();
+  if(!empId||!area){ toast(T().err_fill); return; }
+  const id='dep-'+empId;
+  const payload={id:id, emp_id:empId, area:area, list:document.getElementById('depList').value,
+    rotation:document.getElementById('depRot').value.trim()||document.getElementById('depList').value,
+    status:document.getElementById('depStatus').value};
+  const patched=await sb('deployment','PATCH',payload,'?id=eq.'+id);
+  if(!patched||!patched.length) await sb('deployment','POST',payload);
+  D.dep=D.dep||[];
+  const ix=D.dep.findIndex(t=>t.id===id||t.empId===empId);
+  const row={id:id, empId:empId, area:payload.area, list:payload.list, rot:payload.rotation, status:payload.status};
+  if(ix>=0) D.dep[ix]=row; else D.dep.push(row);
+  document.getElementById('depArea').value=''; document.getElementById('depRot').value='';
+  renderDep(); toast(T().dep_saved);
+};
+function renderLists(){
+  const q=(document.getElementById('listsSearch').value||'').trim().toLowerCase();
+  document.getElementById('listsSearch').placeholder=T().lists_search;
+  const gf=document.getElementById('listsGroupFilter').value;
+  const mk=localeKey();
+
+  function sectionInfo(listName){
+    if(mk==='ar'){
+      if(listName==='A') return ['📋 قائمة A','الموظفين المسجلين في قائمة A'];
+      if(listName==='B') return ['📋 قائمة B','الموظفين المسجلين في قائمة B'];
+    } else {
+      if(listName==='A') return ['📋 List A','Employees registered in List A'];
+      if(listName==='B') return ['📋 List B','Employees registered in List B'];
+    }
+  }
+
+  function companySection(target,company,rows){
+    target.innerHTML='';
+    if(!rows.length){ target.innerHTML='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;color:var(--mut);font-size:13px;margin-bottom:8px;">📭 '+(mk==='ar'?company+' — لا يوجد':(company+(company==='HDEC'?' — Hyundai E&C':' — Consultant')))+'</div>'; return; }
+    const arComp = mk==='ar' ? (company==='HDEC'?'شركة HDEC 💙':'شركة HEC 💛') : (company+' '+(company==='HDEC'?'(Hyundai E&C)':'Consultant'));
+    const tbl=document.createElement('div'); tbl.className='tbl-holder';
+    let html='<div style="background:'+(company==='HDEC'?'#dbeafe':'#fef3c7')+';border-radius:10px;padding:8px 12px;margin-bottom:10px;font-weight:800;font-size:14px;color:'+(company==='HDEC'?'#1e40af':'#92400e')+';">'+arComp+' ('+rows.length+')</div>';
+    html+='<table><thead><tr><th>#</th><th>'+(mk==="ar"?'الرقم الوظيفي':'Job No.')+'</th><th>'+(mk==="ar"?'الموظف':'Employee')+'</th><th>'+(mk==="ar"?'المسمى':'Designation')+'</th><th>'+(mk==="ar"?'المنطقة':'Area')+'</th><th>'+(mk==="ar"?'مجموعة الدوام':'Rotation')+'</th><th>'+(mk==="ar"?'الحالة':'Status')+'</th></tr></thead><tbody>';
+    rows.forEach((d,n)=>{
+      html+='<tr><td>'+(n+1)+'</td><td style="direction:ltr;">'+esc(d.emp_id||d.no||'')+'</td><td style="font-weight:600;">'+esc(d.name_en||'')+'</td><td>'+esc(d.designation||'')+'</td><td>'+esc(d.area||'')+'</td><td style="direction:ltr;">'+esc(d.rotation||'')+'</td><td>'+esc(d.status||'')+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    tbl.innerHTML=html;
+    target.appendChild(tbl);
+  }
+
+  function renderOne(listName){
+    const target=document.getElementById('listsSection'+listName);
+    const filtered=DEPLOY_DATA.filter(d=>{
+      if(gf!=='all' && d.group!==gf) return false;
+      if(q){
+        const name=d.name_en||'';
+        if(!name.toLowerCase().includes(q)) return false;
+      }
+      return d.list===listName;
+    });
+    const hdec=filtered.filter(d=>d.group==='HDEC');
+    const HEC=filtered.filter(d=>d.group==='HEC');
+    target.innerHTML='';
+    const [secH,secI]=sectionInfo(listName);
+    target.insertAdjacentHTML('beforeend','<h3 style="font-size:17px;margin-bottom:12px;color:'+(mk==='ar'?'#0c4a6e':'#0c4a6e')+';">'+esc(secH)+' ('+filtered.length+' موظف)</h3>');
+    if(!filtered.length){
+      target.innerHTML+='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;color:var(--mut);font-size:14px;text-align:center;">📭 '+esc(secI)+'</div>';
+    } else {
+      companySection(target,'HDEC',hdec);
+      companySection(target,'HEC',HEC);
+    }
+  }
+
+  renderOne('A');
+  renderOne('B');
+  const totalAll=DEPLOY_DATA.filter(d=>d.list==='A'||d.list==='B').length;
+  document.getElementById('listsCountLbl').textContent=totalAll+' موظف';
+}
+
+document.getElementById('listsSearch').oninput=renderLists;
+document.getElementById('listsGroupFilter').onchange=renderLists;
+
+/* ---- Export List ---- */
+document.getElementById('listExportBtn').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
+  const mk=localeKey();
+  const grp=document.getElementById('listExportGroup').value;
+  const listN=(grp==='A'?'A':'B');
+  const gf=document.getElementById('listsGroupFilter').value;
+  const rows=DEPLOY_DATA.filter(d=>{
+    if(gf!=='all' && d.group!==gf) return false;
+    return d.list===listN;
+  });
+  if(!rows.length){ toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN); return; }
+  const wb=new ExcelJS.Workbook();
+  wb.creator='HSE Tracker';
+  const ws=wb.addWorksheet(mk==='ar'?('قائمة '+listN+' — HDEC + HEC'):('List '+listN+' — HDEC + HEC'));
+  ws.properties.tabColor={argb:listN==='A'?'FF0EA5E9':'FF0284C7'};
+  const cols=[{w:5},{w:32},{w:14},{w:26},{w:16},{w:10},{w:14},{w:14}];
+  cols.forEach(c=>ws.columns.push(c));
+  const hd=mk==='ar'?['#','الموظف','الرقم الوظيفي','القسم / المهنة','المنطقة','القائمة','مجموعة الدوام','الحالة']:['#','Employee','Job No.','Department','Area','List','Rotation','Status'];
+  ws.mergeCells('A1:H1');
+  ws.getCell('A1').value=(mk==='ar'?('قائمة '+listN):('List '+listN))+' — '+rows.length+' موظف (HDEC + HEC)';
+  ws.getCell('A1').font={bold:true,size:16,color:'FFFFFF'};
+  ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
+  ws.getCell('A1').alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
+  ws.rowHeight=34;
+  hd.forEach((h,i)=>{
+    const c=ws.getCell(2,i+1); c.value=h; c.font={bold:true,color:'FFFFFF'};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:listN==='A'?'FF0EA5E9':'FF0284C7'}};
+    c.alignment={horizontal:'center',vertical:'middle'};
+  });
+  ws.rowHeight=22;
+  rows.forEach((d,i)=>{
+    const grp2=d.group||''; const isHEC=grp2==='HEC';
+    ws.addRow([i+1,d.name_en||'',d.emp_id||'',d.designation||'',d.area||'',d.list||'',d.rotation||'',d.status||'']);
+    const r=ws.lastRow;
+    r.eachCell(c=>{
+      c.font={size:11,color:isHEC?{argb:'FF7F6000'}:{argb:'FF1F4E79'}};
+      c.fill={type:'pattern',pattern:'solid',fgColor:isHEC?{argb:'FFFFF2CC'}:{argb:'FFDFEAF2'}};
+      c.alignment={vertical:'middle',horizontal:mk==='ar'?'right':'left'};
+    });
+    r.height=19;
+  });
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download=(mk==='ar'?'قائمة_':'List_')+listN+'_'+(new Date()).getFullYear()+'.xlsx';
+  a.click(); URL.revokeObjectURL(url);
+  toast((mk==='ar'?'✅ تم تصدير قائمة ':'✅ Export done — List ')+listN);
+};
+
+/* ---- Export List B ---- */
+
+
+document.getElementById('depBody').addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-depdel]'); if(!btn) return;
+  if(!confirm(T().askDel)) return;
+  D.dep=(D.dep||[]).filter(d=>d.id!==btn.dataset.depdel);
+  await sb('deployment','DELETE',null,'?id=eq.'+btn.dataset.depdel);
+  renderDep(); toast(T().toast_del);
+});
+document.getElementById('depExportBtn').onclick=async()=>{
+  if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
+  if(!(D.dep||[]).length){ toast(T().empty); return; }
+  try{
+    const wb=new ExcelJS.Workbook(); wb.creator='HSE Tracker'; wb.created=new Date();
+    const ws=wb.addWorksheet('Deployment');
+    [6,34,14,26,22,18,20].forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+    const thin={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}};
+    const ctr={horizontal:'center',vertical:'middle'}, ctrW={horizontal:'center',vertical:'middle',wrapText:true};
+    const F=(s,b,c)=>{ const o={name:'Calibri',size:s,bold:!!b}; if(c) o.color={argb:c}; return o; };
+    const STC={Active:['FFD1FAE5','FF047857'],Inactive:['FFF1F5F9','FF64748B'],Vacation:['FFFEF3C7','FFB45309'],Absent:['FFFEE2E2','FFBE123C']};
+    const C=(addr,v,o)=>{ o=o||{}; const c=ws.getCell(addr); if(v!==undefined&&v!==null) c.value=v;
+      if(o.f)c.font=o.f; if(o.bg)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:o.bg}};
+      if(o.a)c.alignment=o.a; if(o.b)c.border=o.b; return c; };
+    C('A1','HSE Area Deployment',{f:F(16,1,'FFFFFFFF'),bg:'FF0E7490'});
+    const t=new Date();
+    C('A2','All deployed personnel  ·  Generated: '+t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'),{f:F(10,0,'FF0369A1'),bg:'FFE0F2FE'});
+    ws.mergeCells('A1:G1'); ws.mergeCells('A2:G2');
+    let r=4;
+    depGroups().forEach(g=>{
+      const n=g.lists.reduce((a,l)=>a+l.rows.length,0);
+      ws.mergeCells('A'+r+':G'+r);
+      C('A'+r,'▸ '+g.area+'  —  '+n+' personnel',{f:F(12,1,'FFFFFFFF'),bg:'FF0EA5E9',a:{horizontal:'left',vertical:'middle'},b:thin});
+      for(let cc=1;cc<=7;cc++) ws.getCell(r,cc).border=thin;
+      r++;
+      const hh=['No','Officer Name','Employee ID','Designation','List','Rotation Group','Status'];
+      hh.forEach((h,i)=>C(String.fromCharCode(65+i)+r,h,{f:F(11,1,'FFFFFFFF'),bg:'FF0F172A',a:ctr,b:thin}));
+      r++;
+      g.lists.forEach(l=>{
+        ws.mergeCells('A'+r+':G'+r);
+        C('A'+r,l.list+'  —  '+l.rows.length,{f:F(11,1,'FF1E40AF'),bg:'FFDBEAFE',a:{horizontal:'left',vertical:'middle'},b:thin});
+        for(let cc=1;cc<=7;cc++) ws.getCell(r,cc).border=thin;
+        r++;
+        let n2=0;
+        l.rows.forEach(d=>{ n2++; const e=empById(d.empId);
+          let nm=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm)) nm=nm.toUpperCase();
+          C('A'+r,n2,{f:F(11,0),a:ctr,b:thin});
+          C('B'+r,nm,{f:F(11,0),a:{vertical:'middle'},b:thin});
+          C('C'+r,e.num||'',{f:F(11,0),a:ctr,b:thin});
+          C('D'+r,(e.dept||'').toUpperCase(),{f:F(11,0),a:{vertical:'middle'},b:thin});
+          C('E'+r,d.list,{f:F(11,0),a:ctr,b:thin});
+          C('F'+r,d.rot,{f:F(11,0),a:ctr,b:thin});
+          C('G'+r,d.status,{f:F(11,0,(STC[d.status]||STC.Active)[1]),bg:(STC[d.status]||STC.Active)[0],a:ctr,b:thin});
+          r++;
+        });
+      });
+      ws.mergeCells('A'+r+':F'+r);
+      C('A'+r,'Total — '+g.area,{f:F(11,1,'FF92400E'),bg:'FFFEF3C7',a:{horizontal:'right',vertical:'middle'},b:thin});
+      C('G'+r,n,{f:F(11,1,'FF92400E'),bg:'FFFEF3C7',a:ctr,b:thin});
+      for(let cc=1;cc<=6;cc++) ws.getCell(r,cc).border=thin;
+      r+=2;
+    });
+    ws.views=[{state:'frozen',ySplit:4}];
+    ws.pageSetup.orientation='landscape'; ws.pageSetup.paperSize=9;
+    ws.pageSetup.fitToPage=true; ws.pageSetup.fitToWidth=1; ws.pageSetup.fitToHeight=1;
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    const m2=tsMonth()||'';
+    a.download='Deployment_Map_'+m2+'.xlsx'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast(T().toast_xlsx);
+  }catch(err){ console.error(err); toast('Export failed: '+err.message); }
+};
+
+
+
+/* ============ ARAMCO APPROVAL ============ */
+const SEED_APPR = [
+  {i:"SASL-0543",r:"Daily",a:"Safety Supervisor 180-day",p:"",ar:"",x:"OVERALL"},
+  {i:"SASL-0387",r:"Daily",a:"Safety officer 90-day",p:"559221505",ar:"",x:"Brown Field"},
+  {i:"SASL-0518",r:"Daily",a:"Safety officer 90-day",p:"530373700",ar:"",x:"Brown Field"},
+  {i:"SASL-0469",r:"Daily",a:"Safety officer 90-day",p:"553447412",ar:"",x:"Brown Field"},
+  {i:"SASL-0449",r:"Daily",a:"Safety officer 180-day",p:"530033965",ar:"",x:"Brown Field"},
+  {i:"SASL-0005",r:"Daily",a:"ACCEPTED",p:"",ar:"",x:"Brown Field"},
+  {i:"SASL-0397",r:"Daily",a:"Safety officer 180-day",p:"535767065",ar:"",x:"Brown Field"},
+  {i:"HECL-0084",r:"Daily",a:"Safety officer 90-day",p:"054-966-0015",ar:"",x:"Brown Field"},
+  {i:"SASL-0527",r:"Daily",a:"Safety officer 180-day",p:"502172207",ar:"",x:"Brown Field"},
+  {i:"SASL-0526",r:"B",a:"Safety officer 90-day",p:"550995239",ar:"",x:"K9 Area"},
+  {i:"SASL-0481",r:"B",a:"Safety officer 90-day",p:"561511108",ar:"",x:"K9 Area"},
+  {i:"HECL-0188",r:"B",a:"ONGOING",p:"050-671-8010",ar:"",x:"K9 Area"},
+  {i:"SASL-0450",r:"B",a:"Trainee for 180-day",p:"507870466",ar:"",x:"K9 Area"},
+  {i:"SASL-0514",r:"B",a:"Trainee for 180-day",p:"530304867",ar:"",x:"K9 Area"},
+  {i:"HECL-0182",r:"A",a:"ONGOING",p:"",ar:"",x:"K9 Area"},
+  {i:"HECL-0090",r:"A",a:"ONGOING",p:"053-528-4440",ar:"",x:"K9 Area"},
+  {i:"SASL-0492",r:"A",a:"Trainee for 180-day",p:"547123398",ar:"",x:"K9 Area"},
+  {i:"SASL-0528",r:"A",a:"Trainee for 180-day",p:"",ar:"",x:"K9 Area"},
+  {i:"HECL-0094",r:"A",a:"ONGOING",p:"",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0476",r:"Daily",a:"Trainee for 180-day",p:"543993266",ar:"",x:"Chemical Storage"},
+  {i:"HECL-0102",r:"B",a:"ONGOING",p:"",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0460",r:"B",a:"Trainee for 180-day",p:"567011806",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0510",r:"B",a:"PASS(Waiting for a transmittal)",p:"544147722",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0472",r:"B",a:"Trainee for 180-day",p:"563220921",ar:"",x:"Chemical Storage"},
+  {i:"HECL-0101",r:"B",a:"PASS(Waiting for a transmittal)",p:"056-526-7405",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0479",r:"A",a:"Trainee for 180-day",p:"567902896",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0489",r:"A",a:"Trainee for 180-day",p:"550823127",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0499",r:"A",a:"Safety officer 180-day",p:"560644833",ar:"",x:"Chemical Storage"},
+  {i:"SASL-0475",r:"Daily",a:"Safety officer 180-day",p:"543602823",ar:"",x:"GIS-02"},
+  {i:"SASL-0471",r:"B",a:"Trainee for 180-day",p:"557262180",ar:"",x:"GIS-02"},
+  {i:"HECL-0196",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"GIS-02"},
+  {i:"SASL-0448",r:"B",a:"Trainee for 180-day",p:"507494918",ar:"",x:"GIS-02"},
+  {i:"HECL-0177",r:"A",a:"ONGOING",p:"",ar:"",x:"GIS-02"},
+  {i:"SASL-0482",r:"B",a:"Trainee for 180-day",p:"501256316",ar:"",x:"GIS-02"},
+  {i:"SASL-0484",r:"B",a:"Safety officer 180-day",p:"504487534",ar:"",x:"GIS-02"},
+  {i:"HECL-0103",r:"B",a:"ONGOING",p:"",ar:"",x:"GIS-02"},
+  {i:"HECL-0187",r:"A",a:"ONGOING",p:"",ar:"",x:"GIS-02"},
+  {i:"SASL-0483",r:"A",a:"Trainee for 180-day",p:"555789904",ar:"",x:"GIS-02"},
+  {i:"SASL-0555",r:"A",a:"Trainee for 180-day",p:"536285439",ar:"",x:"GIS-02"},
+  {i:"HECL-0095",r:"A",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"HECL-0176",r:"A",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"HECL-0178",r:"A",a:"ONGOING",p:"050-498-1222",ar:"",x:"ASU"},
+  {i:"HECL-0190",r:"B",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"SASL-0490",r:"Daily",a:"Safety officer 90-day",p:"503661422",ar:"",x:"ASU"},
+  {i:"SASL-0507",r:"Daily",a:"Trainee for 180-day",p:"",ar:"",x:"ASU"},
+  {i:"SASL-0493",r:"Daily",a:"Trainee for 180-day",p:"561009533",ar:"",x:"ASU"},
+  {i:"SASL-0487",r:"B",a:"Trainee for 180-day",p:"566299880",ar:"",x:"ASU"},
+  {i:"SASL-0480",r:"Daily",a:"Safety officer 90-day",p:"549783999",ar:"",x:"ASU"},
+  {i:"HECL-0191",r:"B",a:"PASS(Waiting for a transmittal)",p:"058-090-3757",ar:"",x:"ASU"},
+  {i:"SASL-0453",r:"B",a:"Trainee for 180-day",p:"506832012",ar:"",x:"ASU"},
+  {i:"HECL-0185",r:"A",a:"ONGOING",p:"",ar:"",x:"ASU"},
+  {i:"SASL-0456",r:"B",a:"Trainee for 180-day",p:"549430796",ar:"",x:"ASU"},
+  {i:"HECL-0175",r:"A",a:"ONGOING",p:"056-519-5644",ar:"",x:"SRU4"},
+  {i:"SASL-0534",r:"B",a:"Trainee for 180-day",p:"501961705",ar:"",x:"SRU4"},
+  {i:"SASL-0497",r:"B",a:"ONGOING",p:"550767237",ar:"",x:"SRU4"},
+  {i:"HECL-0097",r:"B",a:"ONGOING",p:"054-409-9037",ar:"",x:"SRU4"},
+  {i:"SASL-0498",r:"B",a:"Trainee for 180-day",p:"598872248",ar:"",x:"SRU4"},
+  {i:"SASL-0512",r:"Daily",a:"Trainee for 180-day",p:"554873448",ar:"",x:"SRU4"},
+  {i:"HECL-0992",r:"A",a:"ONGOING",p:"",ar:"",x:"SRU4"},
+  {i:"SASL-0459",r:"B",a:"PASS(Waiting for a transmittal)",p:"504756813",ar:"",x:"SRU4"},
+  {i:"SASL-0561",r:"A",a:"Trainee for 180-day",p:"580366101",ar:"",x:"SRU4"},
+  {i:"HECL-0197",r:"Daily",a:"Safety officer 90-day",p:"055-755-2121",ar:"",x:"SRU4"},
+  {i:"HECL-0184",r:"A",a:"Trainee for 180-day",p:"058-091-2371",ar:"",x:"SRU5"},
+  {i:"HECL-0189",r:"A",a:"ONGOING",p:"054-709-1510",ar:"",x:"SRU5"},
+  {i:"SASL-0520",r:"B",a:"Trainee for 180-day",p:"563958596",ar:"",x:"SRU5"},
+  {i:"SASL-0517",r:"B",a:"Trainee for 180-day",p:"553602824",ar:"",x:"SRU5"},
+  {i:"SASL-0466",r:"B",a:"Safety officer 90-day",p:"556454380",ar:"",x:"SRU5"},
+  {i:"SASL-0530",r:"B",a:"Trainee for 180-day",p:"544433402",ar:"",x:"SRU5"},
+  {i:"SASL-0502",r:"B",a:"ONGOING",p:"509875080",ar:"",x:"SRU5"},
+  {i:"HECL-0209",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"SRU5"},
+  {i:"SASL-0392",r:"Daily",a:"Safety officer 90-day",p:"558064284",ar:"",x:"SRU5"},
+  {i:"SASL-0501",r:"Daily",a:"Trainee for 180-day",p:"500649405",ar:"",x:"SRU5"},
+  {i:"SASL-0505",r:"A",a:"Trainee for 180-day",p:"553887386",ar:"",x:"SRU5"},
+  {i:"SASL-0532",r:"A",a:"Trainee for 180-day",p:"504467447",ar:"",x:"SRU5"},
+  {i:"HECL-0096",r:"A",a:"ONGOING",p:"050-331-8166",ar:"",x:"Laydown B"},
+  {i:"HECL-0098",r:"A",a:"ONGOING",p:"",ar:"",x:"Laydown B"},
+  {i:"HECL-0100",r:"A",a:"ONGOING",p:"053-573-8980",ar:"",x:"Laydown B"},
+  {i:"SASL-0455",r:"A",a:"Trainee for 180-day",p:"502316632",ar:"",x:"Laydown B"},
+  {i:"HECL-0548",r:"B",a:"ONGOING",p:"",ar:"",x:"Laydown B"},
+  {i:"SASL-0491",r:"B",a:"Trainee for 180-day",p:"538276603",ar:"",x:"Laydown B"},
+  {i:"SASL-0503",r:"B",a:"Trainee for 180-day",p:"549368860",ar:"",x:"Laydown B"},
+  {i:"SASL-0452",r:"B",a:"Trainee for 180-day",p:"532658477",ar:"",x:"Laydown B"},
+  {i:"SASL-0537",r:"B",a:"Safety officer 180-day",p:"540733051",ar:"",x:"Laydown B"},
+  {i:"SASL-0464",r:"B",a:"Trainee for 180-day",p:"",ar:"",x:"Laydown B"},
+  {i:"SASL-0508",r:"Daily",a:"Trainee for 180-day",p:"550717165",ar:"",x:"Laydown B"},
+  {i:"SASL-0462",r:"Daily",a:"Trainee for 180-day",p:"500407786",ar:"",x:"Laydown A"},
+  {i:"SASL-0461",r:"Daily",a:"Safety officer 180-day",p:"532122141",ar:"",x:"Laydown A"},
+  {i:"SASL-0021",r:"Daily",a:"ACCEPTED",p:"",ar:"",x:"Laydown C"},
+  {i:"SASL-0473",r:"A",a:"ONGOING",p:"506788116",ar:"",x:"Laydown C"},
+  {i:"SASL-0516",r:"A",a:"ONGOING",p:"500833305",ar:"",x:"Laydown C"},
+  {i:"SASL-0515",r:"B",a:"Trainee for 180-day",p:"561050710",ar:"",x:"Laydown C"},
+  {i:"HECL-0091",r:"B",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"Laydown C"},
+  {i:"SASL-0463",r:"B",a:"Safety officer 180-day",p:"506668047",ar:"",x:"Laydown C"},
+  {i:"SASL-0494",r:"B",a:"Safety officer 180-day",p:"569636181",ar:"",x:"Laydown C"},
+  {i:"SASL-0495",r:"B",a:"PASS(Waiting for a transmittal)",p:"509857312",ar:"",x:"Laydown C"},
+  {i:"SASL-0560",r:"A",a:"Safety officer 180-day",p:"547373293",ar:"",x:"Laydown C"},
+  {i:"SASL-0561",r:"A",a:"Safety officer 180-day",p:"540396544",ar:"",x:"Laydown C"},
+  {i:"HECL-0193",r:"A",a:"ONGOING",p:"055-479-3046",ar:"",x:"Silver Area"},
+  {i:"HECL-0194",r:"A",a:"Safety officer 90-day",p:"",ar:"",x:"Silver Area"},
+  {i:"SASL-0529",r:"B",a:"PASS(Waiting for a transmittal)",p:"541416719",ar:"",x:"Silver Area"},
+  {i:"SASL-0451",r:"B",a:"Trainee for 180-day",p:"555180670",ar:"",x:"Silver Area"},
+  {i:"HECL-0181",r:"B",a:"ONGOING",p:"",ar:"",x:"Silver Area"},
+  {i:"SASL-0465",r:"B",a:"Trainee for 180-day",p:"556657771",ar:"",x:"Silver Area"},
+  {i:"SASL-0394",r:"B",a:"Safety officer 90-day",p:"535229931",ar:"",x:"Silver Area"},
+  {i:"SASL-0474",r:"Daily",a:"Trainee for 180-day",p:"557650959",ar:"",x:"Silver Area"},
+  {i:"SASL-0488",r:"Daily",a:"Trainee for 180-day",p:"501626509",ar:"",x:"Silver Area"},
+  {i:"SASL-0560",r:"A",a:"Trainee for 180-day",p:"542488161",ar:"",x:"Silver Area"},
+  {i:"HECL-0093",r:"A",a:"Trainee for 180-day",p:"050-221-2729",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0523",r:"A",a:"Trainee for 180-day",p:"",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0506",r:"B",a:"Trainee for 180-day",p:"",ar:"",x:"Water-bound Area"},
+  {i:"HECL-0104",r:"B",a:"ONGOING",p:"",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0522",r:"B",a:"Trainee for 180-day",p:"550142966",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0504",r:"B",a:"ONGOING",p:"508859524",ar:"",x:"Water-bound Area"},
+  {i:"SASL-0386",r:"Daily",a:"Safety officer 90-day",p:"561089318",ar:"",x:"SSC"},
+  {i:"SASL-0485",r:"Daily",a:"Safety officer 180-day",p:"535474217",ar:"",x:"SSC"},
+  {i:"SASL-0496",r:"Daily",a:"Safety officer 180-day",p:"535444619",ar:"",x:"SSC"},
+  {i:"SASL-0500",r:"Daily",a:"Safety officer 180-day",p:"548984266",ar:"",x:"SSC"},
+  {i:"SASL-0598",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"SSC"},
+  {i:"SASL-0003",r:"Daily",a:"ACCEPTED",p:"0557896393",ar:"",x:"SSC"},
+  {i:"SASL-0513",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"581387963",ar:"",x:"SSC"},
+  {i:"HECL-0082",r:"Daily",a:"Safety officer 90-day",p:"053-873-2464",ar:"",x:"SSC"},
+  {i:"SASL-0458",r:"Daily",a:"Safety officer 180-day",p:"599442258",ar:"",x:"Training Room"},
+  {i:"SASL-0470",r:"Daily",a:"Safety officer 180-day",p:"551311155",ar:"",x:"Training Room"},
+  {i:"SASL-0468",r:"Daily",a:"Safety officer 180-day",p:"536999232",ar:"",x:"Training Room"},
+  {i:"HECL-0203",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"",ar:"",x:"Training Room"},
+  {i:"SASL-0509",r:"Daily",a:"Safety officer 90-day",p:"554980231",ar:"",x:"Office"},
+  {i:"SASL-0389",r:"Daily",a:"Safety officer 180-day",p:"534844508",ar:"",x:"Office"},
+  {i:"SASL-0396",r:"Daily",a:"Safety officer 180-day",p:"549851724",ar:"",x:"Office"},
+  {i:"SASL-0524",r:"Daily",a:"Trainee for 180-day",p:"561026676",ar:"",x:"Office"},
+  {i:"SASL-0374",r:"Daily",a:"Trainee for 180-day",p:"562667085",ar:"",x:"Office"},
+  {i:"SASL-0467",r:"Daily",a:"Trainee for 180-day",p:"557003331",ar:"",x:"Office"},
+  {i:"SASL-0533",r:"Daily",a:"Safety officer 90-day",p:"548876608",ar:"",x:"With CM Team"},
+  {i:"SASL-0521",r:"Daily",a:"Safety officer 180-day",p:"535273047",ar:"",x:"With CM Team"},
+  {i:"SASL-0621",r:"Daily",a:"Safety officer 180-day",p:"",ar:"",x:"Silver Area"},
+  {i:"SASL-0617",r:"A",a:"",p:"580301783",ar:"",x:""},
+  {i:"SASL-0616",r:"A",a:"",p:"544743061",ar:"",x:""},
+  {i:"SASL-0607",r:"A",a:"",p:"509812707",ar:"",x:""},
+  {i:"HECL-0211",r:"A",a:"Trainee for 180-day",p:"050-669-6313",ar:"",x:"GIS-02"},
+  {i:"SASL-0605",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"549393646",ar:"",x:""}
+];
 function mapAppr(v){ return {i:v.emp_id||v.i, r:v.rotation||v.r, a:v.approval||v.a, p:v.phone||v.p, ar:v.aramco_id||v.ar, x:v.area||v.x}; }
 function apprClass(s){
   s=(s||'').toLowerCase();
@@ -999,47 +2375,8 @@ document.getElementById('vehExportBtn').onclick=async()=>{
 
 /* ============ TOAST ============ */
 let toastT;
-function currentUser(){ return D.users.find(u=>u.user===SESSION)||null; }
-function isAdmin(){ const u=currentUser(); return !!u && u.role==='admin'; }
-
-function renderAuthUI(){
-  const u=currentUser();
-  const isAdminUser=isAdmin();
-  document.getElementById('appWrap').classList.toggle('hide', !u);
-  document.getElementById('loginScrim').classList.toggle('hide', !!u);
-  if(!u) return;
-  const who=document.getElementById('whoName');
-  who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
-  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
-  renderUsers();
-  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh(); renderAppr();
-}
-
-function doLogout(){ SESSION=null; document.getElementById('lgPass').value=''; renderAuthUI(); applyLang(); }
-function buildLogout(){
-  const hd=document.querySelector('.hd-actions');
-  if(document.getElementById('logoutBtn')) return;
-  const b=document.createElement('button'); b.id='logoutBtn'; b.className='btn btn-sm hbtn';
-  b.style.cssText='background:var(--red);color:#fff;border:none;';
-  b.textContent='⇥ '+T().logout; b.onclick=doLogout; hd.appendChild(b);
-}
-buildLogout();
-
-/* ============ LOGIN ============ */
-document.getElementById('lgBtn').onclick = () => {
-  const u = document.getElementById('lgUser').value.trim();
-  const p = document.getElementById('lgPass').value;
-  const err = document.getElementById('lgErr');
-  err.textContent = '';
-  if (!u || !p) { err.textContent = T().err_fill || 'يرجى إدخال اسم المستخدم وكلمة المرور'; return; }
-  const found = (D.users || []).find(x => (x.user || x.username) === u && (x.pass || x.password) === p);
-  if (!found) { err.textContent = T().err_login || 'اسم المستخدم или كلمة المرور غير صحيحة'; return; }
-  SESSION = { id: found.id, name: found.name, role: found.role };
-  document.getElementById('loginScrim').style.display = 'none';
-  renderAuthUI();
-  toast('✅ مرحباً ' + (found.name || u));
-};
-document.getElementById('lgPass').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('lgBtn').click(); });
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
 
 /* ============ SEED EMPLOYEES TO SUPABASE ============ */
 
@@ -1068,4 +2405,3 @@ renderAuthUI();
 })();
 </script>
 </body>
-</html>
