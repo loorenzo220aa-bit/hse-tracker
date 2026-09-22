@@ -103,6 +103,21 @@
   @media(max-width:900px){.grid.stats6{grid-template-columns:repeat(3,1fr);}}
   @media(max-width:560px){.grid.stats6{grid-template-columns:repeat(2,1fr);}}
   .stat .sub{font-size:12px; color:var(--mut); margin-top:4px;}
+  /* ---- Dashboard / charts ---- */
+  .dash-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px;}
+  .dash-box{background:var(--card2); border:1px solid var(--line); border-radius:16px; padding:14px;}
+  .dash-h{font-size:13px; font-weight:800; color:var(--mut); margin-bottom:14px; display:flex; justify-content:space-between; gap:8px;}
+  .dash-bars{display:flex; align-items:flex-end; gap:3px; height:130px;}
+  .dash-bars .b{flex:1; min-width:5px; background:linear-gradient(180deg,var(--acc),var(--green)); border-radius:6px 6px 3px 3px; position:relative; min-height:3px; transition:.3s; cursor:default;}
+  .dash-bars .b:hover{filter:brightness(1.12); transform:scaleX(1.15);}
+  .dash-bars .b i{position:absolute; top:-17px; left:50%; transform:translateX(-50%); font-size:10px; font-style:normal; font-weight:800; color:var(--txt); opacity:0; transition:.2s; white-space:nowrap;}
+  .dash-bars .b:hover i{opacity:1;}
+  .dash-axis{display:flex; justify-content:space-between; font-size:10px; color:var(--mut); margin-top:6px; font-weight:700;}
+  .dash-row{display:flex; align-items:center; gap:8px; margin-bottom:9px; font-size:12px;}
+  .dash-row .nm{flex:0 0 40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700;}
+  .dash-row .tr{flex:1; height:14px; background:#e2e8f0; border-radius:99px; overflow:hidden;}
+  .dash-row .tr i{display:block; height:100%; border-radius:99px; transition:width .5s ease;}
+  .dash-row .vl{width:32px; text-align:end; font-weight:800;}
   .card{background:rgba(255,255,255,.94); border:1px solid #fff; border-radius:var(--radius); padding:20px; margin-bottom:16px; box-shadow:var(--shadow); animation:fadeUp .6s ease both;}
   .card h2{font-size:16px; margin-bottom:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-weight:900;}
   .card h2 .ic{width:36px;height:36px; border-radius:12px; background:linear-gradient(135deg,#e0f2fe,#d1fae5); display:flex;align-items:center;justify-content:center; font-size:17px;}
@@ -112,7 +127,9 @@
     background:#fff; color:var(--txt); font-size:13px; outline:none; transition:.2s;}
   input:focus,select:focus,textarea:focus{border-color:var(--acc); box-shadow:0 0 0 4px rgba(14,165,233,.12);}
   textarea{resize:vertical; min-height:60px;}
-  .tbl-holder{overflow-x:hidden; border-radius:14px;}
+  .tbl-holder{overflow-x:auto; border-radius:14px; -webkit-overflow-scrolling:touch;}
+  .tbl-holder table{min-width:720px;}
+  .tbl-holder table.ts-grid{min-width:980px;}
     table{width:100%; border-collapse:collapse; font-size:13px; background:#fff; border-radius:14px; overflow:hidden; table-layout:fixed;}
     th,td{padding:11px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:normal; word-wrap:break-word; word-break:break-word;}
     @media(max-width:600px){ th,td{padding:8px 8px;font-size:12px;} }  th{color:#0369a1; font-weight:800; font-size:12px; background:#f0f9ff;}
@@ -135,7 +152,7 @@
   .empdlg-row{display:flex; justify-content:space-between; gap:10px; padding:9px 4px; border-top:1px solid var(--line); font-size:13px;}
   .empdlg-row .k{color:var(--mut);}
   .empdlg-row .v{font-weight:800; text-align:end;}
-  .empdlg-stats{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px;}
+  .empdlg-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(66px,1fr)); gap:8px; margin-top:12px;}
   .empdlg-stat{background:#f8fafc; border-radius:12px; padding:8px 4px; text-align:center;}
   .empdlg-stat .n{font-size:19px; font-weight:900;}
   .empdlg-stat .t{font-size:11px; color:var(--mut);}
@@ -179,6 +196,51 @@
   details.coll .tbl-holder{border-radius:0;}
   details.coll table{border-radius:0;}
   footer{text-align:center; color:var(--mut); font-size:12px; padding:20px 0;}
+
+  /* ================= DARK MODE ================= */
+  html[data-theme="dark"]{
+    --bg1:#0a1020; --bg2:#0c1a24;
+    --card:#121d36; --card2:#16233f; --line:#27354f;
+    --txt:#e7eefc; --mut:#94a7c4;
+    --acc:#38bdf8; --acc2:#0ea5e9;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+    --shadow-lg:0 20px 50px rgba(0,0,0,.55);
+  }
+  html[data-theme="dark"] body{background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--txt);}
+  html[data-theme="dark"] .bg-blob{opacity:.16;}
+  html[data-theme="dark"] header,
+  html[data-theme="dark"] .card,
+  html[data-theme="dark"] .login-box{background:rgba(18,29,54,.97); border-color:var(--line); color:var(--txt);}
+  html[data-theme="dark"] .stat,
+  html[data-theme="dark"] .staff-card,
+  html[data-theme="dark"] .empdlg-card,
+  html[data-theme="dark"] .empdlg-stat,
+  html[data-theme="dark"] table{background:var(--card); color:var(--txt); border-color:var(--line);}
+  html[data-theme="dark"] input,
+  html[data-theme="dark"] select,
+  html[data-theme="dark"] textarea,
+  html[data-theme="dark"] .login-box input,
+  html[data-theme="dark"] #tsBody input{background:#0d1730; color:var(--txt); border-color:var(--line);}
+  html[data-theme="dark"] th{color:#7dd3fc; background:#152440;}
+  html[data-theme="dark"] tr:hover td{background:#17253f;}
+  html[data-theme="dark"] .btn:not(.btn-acc):not(.btn-green):not(.btn-red){background:#0d1730; color:var(--txt); border-color:var(--line);}
+  html[data-theme="dark"] .tabs .tab:not(.active),
+  html[data-theme="dark"] .subtabs .subtab:not(.active){background:rgba(13,23,48,.85); color:var(--txt);}
+  html[data-theme="dark"] .who{background:#0b2740; color:#7dd3fc; border-color:#0e7490;}
+  html[data-theme="dark"] .dash-row .tr{background:#27354f;}
+  html[data-theme="dark"] details.coll{background:var(--card2); border-color:var(--line);}
+  html[data-theme="dark"] #loginScrim{background:linear-gradient(135deg,#0a1020,#0b1a2b,#141f38);}
+  html[data-theme="dark"] #settingsDrawer{background:linear-gradient(180deg,#111c33,#0d1730);}
+  html[data-theme="dark"] .empdlg{background:rgba(2,6,16,.72);}
+  html[data-theme="dark"] .staff-photo{background:linear-gradient(135deg,#0e2233,#0c2a22);}
+  html[data-theme="dark"] .staff-init{color:#38bdf8;}
+  html[data-theme="dark"] .tag{filter:brightness(.86) saturate(.95);}
+  html[data-theme="dark"] .del{background:#3a1420; color:#fda4af;}
+  html[data-theme="dark"] .del:hover{background:#e11d48; color:#fff; filter:none;}
+  html[data-theme="dark"] .brand .logo,
+  html[data-theme="dark"] .login-box .lg-logo{background:#fff;}
+  html[data-theme="dark"] .file-input,html[data-theme="dark"] input[type=file]{background:#0d1730;}
+
   .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#065f46; color:#fff;
     padding:13px 24px; border-radius:99px; font-size:13px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; transition:.3s; z-index:99;}
   .toast.show{opacity:1;}
@@ -201,6 +263,15 @@
   #drawerBody{overflow-y:auto;padding:16px;}
   #drawerBody .card{box-shadow:none;}
 </style>
+<script>
+/* حدد السمة قبل رسم الصفحة لتفادي وميض أبيض */
+try{
+  var _t=localStorage.getItem('hse-theme');
+  if(_t==='dark'||(_t===null&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    document.documentElement.setAttribute('data-theme','dark');
+  }
+}catch(e){}
+</script>
 </head>
 <body>
 <div class="bg-blob blob1"></div>
@@ -245,6 +316,7 @@
       <span class="hdr-sep"></span>
       <button class="btn hbtn" id="settingsBtn">⚙️ <span data-i="settings">الإعدادات</span></button>
       <button class="btn hbtn" id="langBtn">English / الإنجليزية</button>
+      <button class="btn hbtn" id="themeBtn" title="الوضع الليلي / النهاري">🌙</button>
     </div>
   </header>
 
@@ -261,12 +333,38 @@
 
   <div class="grid stats6">
     <div class="stat"><div class="k" data-i="s_emp">الموظفون المسجلون</div><div class="v" id="statEmp">0</div></div>
-    <div class="stat"><div class="k" data-i="s_vio">مخالفات (الشهر)</div><div class="v" id="statVio" style="color:var(--red)">0</div></div>
-    <div class="stat"><div class="k" data-i="s_abs">غيابات (الشهر)</div><div class="v" id="statAbs" style="color:var(--blue)">0</div></div>
-    <div class="stat"><div class="k" data-i="s_per">استأذانات (الشهر)</div><div class="v" id="statPer" style="color:var(--green)">0</div></div>
-    <div class="stat"><div class="k" data-i="s_wrn">إنذارات (الشهر)</div><div class="v" id="statWrn" style="color:#b45309">0</div></div>
-    <div class="stat"><div class="k" data-i="s_sick">سكليف (الشهر)</div><div class="v" id="statSick" style="color:#0284c7">0</div></div>
+    <div class="stat"><div class="k" data-i="s_vio_m">مخالفات (الشهر)</div><div class="v" id="statVio" style="color:var(--red)">0</div></div>
+    <div class="stat"><div class="k" data-i="s_abs_m">غيابات (الشهر)</div><div class="v" id="statAbs" style="color:var(--blue)">0</div></div>
+    <div class="stat"><div class="k" data-i="s_per_m">استأذانات (الشهر)</div><div class="v" id="statPer" style="color:var(--green)">0</div></div>
+    <div class="stat"><div class="k" data-i="s_wrn_m">إنذارات (الشهر)</div><div class="v" id="statWrn" style="color:#b45309">0</div></div>
+    <div class="stat"><div class="k" data-i="s_sick_m">سكليف (الشهر)</div><div class="v" id="statSick" style="color:#0284c7">0</div></div>
     <div class="stat"><div class="k" data-i="s_users">المستخدمون</div><div class="v" id="statUsers" style="color:var(--purple)">0</div></div>
+  </div>
+
+  <!-- ============ DASHBOARD / CHARTS ============ -->
+  <div class="card" id="dashCard">
+    <h2><span class="ic">📈</span><span data-i="dash_title">لوحة التحكم</span>
+      <span class="mut" id="dashMonthLbl" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="dash-grid">
+      <div class="dash-box">
+        <div class="dash-h"><span data-i="dash_daily">الحركات اليومية خلال الشهر</span></div>
+        <div class="dash-bars" id="dashDaily"></div>
+        <div class="dash-axis"><span id="dashAxisA"></span><span id="dashAxisB"></span></div>
+      </div>
+      <div class="dash-box">
+        <div class="dash-h"><span data-i="dash_types">التوزيع حسب النوع</span></div>
+        <div id="dashTypes"></div>
+      </div>
+      <div class="dash-box">
+        <div class="dash-h"><span data-i="dash_top">الأكثر تسجيلاً (أعلى 8)</span></div>
+        <div id="dashTop"></div>
+      </div>
+      <div class="dash-box">
+        <div class="dash-h"><span data-i="dash_months">مقارنة آخر 6 أشهر</span></div>
+        <div class="dash-bars" id="dashMonths"></div>
+        <div class="dash-axis"><span id="dashAxisC"></span><span id="dashAxisD"></span></div>
+      </div>
+    </div>
   </div>
 
   <!-- ADMIN: user management -->
@@ -333,7 +431,7 @@
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
           <option value="absence" data-i="opt_abs">🚶 غياب</option>
           <option value="permission" data-i="opt_per">✅ استئذان</option>
-          <option value="warning" data-i="opt_wrn">XX</option><option value="sick" data-i="opt_sick">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
+          <option value="warning" data-i="opt_wrn">⚠️ إنذار</option><option value="sick" data-i="opt_sick">🤒 سكليف</option><option value="other" data-i="opt_oth">📌 أخرى</option>
         </select>
       </div>
       <div class="field"><label data-i="l_date">التاريخ</label><input type="date" id="recDate"></div>
@@ -356,7 +454,7 @@
           <option value="violation" data-i="opt_vio">🚫 مخالفة</option>
           <option value="absence" data-i="opt_abs">🚶 غياب</option>
           <option value="permission" data-i="opt_per">✅ استئذان</option>
-          <option value="warning" data-i="opt_wrn">XX</option><option value="sick" data-i="opt_sick">XX</option><option value="other" data-i="opt_oth">📌 أخرى</option>
+          <option value="warning" data-i="opt_wrn">⚠️ إنذار</option><option value="sick" data-i="opt_sick">🤒 سكليف</option><option value="other" data-i="opt_oth">📌 أخرى</option>
         </select>
       </div>
       <div><button class="btn btn-sm" id="clearFilt" data-i="clearF">مسح التصفية</button></div>
@@ -407,7 +505,7 @@
       <div><button class="btn btn-green" id="tsExportBtn">📥 <span data-i="ts_export">تصدير التايم شيت Excel</span></button></div>
     </div>
     <div class="tbl-holder" style="margin-top:16px;">
-          <table>
+          <table class="ts-grid">
             <thead><tr>
               <th data-i="c_date">التاريخ</th><th data-i="ts_day">اليوم</th>
                             <th>IN 1</th><th>OUT 1</th><th>IN 2</th><th>OUT 2</th><th>IN 3</th><th>OUT 3</th>
@@ -425,8 +523,6 @@
     <div class="subtabs">
       <button class="btn subtab active" id="subHdec">🟦 HDEC (120)</button>
       <button class="btn subtab" id="subHec">🟨 HEC (68)</button>
-    </div>
-    <div class="field" style="max-width:360px;margin-bottom:14px;">
     </div>
     <div class="field" style="max-width:360px;margin-bottom:14px;"><input id="staffSearch" placeholder="بحث..."></div>
     <div class="staff-grid" id="staffGrid"></div>
@@ -499,8 +595,18 @@
       <div class="field" style="max-width:340px;"><input id="apprSearch" placeholder="بحث..."></div>
       <div><button class="btn btn-green" id="apprExportBtn">📥 <span data-i="appr_export">تصدير</span></button></div>
     </div>
-    <div class="appr-list" id="apprList"></div>
-    <div class="hide" id="apprEmpty"></div>
+    <div class="tbl-holder" style="margin-top:14px;">
+      <table>
+        <thead><tr>
+          <th data-i="c_emp">الموظف</th><th data-i="c_num">الرقم الوظيفي</th>
+          <th data-i="appr_rot">مجموعة الدوام</th><th data-i="appr_stat">حالة الابروفل</th>
+          <th data-i="c_phone">الهاتف</th><th data-i="appr_aramco">ارامكو</th>
+          <th data-i="appr_area">المنطقة</th><th></th>
+        </tr></thead>
+        <tbody id="apprBody"></tbody>
+      </table>
+      <div class="empty hide" id="apprEmpty"></div>
+    </div>
   </div>
   <div id="apprEditDlg" class="empdlg hide"><div class="empdlg-card"><button class="empdlg-x" id="apprEditX">✕</button><div id="apprEditBody"></div></div></div>
   </div><!-- /viewAppr -->
@@ -571,7 +677,14 @@ async function saveUser(u) {
 async function delUser(id) { await sb('users', 'DELETE', null, '?id=eq.'+id); }
 async function updateUser(id, data) { await sb('users', 'PATCH', data, '?id=eq.'+id); }
 async function saveEmp(e) { let r=await sb('employees', 'POST', e); if(!r){ const c={id:e.id,ar:e.ar,en:e.en,num:e.num,dept:e.dept,phone:e.phone}; r=await sb('employees', 'POST', c); } return r; }
-async function delEmp(id) { await sb('employees', 'DELETE', null, '?id=eq.'+id); await sb('records', 'DELETE', null, '?emp_id=eq.'+id); }
+async function delEmp(id, num) {
+  await sb('employees', 'DELETE', null, '?id=eq.'+id);
+  await sb('records', 'DELETE', null, '?emp_id=eq.'+id);
+  await sb('timesheets', 'DELETE', null, '?emp_id=eq.'+id);
+  await sb('deployment', 'DELETE', null, '?emp_id=eq.'+id);
+  await sb('vehicles', 'DELETE', null, '?emp_id=eq.'+id);
+  if(num) await sb('approvals', 'DELETE', null, '?emp_id=eq.'+encodeURIComponent(num));
+}
 async function updateEmp(id, data) { const keep={}; ['ar','en','num','dept','phone','plate','grp','photo'].forEach(k=>{ if(data[k]!==undefined) keep[k]=data[k]; }); let r=await sb('employees', 'PATCH', keep, '?id=eq.'+id); if(!r){ const c={ar:data.ar,en:data.en,num:data.num,dept:data.dept,phone:data.phone}; r=await sb('employees', 'PATCH', c, '?id=eq.'+id); } return r; }
 async function saveRec(r) { 
   const payload = { id: r.id, emp_id: r.empId, type: r.type, date: r.date, note: r.note, by_user: r.by, ts: r.ts };
@@ -587,8 +700,11 @@ const I18N={
     title:'متابعة المخالفات والغيابات والاستأذانات', subtitle:'هونداي الهندسة والإنشاء | السجل اليومي للموظفين',
     lbl_month:'الشهر التقريري', export:'تصدير Excel',
     s_emp:'الموظفون المسجلون', s_vio:'مخالفات', s_abs:'غيابات', s_per:'استأذانات', s_oth:'أخرى',s_sick:'سكليف',s_wrn:'إنذارات', s_users:'المستخدمون', c_total:'الإجمالي',
+    s_vio_m:'مخالفات (الشهر)', s_abs_m:'غيابات (الشهر)', s_per_m:'استأذانات (الشهر)', s_wrn_m:'إنذارات (الشهر)', s_sick_m:'سكليف (الشهر)',
+    dash_title:'لوحة التحكم', dash_daily:'الحركات اليومية خلال الشهر', dash_types:'التوزيع حسب النوع',
+    dash_top:'الأكثر تسجيلاً (أعلى 8)', dash_months:'مقارنة آخر 6 أشهر', dash_none:'لا توجد حركات في هذا الشهر',
     t_users:'إدارة الزملاء (المستخدمون)', u_name:'اسم الزميل', u_role:'الصلاحية', u_roleAdmin:'مدير (Admin)', u_roleUser:'مستخدم (User)', u_add:'＋ إضافة زميل',
-    t_emp:'إضافة موظف جديد', l_empname:'اسم الموظف (عربي)', l_empname2:'الاسم بالإنجليزية', l_empnum:'الرقم الوظيفي',
+    t_emp:'إدارة الموظفين (إضافة / تعديل / حذف)', l_empname:'اسم الموظف (عربي)', l_empname2:'الاسم بالإنجليزية', l_empnum:'الرقم الوظيفي',
     l_dept:'القسم / المهنة', addEmp:'➕ إضافة',
     t_rec:'تسجيل حركة يومية (مخالفة / غياب / استئذان)', l_recEmp:'الموظف', l_type:'النوع',
     opt_vio:'🚫 مخالفة', opt_abs:'🚶 غياب', opt_per:'✅ استئذان', opt_oth:'📌 أخرى',opt_sick:'🤒 سكليف',opt_wrn:'⚠️ إنذار',
@@ -610,7 +726,6 @@ const I18N={
     err_mismatch:'كلمتا المرور غير متطابقتين', err_short:'كلمة المرور قصيرة جداً', ch_newst:'أقل من 4 أحرف',
     c_ar:'الاسم العربي', c_act:'إجراءات', edit:'تعديل', save_edit:'حفظ التعديل', cancel_edit:'إلغاء',
     emp_deleted:'تم حذف الموظف', emp_updated:'تم حفظ التعديل', ask_del_emp:'حذف هذا الموظف وجميع سجلاته؟',
-    emptyEmp:'لا يوجد موظفون بعد — أضف الموظف الأول',
     l_phone:'رقم الهاتف', l_plate:'رقم لوحة المركبة', l_group:'المجموعة', l_photo:'صورة الموظف', importEmp:'استيراد من ملف Excel', exportEmp:'تصدير الموظفين',
     no_file:'اختر ملف Excel أولاً', import_ok:'تم استيراد الموظفين', export_emp_ok:'تم تصدير الموظفين', err_parse:'تعذر قراءة الملف',
     sync_ok:'تمت المزامنة', sync_err:'خطأ في المزامنة',
@@ -626,6 +741,8 @@ const I18N={
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
     dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
+    ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً',
+    set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅', c_phone:'الهاتف',
     tab_lists:'القوائم (A/B)', lists_title:'القوائم (A/B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export_a:'تصدير قائمة A (Excel)',
         lists_export_b:'تصدير قائمة B (Excel)',
         lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
@@ -637,8 +754,11 @@ const I18N={
     title:'Violations, Absences & Permits Tracker', subtitle:'Hyundai Engineering & Construction | Daily Employee Log',
     lbl_month:'Report Month', export:'Export Excel',
     s_emp:'Registered Employees', s_vio:'Violations', s_abs:'Absences', s_per:'Permits', s_oth:'Others',s_sick:'Sick Leave',s_wrn:'Warnings', s_users:'Users', c_total:'Total',
+    s_vio_m:'Violations (month)', s_abs_m:'Absences (month)', s_per_m:'Permits (month)', s_wrn_m:'Warnings (month)', s_sick_m:'Sick Leave (month)',
+    dash_title:'Dashboard', dash_daily:'Daily activity this month', dash_types:'Distribution by type',
+    dash_top:'Top recorded (top 8)', dash_months:'Last 6 months comparison', dash_none:'No entries this month',
     t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'+ Add Colleague',
-    t_emp:'Add New Employee', l_empname:'Employee Name (Arabic)', l_empname2:'Name (English)', l_empnum:'Job Number',
+    t_emp:'Manage Employees (Add / Edit / Delete)', l_empname:'Employee Name (Arabic)', l_empname2:'Name (English)', l_empnum:'Job Number',
     l_dept:'Department / Job', addEmp:'+ Add',
     t_rec:'Daily Entry (Violation / Absence / Permit)', l_recEmp:'Employee', l_type:'Type',
     opt_vio:'Violation', opt_abs:'Absence', opt_per:'Permit', opt_oth:'Other',opt_sick:'Sick Leave',opt_wrn:'Warning',
@@ -660,7 +780,6 @@ const I18N={
     err_mismatch:'Passwords do not match', err_short:'New password too short', ch_newst:'at least 4 characters',
     c_ar:'Arabic Name', c_act:'Actions', edit:'Edit', save_edit:'Save Changes', cancel_edit:'Cancel',
     emp_deleted:'Employee deleted', emp_updated:'Changes saved', ask_del_emp:'Delete this employee and all their records?',
-    emptyEmp:'No employees yet — add the first one',
     l_phone:'Phone Number', l_plate:'Vehicle Plate No.', l_group:'Group', l_photo:'Employee Photo', importEmp:'Import from Excel', exportEmp:'Export Employees',
     no_file:'Choose an Excel file first', import_ok:'Employees imported', export_emp_ok:'Employees exported', err_parse:'Could not read the file',
     sync_ok:'Synced', sync_err:'Sync error',
@@ -676,7 +795,7 @@ const I18N={
     dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
     dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
-    ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
+    ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', c_phone:'Phone', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
     list_export_a_done:'✅ List A exported',
     list_export_b_done:'✅ List B exported',
   }
@@ -718,6 +837,7 @@ function applyLang(){
   document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
   document.getElementById('langBtn').textContent=(LANG==='ar')?'English / الإنجليزية':'عربي';
   document.getElementById('lgBtn').textContent=T().login;
+  if(typeof paintThemeBtn==='function') paintThemeBtn();
   if(SESSION) renderAuthUI();
   refreshTypeLabels();
 }
@@ -938,9 +1058,13 @@ document.getElementById('empBody').addEventListener('click',async e=>{
   if(delBtn){
     if(!confirm(T().ask_del_emp)) return;
     const id=delBtn.dataset.del;
+    const gone=D.emp.find(x=>x.id===id);
     D.emp=D.emp.filter(x=>x.id!==id);
     D.rec=D.rec.filter(r=>r.empId!==id);
-    await delEmp(id);
+    D.ts=(D.ts||[]).filter(t=>t.emp_id!==id);
+    D.dep=(D.dep||[]).filter(d=>d.empId!==id);
+    D.veh=(D.veh||[]).filter(v=>v.empId!==id);
+    await delEmp(id, gone?gone.num:'');
     editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
     toast(T().emp_deleted);
   }
@@ -995,8 +1119,20 @@ document.getElementById('exportEmpBtn').onclick=()=>{
 };
 
 const TYPE_TAG={violation:'t-vio',absence:'t-abs',permission:'t-per',warning:'t-wrn',sick:'t-sick',other:'t-oth'};
+const TYPE_COLOR={violation:'#f43f5e',absence:'#3b82f6',permission:'#10b981',warning:'#f59e0b',sick:'#0ea5e9',other:'#8b5cf6'};
+const TYPE_LIST=['violation','absence','permission','warning','sick','other'];
+function typeName(t){
+  return (LANG==='ar'
+    ? {violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',sick:'سكليف',other:'أخرى'}
+    : {violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',sick:'Sick Leave',other:'Other'})[t] || t;
+}
 function monthKey(dateStr){ return (dateStr||'').slice(0,7); }
-function curMonth(){ return document.getElementById('monthPicker').value; }
+function curMonth(){
+  const v=(document.getElementById('monthPicker').value||'').trim();
+  const d=v.replace(/[^\d]/g,'');
+  if(d.length>=6) return d.slice(0,4)+'-'+d.slice(4,6);
+  return v.slice(0,7);
+}
 function empName(e){ return LANG==='ar'?(e.ar||e.en):(e.en||e.ar); }
 function empById(id){ return D.emp.find(e=>e.id===id)||{}; }
 function userNameBy(user){ const u=D.users.find(x=>x.user===user); return u?u.name:user; }
@@ -1012,6 +1148,64 @@ function renderStats(){
   document.getElementById('statPer').textContent=cnt('permission');
   document.getElementById('statWrn').textContent=cnt('warning');
   document.getElementById('statSick').textContent=cnt('sick');
+  renderDash();
+}
+
+/* ============ DASHBOARD (charts) ============ */
+function renderDash(){
+  const box=document.getElementById('dashDaily'); if(!box) return;
+  const m=curMonth();
+  const lbl=document.getElementById('dashMonthLbl'); if(lbl) lbl.textContent=m;
+  const recs=D.rec.filter(r=>monthKey(r.date)===m);
+
+  /* 1) الحركات اليومية */
+  const p=(m||'0000-00').split('-');
+  const y=+p[0]||new Date().getFullYear(), mo=+p[1]||1;
+  const dim=new Date(y,mo,0).getDate();
+  const daily=new Array(dim).fill(0);
+  recs.forEach(r=>{ const dd=parseInt((r.date||'').slice(8,10),10); if(dd>=1&&dd<=dim) daily[dd-1]++; });
+  const dmax=Math.max(1,...daily);
+  box.innerHTML=daily.map((c,i)=>
+    '<div class="b" style="height:'+Math.max(c?4:2,Math.round(c/dmax*100))+'%'+(c?';':' ;opacity:.35;')+
+    '" title="'+(i+1)+'/'+mo+': '+c+'"><i>'+(c||'')+'</i></div>').join('');
+  document.getElementById('dashAxisA').textContent='1/'+mo;
+  document.getElementById('dashAxisB').textContent=dim+'/'+mo;
+
+  /* 2) التوزيع حسب النوع */
+  const tot=recs.length;
+  document.getElementById('dashTypes').innerHTML=TYPE_LIST.map(t=>{
+    const n=recs.filter(r=>r.type===t).length;
+    const pct=tot?Math.round(n/tot*100):0;
+    return '<div class="dash-row"><span class="nm">'+esc(typeName(t))+'</span>'+
+      '<span class="tr"><i style="width:'+pct+'%;background:'+TYPE_COLOR[t]+'"></i></span>'+
+      '<span class="vl">'+n+'</span></div>';
+  }).join('');
+
+  /* 3) الأكثر تسجيلاً */
+  const cntMap={};
+  recs.forEach(r=>{ cntMap[r.empId]=(cntMap[r.empId]||0)+1; });
+  const top=Object.keys(cntMap).map(k=>[k,cntMap[k]]).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const tmax=top.length?top[0][1]:1;
+  document.getElementById('dashTop').innerHTML= top.length
+    ? top.map(([id,n])=>{ const e=empById(id);
+        return '<div class="dash-row"><span class="nm" title="'+esc(empName(e)||'')+'">'+esc(empName(e)||e.num||'?')+'</span>'+
+          '<span class="tr"><i style="width:'+Math.round(n/tmax*100)+'%;background:linear-gradient(90deg,#0ea5e9,#10b981)"></i></span>'+
+          '<span class="vl">'+n+'</span></div>'; }).join('')
+    : '<div class="empty" style="padding:14px;">'+esc(T().dash_none)+'</div>';
+
+  /* 4) مقارنة آخر 6 أشهر */
+  const months=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(y,mo-1-i,1);
+    const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    months.push({k, n:D.rec.filter(r=>monthKey(r.date)===k).length});
+  }
+  const mmax=Math.max(1,...months.map(o=>o.n));
+  document.getElementById('dashMonths').innerHTML=months.map(o=>
+    '<div class="b" style="height:'+Math.max(o.n?4:2,Math.round(o.n/mmax*100))+'%;'+(o.k===m?'':';opacity:.45;')+
+    '" title="'+o.k+': '+o.n+'"><i>'+(o.n||'')+'</i></div>').join('');
+  document.getElementById('dashAxisC').textContent=months[0].k;
+  document.getElementById('dashAxisD').textContent=months[5].k;
 }
 
 function renderRecs(){
@@ -1026,15 +1220,17 @@ function renderRecs(){
   emptyDiv.classList.add('hide');
   recs.forEach(r=>{
     const e=empById(r.empId); const tr=document.createElement('tr');
-    const tn=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',sick:'سكليف',other:'أخرى'}[r.type]
-                  :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',sick:'Sick Leave',other:'Other'}[r.type];
+    const tn=typeName(r.type);
     let noteDisplay = esc(r.note);
     let fileLink = '';
     try {
       const noteObj = JSON.parse(r.note);
-      if(noteObj && noteObj.file){
+      if(noteObj && typeof noteObj==='object'){
         noteDisplay = esc(noteObj.note||'');
-        fileLink = ' <a href="'+noteObj.file.data+'" download="'+esc(noteObj.file.name)+'" style="color:var(--acc);text-decoration:none;font-size:12px;" target="_blank">📎 '+esc(noteObj.file.name)+'</a>';
+        const href = String((noteObj.file&&noteObj.file.data)||'');
+        if(href.startsWith('data:')){
+          fileLink = ' <a href="'+href+'" download="'+esc(noteObj.file.name||'file')+'" style="color:var(--acc);text-decoration:none;font-size:12px;" target="_blank" rel="noopener">📎 '+esc(noteObj.file.name||'file')+'</a>';
+        }
       }
     } catch(ex){}
     tr.innerHTML='<td>'+esc(r.date)+'</td><td>'+esc(empName(e))+'</td><td>'+esc(e.num||'')+'</td>      <td><span class="tag '+(TYPE_TAG[r.type]||'t-oth')+'">'+tn+'</span></td>      <td>'+esc(userNameBy(r.by))+'</td>      <td style="white-space:normal;min-width:200px;">'+noteDisplay+fileLink+'</td>      <td>'+(isAdmin()?'<button class="del" data-id="'+r.id+'" title="🗑">🗑</button>':'')+'</td>';
@@ -1151,10 +1347,27 @@ document.getElementById('clearFilt').onclick=()=>{
 document.getElementById('filtEmp').onchange=renderRecs;
 document.getElementById('filtType').onchange=renderRecs;
 document.getElementById('monthPicker').onchange=()=>{
-  document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
+  document.getElementById('listMonthLabel').textContent=curMonth();
   renderStats(); renderRecs(); renderSum(); renderTs(); };
 
 document.getElementById('langBtn').onclick=()=>{ LANG=LANG==='ar'?'en':'ar'; applyLang(); };
+
+/* ============ THEME (light / dark) ============ */
+function currentTheme(){ return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'; }
+function paintThemeBtn(){
+  const b=document.getElementById('themeBtn'); if(!b) return;
+  const dark=currentTheme()==='dark';
+  b.textContent=dark?'☀️':'🌙';
+  b.title=dark ? (LANG==='ar'?'الوضع النهاري':'Light mode') : (LANG==='ar'?'الوضع الليلي':'Dark mode');
+}
+document.getElementById('themeBtn').onclick=()=>{
+  const next=currentTheme()==='dark'?'light':'dark';
+  if(next==='dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  try{ localStorage.setItem('hse-theme',next); }catch(e){}
+  paintThemeBtn();
+};
+paintThemeBtn();
 
 function today(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
 
@@ -1191,7 +1404,7 @@ const STAFF_HDEC=[{"n":"ABDULMAJEED ZAKARYA ALBANNAY","p":"Supervisor","i":"SASL
 const STAFF_HEC=[{"n":"KHALID ABDLUAZIZ ALHAMMADI","p":"Safety Engineer","i":"HECL-0212","f":"photo-1.jpg"},{"n":"MOHAMMED E ALMINHALI","p":"Safety Engineer","i":"HECL-0182","f":"photo-2.jpg"},{"n":"ABDULAZIZ I ALSULAYBI","p":"Safety Officer","i":"HECL-0176","f":"photo-3.jpg"},{"n":"ABDULAZIZ MAJED ALBAR","p":"Safety Officer","i":"HECL-0226","f":"photo-4.jpg"},{"n":"ABDULAZIZ S ABU SHBEEB","p":"Safety Officer","i":"HECL-0222","f":"photo-5.jpg"},{"n":"ABDULLAH AHMED ALRAJEH","p":"Safety Officer","i":"HECL-0220","f":"photo-6.jpg"},{"n":"ABDULLAH I ALSULAYBI","p":"Safety Officer","i":"HECL-0095","f":"photo-7.jpg"},{"n":"ABDULLAH KANAN ALKANAN","p":"Safety Officer","i":"HECL-0084","f":"photo-8.jpg"},{"n":"ABDULLAH SALAH BUDI","p":"Safety Officer","i":"HECL-0101","f":"photo-9.jpg"},{"n":"ABDULLAH Y ALMUZAYEL","p":"Safety Officer","i":"HECL-0225","f":"photo-10.jpg"},{"n":"ABDULRAHMAN A ALKAMES","p":"Safety Officer","i":"HECL-0217","f":"photo-11.jpg"},{"n":"ABDULRAHMAN SAMI ALKURDI","p":"Safety Officer","i":"HECL-0227","f":"photo-12.jpg"},{"n":"ABDULWAHAB HUSSAIN KAABI","p":"Safety Officer","i":"HECL-0228","f":"photo-13.jpg"},{"n":"AHMAD MOHAMMD MAJRASHI","p":"Safety Officer","i":"HECL-0211","f":"photo-14.jpg"},{"n":"AHMED A ALSULTAN","p":"Safety Officer","i":"HECL-0102","f":"photo-15.jpg"},{"n":"AHMED ALMUBARAK","p":"Safety Officer","i":"HECL-0196","f":"photo-16.jpg"},{"n":"AHMED HASSAN SRAHEED","p":"Safety Officer","i":"HECL-0218","f":"photo-17.jpg"},{"n":"AHMED S ALKHALDI","p":"Safety Officer","i":"HECL-0223","f":"photo-18.jpg"},{"n":"AHMED YASIR ALSALEEM","p":"Safety Officer","i":"HECL-0178","f":"photo-19.jpg"},{"n":"AHMED YOUSEF ALSULTAN","p":"Safety Officer","i":"HECL-0239","f":"photo-20.jpg"},{"n":"AMER AHMED ASIRI","p":"Safety Officer","i":"HECL-0229","f":"photo-21.jpg"},{"n":"BASIM ADEL ALNASSER","p":"Safety Officer","i":"HECL-0230","f":"photo-22.jpg"},{"n":"DYIA RIAD MOHAMED ALHUMAID","p":"Safety Officer","i":"HECL-0185","f":"photo-23.jpg"},{"n":"FAHAD ADEL ALSADUN","p":"Safety Officer","i":"HECL-0100","f":"photo-24.jpg"},{"n":"FAHAD M ALDOSSARY","p":"Safety Officer","i":"HECL-0091","f":"photo-25.jpg"},{"n":"FAISAL AHMED HUSSEIN","p":"Safety Officer","i":"HECL-0240","f":"photo-26.jpg"},{"n":"FAISAL FEHAID ALGETHAMI","p":"Safety Officer","i":"HECL-0188","f":"photo-27.jpg"},{"n":"HAMAD A ALDAWSARI","p":"Safety Officer","i":"HECL-0177","f":"photo-28.jpg"},{"n":"HASSAN A ALI ALBELADI","p":"Safety Officer","i":"HECL-0224","f":"photo-29.jpg"},{"n":"HASSAN AMEER ALMUHANNA","p":"Safety Officer","i":"HECL-0187","f":"photo-30.jpg"},{"n":"HASSAN YAHYA MAJRASHI","p":"Safety Officer","i":"HECL-0231","f":"photo-31.jpg"},{"n":"HATLAN ALI ALHATLAN","p":"Safety Officer","i":"HECL-0214","f":"photo-32.jpg"},{"n":"Hussain Ahmed Al-wabari","p":"Safety Officer","i":"HECL-0209","f":"photo-33.jpg"},{"n":"HUSSAIN ALI ALAJWAD","p":"Safety Officer","i":"HECL-0232","f":"photo-34.jpg"},{"n":"HUSSAM NAJEH ALSHARARI","p":"Safety Officer","i":"HECL-0233","f":"photo-35.jpg"},{"n":"IBRAHIM ALI IBRAHIM","p":"Safety Officer","i":"HECL-0548","f":"photo-36.jpg"},{"n":"JABER NASSER ALMARRI","p":"Safety Officer","i":"HECL-0246","f":"photo-37.jpg"},{"n":"KHALED MISFER ALMUDARHAM","p":"Safety Officer","i":"HECL-0219","f":"photo-38.jpg"},{"n":"KHALID NASSER ALSULAITEEN","p":"Safety Officer","i":"HECL-0234","f":"photo-39.jpg"},{"n":"MABKHOOT ABDULLAH AL SAIARI","p":"Safety Officer","i":"HECL-0090","f":"photo-40.jpg"},{"n":"MAJED MOHAMMED DAAK","p":"Safety Officer","i":"HECL-0235","f":"photo-41.jpg"},{"n":"MAWAF MOHSEN ALHARTHI","p":"Safety Officer","i":"HECL-0243","f":"photo-42.jpg"},{"n":"MEGREN HABIB ALMEGREN","p":"Safety Officer","i":"HECL-0216","f":"photo-43.jpg"},{"n":"MOHAMMED M ALMARRI","p":"Safety Officer","i":"HECL-0098","f":"photo-44.jpg"},{"n":"MOHAMMED MESHAEL ALKHALDI","p":"Safety Officer","i":"HECL-0215","f":"photo-45.jpg"},{"n":"MOHAMMED SAEED ALAHMARI","p":"Safety Officer","i":"HECL-0241","f":"photo-46.jpg"},{"n":"MOHAMMED SAMEER ALKHUDHAYR","p":"Safety Officer","i":"HECL-0242","f":"photo-47.jpg"},{"n":"MUSAAD AHMED ALSULTAN","p":"Safety Officer","i":"HECL-0096","f":"photo-48.jpg"},{"n":"OBAID MOHAMMED ALDOSSARI","p":"Safety Officer","i":"HECL-0097","f":"photo-49.jpg"},{"n":"OMAR MOHAMMED ALMARRI","p":"Safety Officer","i":"HECL-0236","f":"photo-50.jpg"},{"n":"RIDHA TAHER MOHAMMED ALKHAMIS","p":"Safety Officer","i":"HECL-0189","f":"photo-51.jpg"},{"n":"SALEH MUSLIH ALFARSI","p":"Safety Officer","i":"HECL-0237","f":"photo-52.jpg"},{"n":"SALEM M ALENAZI","p":"Safety Officer","i":"HECL-0221","f":"photo-53.jpg"},{"n":"SAUD ABDULAZIZ ALKHULAIF","p":"Safety Officer","i":"HECL-0175","f":"photo-54.jpg"},{"n":"SAUD HAMOUD SAULM","p":"Safety Officer","i":"HECL-0992","f":"photo-55.jpg"},{"n":"ABDULLAH ADNAN ABDULLAH ALSHAALAN","p":"Safety Officer","i":"HECL-0190","f":null},{"n":"ABDULLAH KHALED ALTAMIMI","p":"Safety Officer","i":"HECL-0191","f":null},{"n":"AHMED SALAH ABDULAZIZ  BUDI","p":"Safety Officer","i":"HECL-0103","f":null},{"n":"MUATH MANDR ALZAHRANI","p":"Safety Officer","i":"HECL-0181","f":null},{"n":"RASHED MOHAMMED ABDEL MOHSEN","p":"Safety Officer","i":"HECL-0194","f":null},{"n":"SALEM FEHAID ALMARRI","p":"Safety Officer","i":"HECL-0203","f":null},{"n":"SHAMAN M ALDOSSARY","p":"Safety Officer","i":"HECL-0104","f":null},{"n":"SULTAN ABDULLAH ALSHAHRANI","p":"Safety Officer","i":"HECL-0197","f":null},{"n":"SULTAN MOHAMMED ALMARRI","p":"Safety Officer","i":"HECL-0094","f":null},{"n":"SULTAN MUIDH ALQAHTANI","p":"Safety Officer","i":"HECL-0193","f":null},{"n":"TALAL SAEED ALGHAMDI","p":"Safety Officer","i":"HECL-0184","f":null},{"n":"TURKI SULTAN ALSULTAN","p":"Safety Officer","i":"HECL-0093","f":null},{"n":"TYYAM MAJEED ALMETHEN","p":"Safety Officer","i":"HECL-0238","f":null}];
 /* ============ TIMESHEET ============ */
 let TS_VIEW=false;
-function tsMonth(){ return document.getElementById('monthPicker').value; }
+function tsMonth(){ return curMonth(); }
 function tsPeriodDays(){
   const m=tsMonth()||''; const p=m.split('-'); if(p.length<2) return [];
   const y=+p[0], mo=+p[1];
@@ -1807,7 +2020,6 @@ function apprClass(s){
 function renderAppr(){
   if(!document.getElementById('apprBody')) return;
   const rows=D.appr||[];
-  document.getElementById('apprCount').textContent=rows.length+' / '+rows.length;
   document.getElementById('apprSearch').placeholder=(LANG==='ar'?'🔍 بحث بالاسم أو المنطقة...':'🔍 Search name or area...');
   const st=document.getElementById('apprStats');
   let html='';
@@ -1839,6 +2051,7 @@ function renderAppr(){
   });
   const ed=document.getElementById('apprEmpty');
   if(!shown){ ed.classList.remove('hide'); ed.textContent=T().empty; } else ed.classList.add('hide');
+  document.getElementById('apprCount').textContent=shown+' / '+rows.length;
 }
 document.getElementById('apprSearch').oninput=renderAppr;
 document.getElementById('apprRot').onchange=renderAppr;
@@ -1854,10 +2067,13 @@ document.getElementById('apprExportBtn').onclick=async()=>{
   XLSX.writeFile(wb,'Aramco_Approval.xlsx'); toast(T().toast_xlsx);
 };
 let apprEditId=null;
-document.getElementById('apprBody').addEventListener('click',e=>{
-  const b=e.target.closest('[data-appredit]'); if(!b) return;
-  openApprEdit(b.dataset.appredit);
-});
+(function(){
+  const ab=document.getElementById('apprBody'); if(!ab) return;
+  ab.addEventListener('click',e=>{
+    const b=e.target.closest('[data-appredit]'); if(!b) return;
+    openApprEdit(b.dataset.appredit);
+  });
+})();
 document.getElementById('apprEditX').onclick=()=>document.getElementById('apprEditDlg').classList.add('hide');
 document.getElementById('apprEditDlg').addEventListener('click',e=>{ if(e.target.id==='apprEditDlg') document.getElementById('apprEditDlg').classList.add('hide'); });
 function openApprEdit(id){
@@ -1896,7 +2112,7 @@ async function saveApprEdit(){
 }
 /* ============ VEHICLES ============ */
 const VEH_MAKES=['Toyota','Hyundai','Nissan','Kia','Chevrolet','Ford','GMC','Honda','Mazda','Mitsubishi','Isuzu','Lexus','MG','Changan','Jetour','Geely','Chery','Suzuki','NO VEHICLE'];
-const VEH_COLOURS=['White','Black','Silver','Grey','Blue','Red','Green','Beige','Gold','Brown','Yellow','Orange','Maroon','Gray','Dark gray','Silver'];
+const VEH_COLOURS=['White','Black','Silver','Grey','Blue','Red','Green','Beige','Gold','Brown','Yellow','Orange','Maroon','Dark gray'];
 function mapVeh(v){ return {id:v.id, empId:v.emp_id||v.empId, company:v.company||'', make:v.make||'', model:v.model||'', year:v.year||'', colour:v.colour||'', plate:v.plate||'', date:v.date_logged||v.date||'', notes:v.notes||'', rot:v.rotation||v.rot||''}; }
 function vehRotOf(empId){
   const d=(D.dep||[]).find(x=>x.empId===empId);
@@ -2105,8 +2321,13 @@ D.users.push({id:'admin-default', name:'علي', user:'علي', pass:'علي123'
 
 const mp=document.getElementById('monthPicker');
 mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
+if(mp.type!=='month'){ /* Safari / Firefox لا يدعمون month: نستخدم نصاً مع تنسيق YYYY-MM */
+  mp.type='text'; mp.placeholder='YYYY-MM'; mp.inputMode='numeric'; mp.maxLength=7;
+  mp.addEventListener('input',()=>{ const d=mp.value.replace(/[^\d]/g,'').slice(0,6);
+    mp.value=d.length>=6?(d.slice(0,4)+'-'+d.slice(4,6)):d; });
+}
 document.getElementById('recDate').value=today();
-document.getElementById('listMonthLabel').textContent=document.getElementById('monthPicker').value;
+document.getElementById('listMonthLabel').textContent=curMonth();
 applyLang();
 renderAuthUI();
 
