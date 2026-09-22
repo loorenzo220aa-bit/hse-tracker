@@ -40,13 +40,15 @@
 - فحص: `node tools/_pwa-check.js .` · إعادة توليد الأيقونات: `node tools/_gen-icons.js .`
 
 **2) APK حقيقي (Capacitor 7) — المتطلبات**
-- JDK 17: `https://aka.ms/download-jdk/microsoft-jdk-17-windows-x64.zip` (نسخة محمولة zip)
+- **JDK 21** (إجباري — قالب Capacitor 7 يترجم بـ`source release:21`):
+  نسخة محمولة zip مثل `https://corretto.aws/downloads/latest/amazon-corretto-21-x64-windows-jdk.zip`
+  أو `https://aka.ms/download-jdk/microsoft-jdk-21-windows-x64.zip`
 - Android SDK: `cmdline-tools` + `platform-tools` + `platforms;android-35` + `build-tools;35.0.0`
 - Gradle 8.11.1 يُنزَّل تلقائياً مع أول بناء (لا يثبَّت يدوياً).
 
 ```powershell
 # 1) متغيرات البيئة (كل جلسة بناء)
-$env:JAVA_HOME    = 'C:\path\to\jdk-17'          # يحتوي bin\java.exe
+$env:JAVA_HOME    = 'C:\path\to\jdk-21'          # يحتوي bin\java.exe (Capacitor 7 يتطلب 21)
 $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
 $env:PATH         = "$env:JAVA_HOME\bin;$env:PATH"
 
