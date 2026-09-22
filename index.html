@@ -142,6 +142,14 @@
   .t-oth{background:var(--purple-bg); color:#6d28d9;}
   .t-wrn{background:var(--orange-bg); color:#b45309;}
   .t-sick{background:#e0f2fe; color:#0284c7;}
+  .t-none{background:#eef2f7; color:#64748b;}
+  /* حبّة الحالة المضغوطة (ابروفل ارامكو) */
+  .st{padding:3px 9px; font-size:11px; line-height:1.7; max-width:100%; vertical-align:middle;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.2px;}
+  .st::before{content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
+      background:currentColor; opacity:.7; margin-inline-end:6px; vertical-align:-1px;}
+  #viewAppr table{min-width:820px;}
+  html[data-theme="dark"] .t-none{background:#1e293b; color:#94a3b8;}
   .empdlg{position:fixed; inset:0; background:rgba(15,23,42,.55); backdrop-filter:blur(3px); z-index:999; display:flex; align-items:center; justify-content:center; padding:16px;}
   .empdlg-card{background:#fff; border-radius:20px; max-width:420px; width:100%; max-height:88vh; overflow:auto; padding:26px 22px; position:relative; box-shadow:0 25px 60px rgba(0,0,0,.3); animation:fadeUp .3s ease both;}
   .empdlg-x{position:absolute; top:12px; inset-inline-end:12px; border:none; background:#f1f5f9; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:15px; color:#475569;}
@@ -599,10 +607,10 @@ try{
     <div class="tbl-holder" style="margin-top:14px;">
       <table>
         <thead><tr>
-          <th data-i="c_emp">الموظف</th><th data-i="c_num">الرقم الوظيفي</th>
-          <th data-i="appr_rot">مجموعة الدوام</th><th data-i="appr_stat">حالة الابروفل</th>
-          <th data-i="c_phone">الهاتف</th><th data-i="appr_aramco">ارامكو</th>
-          <th data-i="appr_area">المنطقة</th><th></th>
+          <th data-i="c_emp" style="width:22%;">الموظف</th><th data-i="c_num" style="width:12%;">الرقم الوظيفي</th>
+          <th data-i="appr_rot" style="width:10%;">مجموعة الدوام</th><th data-i="appr_stat" style="width:17%;">حالة الابروفل</th>
+          <th data-i="c_phone" style="width:13%;">الهاتف</th><th data-i="appr_aramco" style="width:12%;">ارامكو</th>
+          <th data-i="appr_area" style="width:10%;">المنطقة</th><th style="width:4%;"></th>
         </tr></thead>
         <tbody id="apprBody"></tbody>
       </table>
@@ -2099,12 +2107,23 @@ const SEED_APPR = [
 ];
 function mapAppr(v){ return {i:v.emp_id||v.i, r:v.rotation||v.r, a:v.approval||v.a, p:v.phone||v.p, ar:v.aramco_id||v.ar, x:v.area||v.x}; }
 function apprClass(s){
-  s=(s||'').toLowerCase();
+  s=(s||'').trim().toLowerCase();
+  if(!s) return 't-none';
   if(s.includes('trainee')) return 't-wrn';
   if(s.includes('ongoing')||s.includes('accept')) return 't-per';
   if(s.includes('pass')||s.includes('wait')) return 't-abs';
-  if(s.includes('safety')) return 't-vio';
+  if(s.includes('safety')) return 't-oth';
   return 't-oth';
+}
+/* نص مختصر للحبّة — النص الكامل يظهر عند المرور بالمؤشر (title) */
+function apprLabel(s){
+  s=(s||'').trim();
+  if(!s) return '—';
+  const map=[[/trainee/i,'Trainee'],[/safety\s*sup/i,'Safety Supervisor'],[/180/i,'Safety · 180d'],
+    [/90/i,'Safety · 90d'],[/safety/i,'Safety'],[/pass/i,'PASS'],[/wait/i,'WAITING'],
+    [/ongoing/i,'ONGOING'],[/accept/i,'ACCEPTED']];
+  for(const [re,l] of map) if(re.test(s)) return l;
+  return s;
 }
 function renderAppr(){
   if(!document.getElementById('apprBody')) return;
@@ -2132,7 +2151,7 @@ function renderAppr(){
     shown++;
     const tr=document.createElement('tr');
     tr.innerHTML='<td>'+esc((e&&e.id)?empName(e):(x.i||'—'))+'</td><td style="direction:ltr;">'+esc(e?(e.num||''):x.i)+'</td>'
-      +'<td>'+esc(x.r)+'</td><td><span class="tag '+apprClass(x.a)+'">'+esc(x.a||'—')+'</span></td>'
+      +'<td>'+esc(x.r)+'</td><td><span class="tag st '+apprClass(x.a)+'" title="'+esc(x.a||'')+'">'+esc(apprLabel(x.a))+'</span></td>'
       +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td><td style="direction:ltr;">'+esc(x.ar||'—')+'</td>'
       +'<td>'+esc(x.x||'—')+'</td>'
     +'<td><button class="btn btn-sm" data-appredit="'+esc(x.i)+'">✏️</button></td>';
