@@ -6,6 +6,7 @@
 <title>متابعة المخالفات والغيابات | HSE Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="groups-data.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
   :root{
@@ -150,6 +151,15 @@
       background:currentColor; opacity:.7; margin-inline-end:6px; vertical-align:-1px;}
   #viewAppr table{min-width:820px;}
   html[data-theme="dark"] .t-none{background:#1e293b; color:#94a3b8;}
+  /* مبدّل القروبات */
+  .grp-seg{display:inline-flex; gap:4px; background:var(--card2); border:1px solid var(--line);
+      padding:5px; border-radius:14px; flex-wrap:wrap;}
+  .gseg{border:none; background:transparent; padding:8px 15px; border-radius:10px; cursor:pointer;
+      font-family:inherit; font-size:13px; font-weight:800; color:var(--mut); transition:all .15s ease;}
+  .gseg:hover:not(.active){background:rgba(14,165,233,.10); color:var(--acc2);}
+  .gseg.active{background:var(--acc); color:#fff; box-shadow:0 4px 12px rgba(14,165,233,.35);}
+  #viewGrp table{min-width:860px;}
+  #grpTable td:nth-child(3){direction:ltr; text-align:left; font-weight:700;}
   .empdlg{position:fixed; inset:0; background:rgba(15,23,42,.55); backdrop-filter:blur(3px); z-index:999; display:flex; align-items:center; justify-content:center; padding:16px;}
   .empdlg-card{background:#fff; border-radius:20px; max-width:420px; width:100%; max-height:88vh; overflow:auto; padding:26px 22px; position:relative; box-shadow:0 25px 60px rgba(0,0,0,.3); animation:fadeUp .3s ease both;}
   .empdlg-x{position:absolute; top:12px; inset-inline-end:12px; border:none; background:#f1f5f9; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:15px; color:#475569;}
@@ -332,6 +342,7 @@ try{
     <button class="btn tab active" id="tabVio">🦺 <span data-i="tab_vio">المخالفات والغيابات</span></button>
     <button class="btn tab" id="tabVeh">🚗 <span data-i="tab_veh">السيارات</span></button>
     <button class="btn tab" id="tabAppr">🛡️ <span data-i="tab_appr">ابروفل ارامكو</span></button>
+    <button class="btn tab" id="tabGrp">🗂️ <span data-i="tab_grp">القروبات</span></button>
     <button class="btn tab" id="tabDep">🗺️ <span data-i="tab_dep">التوزيع</span></button>
     <button class="btn tab" id="tabEmp">👥 <span data-i="tab_emp">الموظفين</span></button>
     <button class="btn tab" id="tabTs">🗓️ <span data-i="tab_ts">التايم شيت</span></button>
@@ -620,6 +631,38 @@ try{
   <div id="apprEditDlg" class="empdlg hide"><div class="empdlg-card"><button class="empdlg-x" id="apprEditX">✕</button><div id="apprEditBody"></div></div></div>
   </div><!-- /viewAppr -->
 
+  <div id="viewGrp" class="hide">
+  <div class="card">
+    <h2><span class="ic">🗂️</span><span data-i="grp_title">قروبات الدوام (A / B / Daily)</span> <span class="mut" id="grpCount" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="grid" id="grpStats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;"></div>
+    <div class="frow" style="margin-top:14px; align-items:flex-end;">
+      <div class="grp-seg" id="grpSeg">
+        <button type="button" class="gseg active" data-g="A" data-i="grp_a">قروب A</button>
+        <button type="button" class="gseg" data-g="B" data-i="grp_b">قروب B</button>
+        <button type="button" class="gseg" data-g="D" data-i="grp_d">قروب الديلي</button>
+        <button type="button" class="gseg" data-g="" data-i="f_all">الكل</button>
+      </div>
+      <div class="field" style="max-width:340px;"><input id="grpSearch" placeholder="🔍 بحث بالاسم أو الرقم..."></div>
+      <div><button class="btn btn-green" id="grpExportBtn">📥 <span data-i="grp_export">تصدير القروبات Excel</span></button></div>
+    </div>
+    <div class="tbl-holder" style="margin-top:14px;">
+      <table id="grpTable">
+        <thead><tr>
+          <th style="width:5%;">#</th>
+          <th data-i="grp_col" style="width:8%;">القروب</th>
+          <th data-i="c_emp" style="width:24%;">الموظف</th>
+          <th data-i="c_num" style="width:15%;">الرقم الوظيفي</th>
+          <th data-i="c_ar" style="width:20%;">الاسم العربي</th>
+          <th data-i="l_dept" style="width:14%;">القسم</th>
+          <th data-i="grp_status" style="width:14%;">الحالة</th>
+        </tr></thead>
+        <tbody id="grpBody"></tbody>
+      </table>
+      <div class="empty hide" id="grpEmpty"></div>
+    </div>
+  </div>
+  </div><!-- /viewGrp -->
+
   <div id="drawerOverlay"></div>
   <aside id="settingsDrawer">
     <div class="dr-head"><h2>⚙️ <span data-i="settings">الإعدادات</span></h2><button class="del" id="drawerClose">✖</button></div>
@@ -799,6 +842,11 @@ const I18N={
     emp_placeholder:'اختر موظف...', admin:'مدير', logout:'خروج', err_login:'اسم المستخدم أو كلمة المرور غير صحيحة',
     err_userExists:'اسم المستخدم موجود مسبقاً', err_fill:'أكمل جميع الحقول',
     mig_btn:'🔒 تشفير كلمات المرور', mig_ok:'تم تشفير كلمات المرور', mig_none:'كل كلمات المرور مشفّرة مسبقاً',
+    tab_grp:'القروبات', grp_title:'قروبات الدوام (A / B / Daily)',
+    grp_a:'قروب A', grp_b:'قروب B', grp_d:'قروب الديلي', grp_total:'إجمالي الأسماء',
+    grp_matched:'مطابقون مع قائمة الموظفين', grp_nogrp:'موظفون بدون قروب',
+    grp_col:'القروب', grp_status:'الحالة', grp_ok:'✔ مطابق', grp_no:'⚠ غير مسجّل',
+    grp_noHint:'هذا الرقم غير موجود في قائمة الموظفين', grp_export:'تصدير القروبات Excel',
     welcome_admin:'مرحباً بك، مدير النظام', hello:'مرحباً',
     you:'أنت', u_del:'حذف',
     ch_title:'تغيير كلمة المرور', ch_cur:'كلمة المرور الحالية', ch_new:'كلمة المرور الجديدة', ch_confirm:'تأكيد كلمة المرور',
@@ -854,6 +902,11 @@ const I18N={
     emp_placeholder:'Select employee...', admin:'Admin', logout:'Logout', err_login:'Incorrect username or password',
     err_userExists:'Username already exists', err_fill:'Fill all fields',
     mig_btn:'🔒 Hash passwords', mig_ok:'Passwords encrypted', mig_none:'All passwords already encrypted',
+    tab_grp:'Groups', grp_title:'Duty Groups (A / B / Daily)',
+    grp_a:'Group A', grp_b:'Group B', grp_d:'Daily Group', grp_total:'Total names',
+    grp_matched:'Matched to employee list', grp_nogrp:'Employees without a group',
+    grp_col:'Group', grp_status:'Status', grp_ok:'✔ Matched', grp_no:'⚠ Not registered',
+    grp_noHint:'This job number is not in the employee list', grp_export:'Export Groups Excel',
     welcome_admin:'Welcome, System Admin', hello:'Welcome',
     you:'You', u_del:'Delete',
     ch_title:'Change Password', ch_cur:'Current Password', ch_new:'New Password', ch_confirm:'Confirm New Password',
@@ -1520,17 +1573,20 @@ function switchView(v){
   document.getElementById('viewDep').classList.toggle('hide', v!=='dep');
   document.getElementById('viewVeh').classList.toggle('hide', v!=='veh');
   document.getElementById('viewAppr').classList.toggle('hide', v!=='appr');
+  document.getElementById('viewGrp').classList.toggle('hide', v!=='grp');
   document.getElementById('tabVio').classList.toggle('active', v==='vio');
   document.getElementById('tabTs').classList.toggle('active', v==='ts');
   document.getElementById('tabEmp').classList.toggle('active', v==='emp');
   document.getElementById('tabDep').classList.toggle('active', v==='dep');
   document.getElementById('tabVeh').classList.toggle('active', v==='veh');
   document.getElementById('tabAppr').classList.toggle('active', v==='appr');
+  document.getElementById('tabGrp').classList.toggle('active', v==='grp');
   if(v==='ts') renderTs();
   if(v==='emp') renderStaff();
   if(v==='dep') renderDep();
   if(v==='veh') renderVeh();
   if(v==='appr') renderAppr();
+  if(v==='grp') renderGrp();
 }
 function renderTs(){
   const sel=document.getElementById('tsEmp'); if(!sel) return;
@@ -1586,6 +1642,7 @@ document.getElementById('tabEmp').onclick=()=>switchView('emp');
 document.getElementById('tabDep').onclick=()=>switchView('dep');
 document.getElementById('tabVeh').onclick=()=>switchView('veh');
 document.getElementById('tabAppr').onclick=()=>switchView('appr');
+document.getElementById('tabGrp').onclick=()=>switchView('grp');
 document.getElementById('tsEmp').onchange=loadTsForm;
 
 /* ============ STAFF DIRECTORY UI ============ */
@@ -2174,6 +2231,79 @@ document.getElementById('apprExportBtn').onclick=async()=>{
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Approval');
   XLSX.writeFile(wb,'Aramco_Approval.xlsx'); toast(T().toast_xlsx);
 };
+/* ============ GROUPS (A / B / DAILY) ============ */
+const GRP_KEYS=['A','B','D'];
+const GRP_CLS={A:'t-abs',B:'t-per',D:'t-wrn'};
+const GRP_COL={A:'var(--blue)',B:'var(--green)',D:'#b45309'};
+let GRP_SEL='A';
+const grpNorm=s=>String(s||'').toUpperCase().replace(/\s+/g,'').replace(/–|—/g,'-');
+const grpData=()=>window.GRP_DATA||{};
+function grpEmpMap(){ const m=new Map(); D.emp.forEach(e=>{ const k=grpNorm(e.num); if(k&&!m.has(k)) m.set(k,e); }); return m; }
+function grpLabelOf(g){ return g==='A'?T().grp_a : g==='B'?T().grp_b : g==='D'?T().grp_d : T().f_all; }
+function renderGrp(){
+  const body=document.getElementById('grpBody'); if(!body) return;
+  const data=grpData(), idx=grpEmpMap();
+  const inp=document.getElementById('grpSearch');
+  inp.placeholder=(LANG==='ar'?'🔍 بحث بالاسم أو الرقم...':'🔍 Search name or ID...');
+  const all=[]; GRP_KEYS.forEach(g=>(data[g]||[]).forEach((r,i)=>all.push({g,i,id:r[0],name:r[1]})));
+  const groupIds=new Set(all.map(r=>grpNorm(r.id)));
+  const matched=all.filter(r=>idx.has(grpNorm(r.id))).length;
+  let noGrp=0; D.emp.forEach(e=>{ if(!groupIds.has(grpNorm(e.num))) noGrp++; });
+  let h='';
+  GRP_KEYS.forEach(g=>{ h+='<div class="stat"><div class="k">'+esc(grpLabelOf(g))+'</div><div class="v" style="color:'+GRP_COL[g]+'">'+((data[g]||[]).length)+'</div></div>'; });
+  h+='<div class="stat"><div class="k">'+esc(T().grp_total)+'</div><div class="v">'+all.length+'</div></div>';
+  h+='<div class="stat"><div class="k">'+esc(T().grp_matched)+'</div><div class="v" style="color:var(--green)">'+matched+'</div></div>';
+  h+='<div class="stat"><div class="k">'+esc(T().grp_nogrp)+'</div><div class="v" style="color:#b45309">'+noGrp+'</div></div>';
+  document.getElementById('grpStats').innerHTML=h;
+  const q=(inp.value||'').toLowerCase().trim();
+  const rows=GRP_SEL?all.filter(r=>r.g===GRP_SEL):all;
+  let shown=0;
+  body.innerHTML='';
+  rows.forEach(r=>{
+    if(q){
+      const e=idx.get(grpNorm(r.id));
+      const hay=(r.name+' '+r.id+' '+(e?(e.ar||'')+' '+(e.dept||''):'')).toLowerCase();
+      if(!hay.includes(q)) return;
+    }
+    shown++;
+    const e=idx.get(grpNorm(r.id));
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center; color:var(--mut);">'+shown+'</td>'
+      +'<td><span class="tag st '+GRP_CLS[r.g]+'">'+esc(r.g==='D'?'Daily':r.g)+'</span></td>'
+      +'<td>'+esc(r.name)+'</td>'
+      +'<td style="direction:ltr;">'+esc(r.id)+'</td>'
+      +'<td>'+esc(e?(e.ar||'—'):'—')+'</td>'
+      +'<td>'+esc(e?(e.dept||'—'):'—')+'</td>'
+      +'<td>'+(e?'<span class="tag st t-per">'+esc(T().grp_ok)+'</span>'
+                 :'<span class="tag st t-wrn" title="'+esc(T().grp_noHint)+'">'+esc(T().grp_no)+'</span>')+'</td>';
+    body.appendChild(tr);
+  });
+  const ed=document.getElementById('grpEmpty');
+  if(!shown){ ed.classList.remove('hide'); ed.textContent=T().empty; } else ed.classList.add('hide');
+  document.getElementById('grpCount').textContent=shown+' / '+rows.length;
+}
+document.getElementById('grpSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.gseg'); if(!b) return;
+  GRP_SEL=b.dataset.g;
+  [...b.parentNode.children].forEach(c=>c.classList.toggle('active',c===b));
+  renderGrp();
+});
+document.getElementById('grpSearch').oninput=renderGrp;
+document.getElementById('grpExportBtn').onclick=()=>{
+  if(typeof XLSX==='undefined'){ toast('Excel lib'); return; }
+  const idx=grpEmpMap(), data=grpData();
+  const wb=XLSX.utils.book_new();
+  GRP_KEYS.forEach(g=>{
+    const a=[[T().grp_col,T().c_num,T().c_emp,T().c_ar,T().l_dept]];
+    (data[g]||[]).forEach((r,i)=>{ const e=idx.get(grpNorm(r.id));
+      a.push([g==='D'?'Daily':g, r[0], r[1], e?(e.ar||''):'', e?(e.dept||''):'' ]); });
+    const ws=XLSX.utils.aoa_to_sheet(a);
+    ws['!cols']=[{wch:8},{wch:14},{wch:34},{wch:26},{wch:18}];
+    XLSX.utils.book_append_sheet(wb,ws,g==='D'?'Daily':'Group '+g);
+  });
+  XLSX.writeFile(wb,'HSE_Groups.xlsx'); toast(T().toast_xlsx);
+};
+
 let apprEditId=null;
 (function(){
   const ab=document.getElementById('apprBody'); if(!ab) return;
