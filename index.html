@@ -378,6 +378,7 @@ try{
         <select id="uRole"><option value="admin" data-i="u_roleAdmin">مدير (Admin)</option><option value="user" data-i="u_roleUser">مستخدم (User)</option></select>
       </div>
       <div><button class="btn btn-acc" id="addUserBtn" data-i="u_add">＋ إضافة زميل</button></div>
+      <div><button class="btn" id="migBtn" data-i="mig_btn">🔒 تشفير كلمات المرور</button></div>
     </div>
     <div class="tbl-holder" style="margin-top:16px;">
       <table>
@@ -628,6 +629,76 @@ let SESSION = null;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const esc=s=>String(s??'').replace(/[&<>"\']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* ============ PASSWORD HASHING (SHA-256 + salt) ============ */
+const PWD_SALT='HSE-Tracker-2026';
+function utf8Encode(s){
+  const out=[];
+  for(let i=0;i<s.length;i++){
+    let c=s.codePointAt(i);
+    if(c>0xFFFF) i++;
+    if(c<0x80) out.push(c);
+    else if(c<0x800) out.push(0xC0|(c>>6),0x80|(c&63));
+    else if(c<0x10000) out.push(0xE0|(c>>12),0x80|((c>>6)&63),0x80|(c&63));
+    else out.push(0xF0|(c>>18),0x80|((c>>12)&63),0x80|((c>>6)&63),0x80|(c&63));
+  }
+  return out;
+}
+const SHA_K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function rotr(x,n){ return (x>>>n)|(x<<(32-n)); }
+function sha256Hex(str){
+  const bytes=utf8Encode(str), l=bytes.length, withOne=l+1;
+  const pad=((withOne%64)<=56)?(56-withOne%64):(120-withOne%64);
+  const total=withOne+pad+8;
+  const msg=new Uint8Array(total); msg.set(bytes); msg[l]=0x80;
+  const dv=new DataView(msg.buffer);
+  const bits=l*8;
+  dv.setUint32(total-8,Math.floor(bits/4294967296));
+  dv.setUint32(total-4,bits>>>0);
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const w=new Uint32Array(64);
+  for(let off=0;off<total;off+=64){
+    for(let i=0;i<16;i++) w[i]=dv.getUint32(off+i*4);
+    for(let i=16;i<64;i++){
+      const s0=rotr(w[i-15],7)^rotr(w[i-15],18)^(w[i-15]>>>3);
+      const s1=rotr(w[i-2],17)^rotr(w[i-2],19)^(w[i-2]>>>10);
+      w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;
+    }
+    let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(let i=0;i<64;i++){
+      const S1=rotr(e,6)^rotr(e,11)^rotr(e,25);
+      const ch=(e&f)^(~e&g);
+      const t1=(h+S1+ch+SHA_K[i]+w[i])>>>0;
+      const S0=rotr(a,2)^rotr(a,13)^rotr(a,22);
+      const maj=(a&b)^(a&c)^(b&c);
+      const t2=(S0+maj)>>>0;
+      h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+    }
+    H=[(H[0]+a)>>>0,(H[1]+b)>>>0,(H[2]+c)>>>0,(H[3]+d)>>>0,(H[4]+e)>>>0,(H[5]+f)>>>0,(H[6]+g)>>>0,(H[7]+h)>>>0];
+  }
+  return H.map(x=>x.toString(16).padStart(8,'0')).join('');
+}
+function hashPass(p){ return 'h$'+PWD_SALT+'$'+sha256Hex(PWD_SALT+'::'+String(p??'')); }
+function isHashed(p){ return typeof p==='string' && p.indexOf('h$'+PWD_SALT+'$')===0; }
+/* يقبل كلمة المرور المخزَّنة (مشفّرة أو نصية قديمة) ويعيد الترميز تلقائياً */
+function passMatch(user, pass){
+  if(!user) return false;
+  if(isHashed(user.pass)) return user.pass===hashPass(pass);
+  return user.pass===pass; // سجلات قديمة غير مشفّرة — تُرقّى عند أول دخول ناجح
+}
+async function upgradePass(user){
+  if(!user || isHashed(user.pass)) return false;
+  user.pass=hashPass(user.pass);
+  if(user.id) await updateUser(user.id,{password:user.pass});
+  return true;
+}
+
 /* ============ SUPABASE CONFIG ============ */
 const SB_URL = 'https://xdmngrosmblrqoirjaai.supabase.co';
 const SB_KEY = 'sb_publishable_0yFEikxwbqcW0zaKK27E0w_pHP_InLj';
@@ -671,7 +742,7 @@ async function loadAll() {
 }
 
 async function saveUser(u) { 
-  const payload = { id: u.id, name: u.name, username: u.user, password: u.pass, role: u.role };
+  const payload = { id: u.id, name: u.name, username: u.user, password: isHashed(u.pass)?u.pass:hashPass(u.pass), role: u.role };
   await sb('users', 'POST', payload); 
 }
 async function delUser(id) { await sb('users', 'DELETE', null, '?id=eq.'+id); }
@@ -719,6 +790,7 @@ const I18N={
     thisMonth:'الشهر الحالي', askDel:'حذف هذا السجل؟', err_emp:'اختر موظفاً', err_note:'اكتب ملاحظة',
     emp_placeholder:'اختر موظف...', admin:'مدير', logout:'خروج', err_login:'اسم المستخدم أو كلمة المرور غير صحيحة',
     err_userExists:'اسم المستخدم موجود مسبقاً', err_fill:'أكمل جميع الحقول',
+    mig_btn:'🔒 تشفير كلمات المرور', mig_ok:'تم تشفير كلمات المرور', mig_none:'كل كلمات المرور مشفّرة مسبقاً',
     welcome_admin:'مرحباً بك، مدير النظام', hello:'مرحباً',
     you:'أنت', u_del:'حذف',
     ch_title:'تغيير كلمة المرور', ch_cur:'كلمة المرور الحالية', ch_new:'كلمة المرور الجديدة', ch_confirm:'تأكيد كلمة المرور',
@@ -773,6 +845,7 @@ const I18N={
     thisMonth:'Current Month', askDel:'Delete this record?', err_emp:'Select an employee', err_note:'Write a note',
     emp_placeholder:'Select employee...', admin:'Admin', logout:'Logout', err_login:'Incorrect username or password',
     err_userExists:'Username already exists', err_fill:'Fill all fields',
+    mig_btn:'🔒 Hash passwords', mig_ok:'Passwords encrypted', mig_none:'All passwords already encrypted',
     welcome_admin:'Welcome, System Admin', hello:'Welcome',
     you:'You', u_del:'Delete',
     ch_title:'Change Password', ch_cur:'Current Password', ch_new:'New Password', ch_confirm:'Confirm New Password',
@@ -885,6 +958,18 @@ document.getElementById('addUserBtn').onclick=async()=>{
   toast(T().toast_addUser);
 };
 
+// One-time migration: encrypt any passwords still stored in plain text
+document.getElementById('migBtn').onclick=async()=>{
+  const legacy=D.users.filter(u=>u && !isHashed(u.pass) && u.id && u.id!=='admin-default');
+  if(!legacy.length){ toast(T().mig_none); return; }
+  for(const u of legacy){
+    u.pass=hashPass(u.pass);
+    await updateUser(u.id,{password:u.pass});
+  }
+  renderUsers();
+  toast(T().mig_ok+' ('+legacy.length+')');
+};
+
 document.getElementById('userBody').addEventListener('click',async e=>{
   const pwdBtn=e.target.closest('[data-pwd]');
   const saveBtn=e.target.closest('#pwdSaveBtn');
@@ -895,7 +980,7 @@ document.getElementById('userBody').addEventListener('click',async e=>{
     const np=document.getElementById('pwdNew').value.trim();
     if(np.length<4){ toast(T().err_short); return; }
     const tu=D.users.find(x=>x.user===pwdEditUser);
-    if(tu){ tu.pass=np; await updateUser(tu.id,{password:np}); toast(T().pwd_changed); }
+    if(tu){ tu.pass=hashPass(np); await updateUser(tu.id,{password:tu.pass}); toast(T().pwd_changed); }
     pwdEditUser=null; renderUsers(); return;
   }
   const btn=e.target.closest('.del'); if(!btn) return;
@@ -915,9 +1000,10 @@ async function doLogin(){
   const btn=document.getElementById('lgBtn');
   errEl.textContent=''; btn.textContent='⏳...'; btn.disabled=true;
   // Check in-memory users FIRST (instant)
-  const found=D.users.find(u=>u.user===user && u.pass===pass);
+  const found=D.users.find(u=>u.user===user && passMatch(u,pass));
   if(found){
     SESSION=user;
+    upgradePass(found); // سجل قديم غير مشفّر ← يُرقّى تلقائياً
     document.getElementById('lgPass').value='';
     btn.textContent=T().login; btn.disabled=false;
     // Load emp+rec from Supabase in background (don't wait)
@@ -936,12 +1022,15 @@ async function doLogin(){
   // Try Supabase as fallback
   try{
     const users = await Promise.race([
-      sb('users','GET',null,'?username=eq.'+encodeURIComponent(user)+'&password=eq.'+encodeURIComponent(pass)),
+      sb('users','GET',null,'?username=eq.'+encodeURIComponent(user)),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
     ]);
-    if(users && users.length){
+    const mapped=(users||[]).map(u=>({id:u.id,name:u.name,user:u.username||u.user,pass:u.password||u.pass,role:u.role}));
+    const hit=mapped.find(u=>u.user===user && passMatch(u,pass));
+    if(hit){
       SESSION=user;
-      D.users=users.map(u=>({id:u.id,name:u.name,user:u.username||u.user,pass:u.password||u.pass,role:u.role}));
+      D.users=mapped;
+      upgradePass(hit); // ترميز تلقائي للسجلات القديمة
       document.getElementById('lgPass').value='';
       btn.textContent=T().login; btn.disabled=false;
       SB_CONNECTED=true;
@@ -2316,8 +2405,8 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 /* ============ SEED EMPLOYEES TO SUPABASE ============ */
 
 /* ============ INIT ============ */
-// IMMEDIATE: seed admin so login always works
-D.users.push({id:'admin-default', name:'علي', user:'علي', pass:'علي123', role:'admin'});
+// IMMEDIATE: seed admin so login always works (only the hash lives in the source, never the password)
+D.users.push({id:'admin-default', name:'علي', user:'علي', pass:'h$HSE-Tracker-2026$6ccdfaac241af299ebb3a195f458cdd96bb2e27ab456f9d0ea62ea7f4d0604be', role:'admin'});
 
 const mp=document.getElementById('monthPicker');
 mp.value=(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();
