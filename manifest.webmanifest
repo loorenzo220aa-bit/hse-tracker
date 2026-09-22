@@ -1,0 +1,23 @@
+{
+  "id": "./",
+  "name": "HSE Tracker — نظام متابعة السلامة والبيئة",
+  "short_name": "HSE Tracker",
+  "description": "متابعة الموظفين والحضور والاعتمادات وقوائم القروبات — HSE personnel, attendance and approvals tracker.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0ea5e9",
+  "theme_color": "#0ea5e9",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
