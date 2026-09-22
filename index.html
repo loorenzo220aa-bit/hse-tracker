@@ -2288,6 +2288,13 @@ function attFillSheet(xml, names){
   return out;
 }
 function attSheetName(g){ return ATT_SHEET_N[g]||ATT_SHEET_B; }
+/* خانة DATE في الترويسة ← تاريخ اليوم (بنفس تنسيق القالب DD/MM/YYYY) */
+function attDateCell(xml, when){
+  const d=when||new Date();
+  const p=n=>String(n).padStart(2,'0');
+  const txt='DATE: '+p(d.getDate())+'/'+p((d.getMonth()+1))+'/'+d.getFullYear();
+  return attSetCell(xml,'D9','inlineStr','<is><t xml:space="preserve">'+attXmlEsc(txt)+'</t></is>');
+}
 /* تغيير اسم الورقة (عند اختيار A/ديلي) + مدّ منطقة الطباعة لتشمل كل الأسماء */
 function attWorkbook(xml, g, lastRow){
   let out=xml.split(ATT_SHEET_B).join(attSheetName(g));
@@ -2313,7 +2320,10 @@ async function attExport(){
     const zip=await JSZip.loadAsync(await resp.arrayBuffer());
     const sheetPath=Object.keys(zip.files).find(p=>/^xl\/worksheets\/sheet\d+\.xml$/.test(p));
     if(!sheetPath) throw new Error('sheet xml missing');
-    zip.file(sheetPath, attFillSheet(await zip.file(sheetPath).async('string'), names));
+    let sheetXml=await zip.file(sheetPath).async('string');
+    sheetXml=attFillSheet(sheetXml, names);
+    sheetXml=attDateCell(sheetXml);           /* DATE ← تاريخ اليوم */
+    zip.file(sheetPath, sheetXml);
     const last=ATT_FIRST_ROW+names.length-1;
     const wbp=zip.file('xl/workbook.xml');
     if(wbp) zip.file('xl/workbook.xml', attWorkbook(await wbp.async('string'), GRP_SEL, last));
