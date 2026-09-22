@@ -1281,10 +1281,26 @@ document.getElementById('tsBody').addEventListener('change',e=>{
     const tr=e.target.closest('tr'); if(!tr) return;
     const type=e.target.value;
     const inputs=tr.querySelectorAll('input[type=time]');
-    if(type==='sick'||type==='permit'||type==='absence'||type==='vacation'||type==='off'){
+    if(type==='sick'){
       inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
       const remark=tr.querySelector('input[data-k="remark"]');
-      if(remark) remark.value=(typeof T!=='undefined'&&T().opt_sick==='Sick Leave')?'سكليف':type;
+      if(remark) remark.value='سكليف';
+    } else if(type==='off'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='غير عملي';
+    } else if(type==='vacation'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='إجازة';
+    } else if(type==='absence'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='غياب';
+    } else if(type==='permit'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='استأذان';
     } else {
       inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
       const remark=tr.querySelector('input[data-k="remark"]');
