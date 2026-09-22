@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>معاينة — حالة الابروفل</title>
+<style>
+  :root{
+    --card:#ffffff; --card2:#f8fafc; --line:#e2e8f0; --acc:#0ea5e9;
+    --green-bg:#d1fae5; --red-bg:#ffe4e6; --blue-bg:#dbeafe;
+    --orange-bg:#fef3c7; --purple-bg:#ede9fe; --mut:#64748b;
+  }
+  body{margin:0; padding:24px; background:#f1f5f9; font-family:Tahoma,Arial,sans-serif; color:#0f172a;}
+  h1{font-size:18px; margin:0 0 4px;}
+  .sub{font-size:13px; color:var(--mut); margin-bottom:18px;}
+  .grid{display:grid; gap:18px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px;}
+  .card h2{font-size:15px; margin:0 0 12px;}
+  .tag{display:inline-block; padding:4px 12px; border-radius:99px; font-size:12px; font-weight:800;}
+  .t-vio{background:var(--red-bg); color:#be123c;}
+  .t-abs{background:var(--blue-bg); color:#1d4ed8;}
+  .t-per{background:var(--green-bg); color:#047857;}
+  .t-oth{background:var(--purple-bg); color:#6d28d9;}
+  .t-wrn{background:var(--orange-bg); color:#b45309;}
+  .t-none{background:#eef2f7; color:#64748b;}
+  /* ===== الجديد ===== */
+  .st{padding:3px 9px; font-size:11px; line-height:1.7; max-width:100%; vertical-align:middle;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.2px;}
+  .st::before{content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
+      background:currentColor; opacity:.7; margin-inline-end:6px; vertical-align:-1px;}
+  table{width:100%; border-collapse:collapse; font-size:13px; background:#fff;
+        border-radius:14px; overflow:hidden; table-layout:fixed;}
+  th,td{padding:11px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:normal;}
+  th{color:#0369a1; font-weight:800; font-size:12px; background:#f0f9ff;}
+  .wrap{overflow-x:auto;} #viewAppr table{min-width:820px;}
+</style>
+</head>
+<body>
+<h1>حالة الابروفل — صفحة ابروفل ارامكو</h1>
+<div class="sub">قيم حقيقية من قاعدة بياناتك (137 سجلاً)</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>❌ قبل — نص طويل داخل الحبّة يلتفّ ويطلع كبير</h2>
+    <div class="wrap"><table>
+      <thead><tr><th style="width:22%">الموظف</th><th style="width:12%">الرقم</th><th style="width:10%">الدوام</th><th style="width:17%">حالة الابروفل</th><th style="width:13%">الهاتف</th><th style="width:12%">ارامكو</th><th style="width:10%">المنطقة</th><th style="width:4%"></th></tr></thead>
+      <tbody>
+        <tr><td>أحمد محمد علي</td><td style="direction:ltr">10023456</td><td>A</td><td><span class="tag t-abs">PASS(Waiting for a transmittal)</span></td><td style="direction:ltr">0555 12 3456</td><td style="direction:ltr">AC-77821</td><td>Riyadh</td><td>✏️</td></tr>
+        <tr><td>سالم عبدالله</td><td style="direction:ltr">10023488</td><td>B</td><td><span class="tag t-oth">Safety officer 180-day</span></td><td style="direction:ltr">0500 98 7654</td><td style="direction:ltr">AC-77910</td><td>Jubail</td><td>✏️</td></tr>
+        <tr><td>محمد صالح</td><td style="direction:ltr">10023501</td><td>Daily</td><td><span class="tag t-oth">Safety Supervisor 180-day</span></td><td style="direction:ltr">0533 44 2211</td><td style="direction:ltr">AC-78004</td><td>Dhahran</td><td>✏️</td></tr>
+        <tr><td>خالد الحربي</td><td style="direction:ltr">10023512</td><td>A</td><td><span class="tag t-wrn">Trainee for 180-day</span></td><td style="direction:ltr">0566 77 8899</td><td style="direction:ltr">AC-78110</td><td>Riyadh</td><td>✏️</td></tr>
+        <tr><td>فهد القحطاني</td><td style="direction:ltr">10023530</td><td>B</td><td><span class="tag t-oth">Safety officer 90-day</span></td><td style="direction:ltr">0544 11 2233</td><td style="direction:ltr">AC-78215</td><td>Abqaiq</td><td>✏️</td></tr>
+        <tr><td>ناصر الدوسري</td><td style="direction:ltr">10023544</td><td>A</td><td><span class="tag t-none">—</span></td><td style="direction:ltr">—</td><td style="direction:ltr">—</td><td>—</td><td>✏️</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h2>✅ بعد — حبّة صغيرة مضغوطة + نقطة ملوّنة + نص مختصر (الكامل عند المرور)</h2>
+    <div class="wrap"><table id="viewAppr">
+      <thead><tr><th style="width:22%">الموظف</th><th style="width:12%">الرقم الوظيفي</th><th style="width:10%">مجموعة الدوام</th><th style="width:17%">حالة الابروفل</th><th style="width:13%">الهاتف</th><th style="width:12%">ارامكو</th><th style="width:10%">المنطقة</th><th style="width:4%"></th></tr></thead>
+      <tbody>
+        <tr><td>أحمد محمد علي</td><td style="direction:ltr">10023456</td><td>A</td><td><span class="tag st t-abs" title="PASS(Waiting for a transmittal)">PASS</span></td><td style="direction:ltr">0555 12 3456</td><td style="direction:ltr">AC-77821</td><td>Riyadh</td><td>✏️</td></tr>
+        <tr><td>سالم عبدالله</td><td style="direction:ltr">10023488</td><td>B</td><td><span class="tag st t-oth" title="Safety officer 180-day">Safety · 180d</span></td><td style="direction:ltr">0500 98 7654</td><td style="direction:ltr">AC-77910</td><td>Jubail</td><td>✏️</td></tr>
+        <tr><td>محمد صالح</td><td style="direction:ltr">10023501</td><td>Daily</td><td><span class="tag st t-oth" title="Safety Supervisor 180-day">Safety Supervisor</span></td><td style="direction:ltr">0533 44 2211</td><td style="direction:ltr">AC-78004</td><td>Dhahran</td><td>✏️</td></tr>
+        <tr><td>خالد الحربي</td><td style="direction:ltr">10023512</td><td>A</td><td><span class="tag st t-wrn" title="Trainee for 180-day">Trainee</span></td><td style="direction:ltr">0566 77 8899</td><td style="direction:ltr">AC-78110</td><td>Riyadh</td><td>✏️</td></tr>
+        <tr><td>فهد القحطاني</td><td style="direction:ltr">10023530</td><td>B</td><td><span class="tag st t-oth" title="Safety officer 90-day">Safety · 90d</span></td><td style="direction:ltr">0544 11 2233</td><td style="direction:ltr">AC-78215</td><td>Abqaiq</td><td>✏️</td></tr>
+        <tr><td>ناصر الدوسري</td><td style="direction:ltr">10023544</td><td>A</td><td><span class="tag st t-none" title="">—</span></td><td style="direction:ltr">—</td><td style="direction:ltr">—</td><td>—</td><td>✏️</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+</body>
+</html>
