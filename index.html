@@ -401,8 +401,7 @@
       <div class="field"><label data-i="ts_position">المسمى الوظيفي</label><input id="tsPosition" placeholder="SAFETY OFFICER"></div>
       <div class="field"><label data-i="ts_nationality">الجنسية</label><input id="tsNationality" placeholder="Saudi"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-acc" id="tsFillBtn">🪄 <span data-i="ts_fill">تعبئة افتراضية</span></button>
-            <button class="btn btn-green" id="tsSaveBtn">💾 <span data-i="ts_save">حفظ التايم شيت</span></button>
-            <button class="btn btn-red" id="tsZeroBtn">⏱ <span data-i="ts_zero">ضع الصفر</span></button></div>
+            <button class="btn btn-green" id="tsSaveBtn">💾 <span data-i="ts_save">حفظ التايم شيت</span></button></div>
     </div>
     <div class="frow" style="margin-top:12px;">
       <div><button class="btn btn-green" id="tsExportBtn">📥 <span data-i="ts_export">تصدير التايم شيت Excel</span></button></div>
@@ -627,7 +626,7 @@ const I18N={
     veh_total:'الإجمالي', veh_rows:'المركبات المسجلة', dep_title:'توزيع الأفراد على المناطق',
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
     dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
-    ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت', ts_zero:'ضع الصفر', ts_type:'النوع',
+    ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
     tab_lists:'القوائم (A/B)', lists_title:'القوائم (A/B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export_a:'تصدير قائمة A (Excel)',
         lists_export_b:'تصدير قائمة B (Excel)',
         lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
@@ -677,7 +676,7 @@ const I18N={
     veh_total:'Total', veh_rows:'Logged Vehicles', dep_title:'Area Deployment',
     dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
     dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
-    ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet', ts_zero:'Set Zero', ts_type:'Type',
+    ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
     list_export_a_done:'✅ List A exported',
     list_export_b_done:'✅ List B exported',
@@ -1411,14 +1410,7 @@ document.getElementById('tsFillBtn').onclick=()=>{
     else if(d.getDay()===5){ ['in1','out1','in2','out2','in3','out3','remark'].forEach(k=>set(k,'')); }
     else{ set('in1','07:00'); set('out1','12:00'); set('in2','13:00'); set('out2','16:00'); set('in3',''); set('out3',''); }
   });
-};
-document.getElementById('tsZeroBtn').onclick=()=>{
-  document.querySelectorAll('#tsBody tr').forEach(tr=>{
-    ['in1','out1','in2','out2','in3','out3'].forEach(k=>{ const i=tr.querySelector('input[data-k="'+k+'"]'); if(i) i.value='00:00'; });
-    const remark=tr.querySelector('input[data-k="remark"]');
-    if(remark&&!remark.value) remark.value='00:00';
-  });
-};
+  };
 document.getElementById('tsSaveBtn').onclick=async()=>{
   const empId=document.getElementById('tsEmp').value; if(!empId){ toast(T().ts_noemp); return; }
   const m=tsMonth();
