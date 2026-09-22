@@ -30,3 +30,43 @@
 `Attendance_Template.xlsx` في جذر المشروع = نموذج الحضور الأصلي **بểmحته100%**
 (الشعار، المستند المدمج، التنسيق، إعدادات الطباعة). التصدير يعدّل خلايا داخله فقط —
 لا تُعِد كتابته بأداة تحرير جداول لأن ذلك يمسح الصور المدمجة.
+
+## تطبيق الجوال
+
+**1) PWA (يعمل من المتصفح — ثبّته من كروم)**
+- الملفات: `manifest.webmanifest` + `sw.js` + أيقونات `icon-*.png` / `favicon.svg` في جذر المشروع.
+- التثبيت على أندرويد: كروم ← ⋮ ← «تثبيت التطبيق» (أو «إضافة إلى الشاشة الرئيسية»).
+- `sw.js`: واجهة الموقع تُخزَّن للعمل بدون نت — بيانات Supabase تبقى مباشرة ولا تُخزَّن أبداً.
+- فحص: `node tools/_pwa-check.js .` · إعادة توليد الأيقونات: `node tools/_gen-icons.js .`
+
+**2) APK حقيقي (Capacitor 7) — المتطلبات**
+- JDK 17: `https://aka.ms/download-jdk/microsoft-jdk-17-windows-x64.zip` (نسخة محمولة zip)
+- Android SDK: `cmdline-tools` + `platform-tools` + `platforms;android-35` + `build-tools;35.0.0`
+- Gradle 8.11.1 يُنزَّل تلقائياً مع أول بناء (لا يثبَّت يدوياً).
+
+```powershell
+# 1) متغيرات البيئة (كل جلسة بناء)
+$env:JAVA_HOME    = 'C:\path\to\jdk-17'          # يحتوي bin\java.exe
+$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+$env:PATH         = "$env:JAVA_HOME\bin;$env:PATH"
+
+# 2) مرة واحدة: المنصة + الأصول
+npm install
+npx cap add android                        # إذا لم تكن موجودة
+npx @capacitor/assets generate --android   # أيقونات/سبلاش من assets/
+
+# 3) توقيع الإصدار (مرة واحدة فقط)
+#    يُنتج %USERPROFILE%\.android-keys\hse-tracker.jks
+#    + android\keystore.properties  (مُستبعد من git)
+
+# 4) البناء
+cd android; .\gradlew.bat assembleRelease
+# الناتج: android\app\build\outputs\apk\release\app-release.apk
+```
+
+- **ممنوع رفع** `*.jks` و `keystore.properties` للريبو (في `.gitignore`) —
+  إن ضاع المفتاح يتعذّر تحديث التطبيق بنفس التوقيع، فاحتفظ بنسخة احتياطية آمنة.
+- مصادر الأيقونات/السبلاش: `node tools/_gen-android-assets.js .`
+- رقم الإصدار: `android/app/build.gradle` ← `versionCode` / `versionName`.
+- التطبيق يحمّل الموقع المباشر (`server.url` في `capacitor.config.json`)،
+  يعني **كل تحديث للموقع يظهر في التطبيق فوراً** دون إعادة بناء APK.

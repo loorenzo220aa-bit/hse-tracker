@@ -1,0 +1,11 @@
+# npm / Capacitor build artifacts
+node_modules/
+android/.gradle/
+android/build/
+android/app/build/
+android/app/src/main/assets/public/
+android/local.properties
+# signing material — never commit (see tools/README.md «بناء APK»)
+android/keystore.properties
+*.jks
+*.keystore

@@ -1,0 +1,15 @@
+{
+  "appId": "com.loor.hsetracker",
+  "appName": "HSE Tracker",
+  "webDir": "web",
+  "backgroundColor": "#0ea5e9",
+  "server": {
+    "url": "https://loorenzo220aa-bit.github.io/hse-tracker/",
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}
