@@ -410,9 +410,8 @@
           <table>
             <thead><tr>
               <th data-i="c_date">التاريخ</th><th data-i="ts_day">اليوم</th>
-              <th data-i="ts_type">النوع</th>
-              <th>IN 1</th><th>OUT 1</th><th>IN 2</th><th>OUT 2</th><th>IN 3</th><th>OUT 3</th>
-              <th data-i="c_note">الملاحظة</th>
+                            <th>IN 1</th><th>OUT 1</th><th>IN 2</th><th>OUT 2</th><th>IN 3</th><th>OUT 3</th>
+                            <th data-i="c_note">الملاحظة</th>
             </tr></thead>
             <tbody id="tsBody"></tbody>
           </table>
@@ -1247,14 +1246,8 @@ function loadTsForm(){
   days.forEach(ds=>{
     const d=new Date(ds+'T00:00:00'); const fri=d.getDay()===5;
     const sv=(saved&&saved.days&&saved.days[ds])?saved.days[ds]:{};
-    const types=LANG==='ar'
-      ? [{v:'normal',l:'طبيعي'},{v:'sick',l:'سكليف'},{v:'permit',l:'استأذان'},{v:'absence',l:'غياب'},{v:'vacation',l:'إجازة'},{v:'off',l:'غير عملي'}]
-      : [{v:'normal',l:'Normal'},{v:'sick',l:'Sick'},{v:'permit',l:'Permit'},{v:'absence',l:'Absence'},{v:'vacation',l:'Vacation'},{v:'off',l:'Off'}];
     const tr=document.createElement('tr'); tr.dataset.date=ds;
     let h='<td>'+esc(ds)+'</td><td>'+dn[d.getDay()]+'</td>';
-    h+='<td><select data-k="type" style="min-width:100px;font-size:12px;padding:4px;">';
-    types.forEach(t=>{ h+='<option value="'+t.v+'"'+(sv.type===t.v?' selected':'')+'>'+esc(t.l)+'</option>'; });
-    h+='</select></td>';
     h+='<td><input type="time" data-k="in1" value="'+esc(sv.in1||'')+'"></td>';
     h+='<td><input type="time" data-k="out1" value="'+esc(sv.out1||'')+'"></td>';
     h+='<td><input type="time" data-k="in2" value="'+esc(sv.in2||'')+'"></td>';
@@ -1271,43 +1264,11 @@ function readTsGrid(){
   const days={};
   document.querySelectorAll('#tsBody tr').forEach(tr=>{
     const ds=tr.dataset.date; const o={};
-    tr.querySelectorAll('input,select').forEach(inp=>{ o[inp.dataset.k]=(inp.value||inp.options[inp.selectedIndex]?.value||'').trim(); });
-    if(o.in1||o.out1||o.in2||o.out2||o.in3||o.out3||o.remark||o.type) days[ds]=o;
+    tr.querySelectorAll('input').forEach(inp=>{ o[inp.dataset.k]=(inp.value||'').trim(); });
+    if(o.in1||o.out1||o.in2||o.out2||o.in3||o.out3||o.remark) days[ds]=o;
   });
   return days;
 }
-document.getElementById('tsBody').addEventListener('change',e=>{
-  if(e.target.tagName==='SELECT' && e.target.dataset.k==='type'){
-    const tr=e.target.closest('tr'); if(!tr) return;
-    const type=e.target.value;
-    const inputs=tr.querySelectorAll('input[type=time]');
-    if(type==='sick'){
-      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
-      const remark=tr.querySelector('input[data-k="remark"]');
-      if(remark) remark.value='سكليف';
-    } else if(type==='off'){
-      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
-      const remark=tr.querySelector('input[data-k="remark"]');
-      if(remark) remark.value='غير عملي';
-    } else if(type==='vacation'){
-      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
-      const remark=tr.querySelector('input[data-k="remark"]');
-      if(remark) remark.value='إجازة';
-    } else if(type==='absence'){
-      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
-      const remark=tr.querySelector('input[data-k="remark"]');
-      if(remark) remark.value='غياب';
-    } else if(type==='permit'){
-      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
-      const remark=tr.querySelector('input[data-k="remark"]');
-      if(remark) remark.value='استأذان';
-    } else {
-      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
-      const remark=tr.querySelector('input[data-k="remark"]');
-      if(remark) remark.value='';
-    }
-  }
-});
 async function reloadTs(){ try{ const t=await sb('timesheets'); D.ts=t||[]; }catch(e){ D.ts=D.ts||[]; } renderTs(); }
 document.getElementById('tabVio').onclick=()=>switchView('vio');
 document.getElementById('tabTs').onclick=()=>switchView('ts');
