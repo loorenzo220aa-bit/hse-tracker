@@ -401,21 +401,23 @@
       <div class="field"><label data-i="ts_position">المسمى الوظيفي</label><input id="tsPosition" placeholder="SAFETY OFFICER"></div>
       <div class="field"><label data-i="ts_nationality">الجنسية</label><input id="tsNationality" placeholder="Saudi"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-acc" id="tsFillBtn">🪄 <span data-i="ts_fill">تعبئة افتراضية</span></button>
-      <button class="btn btn-green" id="tsSaveBtn">💾 <span data-i="ts_save">حفظ التايم شيت</span></button></div>
+            <button class="btn btn-green" id="tsSaveBtn">💾 <span data-i="ts_save">حفظ التايم شيت</span></button>
+            <button class="btn btn-red" id="tsZeroBtn">⏱ <span data-i="ts_zero">ضع الصفر</span></button></div>
     </div>
     <div class="frow" style="margin-top:12px;">
       <div><button class="btn btn-green" id="tsExportBtn">📥 <span data-i="ts_export">تصدير التايم شيت Excel</span></button></div>
     </div>
     <div class="tbl-holder" style="margin-top:16px;">
-      <table>
-        <thead><tr>
-          <th data-i="c_date">التاريخ</th><th data-i="ts_day">اليوم</th>
-          <th>IN 1</th><th>OUT 1</th><th>IN 2</th><th>OUT 2</th><th>IN 3</th><th>OUT 3</th>
-          <th data-i="c_note">الملاحظة</th>
-        </tr></thead>
-        <tbody id="tsBody"></tbody>
-      </table>
-    </div>
+          <table>
+            <thead><tr>
+              <th data-i="c_date">التاريخ</th><th data-i="ts_day">اليوم</th>
+              <th data-i="ts_type">النوع</th>
+              <th>IN 1</th><th>OUT 1</th><th>IN 2</th><th>OUT 2</th><th>IN 3</th><th>OUT 3</th>
+              <th data-i="c_note">الملاحظة</th>
+            </tr></thead>
+            <tbody id="tsBody"></tbody>
+          </table>
+        </div>
   </div>
   </div><!-- /viewTs -->
 
@@ -499,16 +501,8 @@
       <div class="field" style="max-width:340px;"><input id="apprSearch" placeholder="بحث..."></div>
       <div><button class="btn btn-green" id="apprExportBtn">📥 <span data-i="appr_export">تصدير</span></button></div>
     </div>
-    <div class="tbl-holder" style="margin-top:14px;">
-      <table>
-        <thead><tr>
-          <th data-i="c_emp">الموظف</th><th data-i="c_num">الرقم الوظيفي</th><th data-i="appr_rot">مجموعة الدوام</th>
-          <th data-i="appr_stat">حالة الابروفل</th><th data-i="c_phone">الهاتف</th><th data-i="appr_aramco">ارامكو</th><th data-i="appr_area">المنطقة</th><th style="width:46px;"></th>
-        </tr></thead>
-        <tbody id="apprBody"></tbody>
-      </table>
-      <div class="hide" id="apprEmpty"></div>
-    </div>
+    <div class="appr-list" id="apprList"></div>
+    <div class="hide" id="apprEmpty"></div>
   </div>
   <div id="apprEditDlg" class="empdlg hide"><div class="empdlg-card"><button class="empdlg-x" id="apprEditX">✕</button><div id="apprEditBody"></div></div></div>
   </div><!-- /viewAppr -->
@@ -633,7 +627,7 @@ const I18N={
     veh_total:'الإجمالي', veh_rows:'المركبات المسجلة', dep_title:'توزيع الأفراد على المناطق',
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
     dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
-    ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
+    ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت', ts_zero:'ضع الصفر', ts_type:'النوع',
     tab_lists:'القوائم (A/B)', lists_title:'القوائم (A/B) — الموظفين بحسب القائمة', lists_desc:'جميع الموظفين مقسومين على قائمة التوزيع (A أو B أو بدون قائمة)', lists_col_area:'المنطقة', lists_col_list:'القائمة', lists_col_emp:'الموظف', lists_col_num:'الرقم الوظيفي', lists_col_dept:'القسم / المهنة', lists_col_rot:'مجموعة الدوام', lists_col_status:'الحالة', lists_empty:'لا توجد توزيعات حتى الآن — ابدأ بحفظ توزيع من تبويب التوزيع ⬆️', lists_export_a:'تصدير قائمة A (Excel)',
         lists_export_b:'تصدير قائمة B (Excel)',
         lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
@@ -683,7 +677,7 @@ const I18N={
     veh_total:'Total', veh_rows:'Logged Vehicles', dep_title:'Area Deployment',
     dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
     dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
-    ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
+    ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet', ts_zero:'Set Zero', ts_type:'Type',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
     list_export_a_done:'✅ List A exported',
     list_export_b_done:'✅ List B exported',
@@ -1235,7 +1229,7 @@ function renderTs(){
   const cur=sel.value; sel.innerHTML='';
   if(!D.emp.length){ const o=document.createElement('option'); o.value=''; o.textContent=T().ts_noemp; sel.appendChild(o);
     document.getElementById('tsBody').innerHTML=''; document.getElementById('tsPeriodLabel').textContent=''; return; }
-  sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
+  sortedEmp().filter(e=>(e.num||'').toUpperCase().replace(/\s/g,'').substring(0,4)!=='HECL').forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
     o.textContent=(LANG==='ar'?(e.ar||e.en):(e.en||e.ar))+' — '+(e.num||''); sel.appendChild(o); });
   if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
   const days=tsPeriodDays();
@@ -1254,9 +1248,20 @@ function loadTsForm(){
   days.forEach(ds=>{
     const d=new Date(ds+'T00:00:00'); const fri=d.getDay()===5;
     const sv=(saved&&saved.days&&saved.days[ds])?saved.days[ds]:{};
+    const types=LANG==='ar'
+      ? [{v:'normal',l:'طبيعي'},{v:'sick',l:'سكليف'},{v:'permit',l:'استأذان'},{v:'absence',l:'غياب'},{v:'vacation',l:'إجازة'},{v:'off',l:'غير عملي'}]
+      : [{v:'normal',l:'Normal'},{v:'sick',l:'Sick'},{v:'permit',l:'Permit'},{v:'absence',l:'Absence'},{v:'vacation',l:'Vacation'},{v:'off',l:'Off'}];
     const tr=document.createElement('tr'); tr.dataset.date=ds;
     let h='<td>'+esc(ds)+'</td><td>'+dn[d.getDay()]+'</td>';
-    ['in1','out1','in2','out2','in3','out3'].forEach(k=>{ h+='<td><input type="time" data-k="'+k+'" value="'+esc(sv[k]||'')+'"></td>'; });
+    h+='<td><select data-k="type" style="min-width:100px;font-size:12px;padding:4px;">';
+    types.forEach(t=>{ h+='<option value="'+t.v+'"'+(sv.type===t.v?' selected':'')+'>'+esc(t.l)+'</option>'; });
+    h+='</select></td>';
+    h+='<td><input type="time" data-k="in1" value="'+esc(sv.in1||'')+'"></td>';
+    h+='<td><input type="time" data-k="out1" value="'+esc(sv.out1||'')+'"></td>';
+    h+='<td><input type="time" data-k="in2" value="'+esc(sv.in2||'')+'"></td>';
+    h+='<td><input type="time" data-k="out2" value="'+esc(sv.out2||'')+'"></td>';
+    h+='<td><input type="time" data-k="in3" value="'+esc(sv.in3||'')+'"></td>';
+    h+='<td><input type="time" data-k="out3" value="'+esc(sv.out3||'')+'"></td>';
     h+='<td><input type="text" data-k="remark" value="'+esc(sv.remark||'')+'" style="min-width:110px;"></td>';
     tr.innerHTML=h;
     if(fri) tr.querySelectorAll('td').forEach(td=>td.classList.add('fri'));
@@ -1267,11 +1272,43 @@ function readTsGrid(){
   const days={};
   document.querySelectorAll('#tsBody tr').forEach(tr=>{
     const ds=tr.dataset.date; const o={};
-    tr.querySelectorAll('input').forEach(inp=>{ o[inp.dataset.k]=(inp.value||'').trim(); });
-    if(o.in1||o.out1||o.in2||o.out2||o.in3||o.out3||o.remark) days[ds]=o;
+    tr.querySelectorAll('input,select').forEach(inp=>{ o[inp.dataset.k]=(inp.value||inp.options[inp.selectedIndex]?.value||'').trim(); });
+    if(o.in1||o.out1||o.in2||o.out2||o.in3||o.out3||o.remark||o.type) days[ds]=o;
   });
   return days;
 }
+document.getElementById('tsBody').addEventListener('change',e=>{
+  if(e.target.tagName==='SELECT' && e.target.dataset.k==='type'){
+    const tr=e.target.closest('tr'); if(!tr) return;
+    const type=e.target.value;
+    const inputs=tr.querySelectorAll('input[type=time]');
+    if(type==='sick'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='سكليف';
+    } else if(type==='off'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='غير عملي';
+    } else if(type==='vacation'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=true; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='إجازة';
+    } else if(type==='absence'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='غياب';
+    } else if(type==='permit'){
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='استأذان';
+    } else {
+      inputs.forEach(inp=>{ inp.value=''; inp.disabled=false; });
+      const remark=tr.querySelector('input[data-k="remark"]');
+      if(remark) remark.value='';
+    }
+  }
+});
 async function reloadTs(){ try{ const t=await sb('timesheets'); D.ts=t||[]; }catch(e){ D.ts=D.ts||[]; } renderTs(); }
 document.getElementById('tabVio').onclick=()=>switchView('vio');
 document.getElementById('tabTs').onclick=()=>switchView('ts');
@@ -1373,6 +1410,13 @@ document.getElementById('tsFillBtn').onclick=()=>{
     if(isAbs){ ['in1','out1','in2','out2','in3','out3'].forEach(k=>set(k,'')); set('remark','Absent'); }
     else if(d.getDay()===5){ ['in1','out1','in2','out2','in3','out3','remark'].forEach(k=>set(k,'')); }
     else{ set('in1','07:00'); set('out1','12:00'); set('in2','13:00'); set('out2','16:00'); set('in3',''); set('out3',''); }
+  });
+};
+document.getElementById('tsZeroBtn').onclick=()=>{
+  document.querySelectorAll('#tsBody tr').forEach(tr=>{
+    ['in1','out1','in2','out2','in3','out3'].forEach(k=>{ const i=tr.querySelector('input[data-k="'+k+'"]'); if(i) i.value='00:00'; });
+    const remark=tr.querySelector('input[data-k="remark"]');
+    if(remark&&!remark.value) remark.value='00:00';
   });
 };
 document.getElementById('tsSaveBtn').onclick=async()=>{
