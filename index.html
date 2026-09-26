@@ -1,4 +1,69 @@
-﻿<!DOCTYPE html>
+<!DOCTYP
+<script>
+// ===== BRAND THEME INITIALIZATION =====
+function initBrandTheme() {
+  if(!document.documentElement.hasAttribute("data-theme") || document.documentElement.getAttribute("data-theme")!=="brand") return;
+  document.querySelectorAll(".global-search, .brand-content, .bottom-nav").forEach(el=>el.style.display="flex");
+  document.querySelector(".tabs")?.style.setProperty("display","none","important");
+  const statsEl=document.getElementById("brandStats");
+  if(statsEl && window.D){
+    statsEl.innerHTML=`
+      <div class="stat-card"><div class="stat-value">${D.emp?.length||0}</div><div class="stat-label" data-i="s_emp">الموظفون المسجلون</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${(D.rec||[]).filter(r=>r.type==="vio" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_vio_m">مخالفات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${(D.rec||[]).filter(r=>r.type==="abs" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_abs_m">غيابات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${(D.rec||[]).filter(r=>r.type==="per" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_per_m">استأذانات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#b45309">${(D.rec||[]).filter(r=>r.type==="wrn" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_wrn_m">إنذارات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${(D.rec||[]).filter(r=>r.type==="sick" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${D.users?.length||0}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
+    `;
+  }
+  const actionsEl=document.getElementById("brandActions");
+  if(actionsEl){
+    actionsEl.innerHTML=`
+      <div class="action-card" data-view="viewVio"><div class="ac-icon">🦺</div><div class="ac-title" data-i="tab_vio">المخالفات والغيابات</div><div class="ac-desc">تسجيل ومتابعة المخالفات</div></div>
+      <div class="action-card" data-view="viewVeh"><div class="ac-icon">🚗</div><div class="ac-title" data-i="tab_veh">السيارات</div><div class="ac-desc">إدارة السيارات واللوحات</div></div>
+      <div class="action-card" data-view="viewAppr"><div class="ac-icon">🛡️</div><div class="ac-title" data-i="tab_appr">اعتمادات ارامكو</div><div class="ac-desc">حالة ابروفل الموظفين</div></div>
+      <div class="action-card" data-view="viewGrp"><div class="ac-icon">🗂️</div><div class="ac-title" data-i="tab_grp">القروبات</div><div class="ac-desc">قروبات الدوام A/B/Daily</div></div>
+      <div class="action-card" data-view="viewDep"><div class="ac-icon">🗺️</div><div class="ac-title" data-i="tab_dep">التوزيع</div><div class="ac-desc">توزيع الموظفين للمناطق</div></div>
+      <div class="action-card" data-view="viewEmp"><div class="ac-icon">👥</div><div class="ac-title" data-i="tab_emp">الموظفين</div><div class="ac-desc">إدارة بيانات الموظفين</div></div>
+      <div class="action-card" data-view="viewTs"><div class="ac-icon">🗓️</div><div class="ac-title" data-i="tab_ts">التايم شيت</div><div class="ac-desc">ساعات العمل والحضور</div></div>
+    `;
+    actionsEl.querySelectorAll(".action-card").forEach(card=>{
+      card.addEventListener("click",()=>switchBrandView(card.dataset.view));
+    });
+  }
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
+    btn.addEventListener("click",()=>switchBrandView(btn.dataset.view));
+  });
+  const gSearch=document.getElementById("globalSearch");
+  if(gSearch){
+    gSearch.addEventListener("input",()=>{ const q=gSearch.value.toLowerCase(); });
+  }
+  applyLang();
+}
+function switchBrandView(viewId) {
+  document.querySelectorAll("#appWrap > div[id^=view]").forEach(v=>v.classList.add("hide"));
+  const target=document.getElementById(viewId);
+  if(target) target.classList.remove("hide");
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.view===viewId);
+  });
+  document.querySelectorAll(".tabs .tab").forEach(btn=>{
+    btn.classList.toggle("active", btn.id==="tab"+viewId.replace("view",""));
+  });
+  const renderMap={viewVio:"renderVio",viewVeh:"renderVeh",viewAppr:"renderAppr",viewGrp:"renderGrp",viewDep:"renderDep",viewEmp:"renderEmp",viewTs:"renderTs"};
+  if(renderMap[viewId] && window[renderMap[viewId]]) window[renderMap[viewId]]();
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const checkBrand=setInterval(()=>{
+    if(document.documentElement.getAttribute("data-theme")==="brand"){
+      clearInterval(checkBrand);
+      setTimeout(initBrandTheme, 100);
+    }
+  }, 100);
+});
+</script>
+
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -489,6 +554,10 @@ try{
         <p data-i="subtitle">هونداي الهندسة والإنشاء | السجل اليومي للموظفين</p>
       </div>
     </div>
+    <!-- بحث عام — يظهر في الثيم البراند فقط -->
+    <div class="global-search" style="display:none;">
+      <input type="search" id="globalSearch" placeholder="ابحث في الموظفين، المخالفات، السيارات..." autocomplete="off">
+    </div>
     <div class="hd-actions">
       <div class="who" id="whoBox">👤 <span id="whoName"></span></div>
       <div class="field hdr-month">
@@ -501,7 +570,11 @@ try{
       <button class="btn hbtn" id="themeBtn" title="الوضع الليلي / النهاري">🌙</button>
     </div>
   </header>
-
+  <!-- Stats Grid + Actions Grid — يظهر في الثيم البراند فقط -->
+  <div class="brand-content" style="display:none;">
+    <div class="stats-grid" id="brandStats"></div>
+    <div class="actions-grid" id="brandActions"></div>
+  </div>
   <div class="tabs">
     <button class="btn tab active" id="tabVio">🦺 <span data-i="tab_vio">المخالفات والغيابات</span></button>
     <button class="btn tab" id="tabVeh">🚗 <span data-i="tab_veh">السيارات</span></button>
@@ -2903,6 +2976,18 @@ window.addEventListener('offline',()=>toast('⚠️ بدون اتصال — تع
 if('serviceWorker' in navigator && (location.protocol==='http:'||location.protocol==='https:')){
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
 }
+  
 </script>
+<!-- Bottom Navigation — يظهر في الثيم البراند فقط -->
+  <nav class="bottom-nav" style="display:none;">
+    <button class="nav-item active" data-view="viewVio"><span class="nav-icon">🦺</span><span>المخالفات</span></button>
+    <button class="nav-item" data-view="viewVeh"><span class="nav-icon">🚗</span><span>السيارات</span></button>
+    <button class="nav-item" data-view="viewAppr"><span class="nav-icon">🛡️</span><span>الاعتمادات</span></button>
+    <button class="nav-item" data-view="viewGrp"><span class="nav-icon">🗂️</span><span>القروبات</span></button>
+    <button class="nav-item" data-view="viewDep"><span class="nav-icon">🗺️</span><span>التوزيع</span></button>
+    <button class="nav-item" data-view="viewEmp"><span class="nav-icon">👥</span><span>الموظفين</span></button>
+    <button class="nav-item" data-view="viewTs"><span class="nav-icon">🗓️</span><span>التايم شيت</span></button>
+  </nav>
+  
 </body>
 </html>
