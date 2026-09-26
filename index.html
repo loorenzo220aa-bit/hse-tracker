@@ -291,13 +291,157 @@
   #settingsDrawer .dr-head .del:hover{background:#fff;color:var(--red);}
   #drawerBody{overflow-y:auto;padding:16px;}
   #drawerBody .card{box-shadow:none;}
+
+  /* ================================================================
+     APP SKIN — تصميم مادي فاتح عصري (Material 3 light)
+     يعمل داخل تطبيق أندرويد فقط (علامة data-app) أو بمعاينة ?app=1
+     الموقع العادي في المتصفح لا يتأثر إطلاقاً.
+     ================================================================ */
+  html[data-app="1"]{
+    --app-bg:#f4f6fa; --app-surface:#ffffff; --app-surface2:#f7f9fc; --app-line:#e6ecf5;
+    --app-txt:#0f172a; --app-mut:#667085; --app-brand:#0284c7; --app-brand-soft:#e0f2fe;
+    --app-shadow:0 1px 2px rgba(16,24,40,.05), 0 12px 30px -20px rgba(16,24,40,.45);
+  }
+  html[data-app="1"][data-theme="dark"]{
+    --app-bg:#0b1120; --app-surface:#111a2e; --app-surface2:#16203a; --app-line:#26324c;
+    --app-txt:#e8eefc; --app-mut:#94a7c4; --app-brand:#38bdf8; --app-brand-soft:#0b2740;
+    --app-shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 30px -20px rgba(0,0,0,.8);
+  }
+  html[data-app="1"] body{background:var(--app-bg); background-image:none;}
+  html[data-app="1"] .bg-blob{display:none;}
+  html[data-app="1"] .wrap{padding:12px 12px 104px;}
+  /* شاشة افتتاحية: سطح هادئ بدل التدرّج */
+  html[data-app="1"] #splash{background:var(--app-bg);}
+  html[data-app="1"] #splash .sp-t{color:var(--app-txt);}
+  html[data-app="1"] #splash .sp-s{color:var(--app-mut);}
+  html[data-app="1"] #splash .sp-bar{background:var(--app-line);}
+  html[data-app="1"] #splash .sp-bar i{background:var(--app-brand);}
+  /* الشريط العلوي: App Bar مضغوط لاصق */
+  html[data-app="1"] header{position:sticky; top:0; z-index:700; border-radius:0; border:none;
+    border-bottom:1px solid var(--app-line); background:rgba(255,255,255,.94);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    padding:10px 12px; margin-bottom:12px; animation:none;
+    box-shadow:0 10px 24px -22px rgba(16,24,40,.9);}
+  html[data-app="1"][data-theme="dark"] header{background:rgba(17,26,46,.94);}
+  html[data-app="1"] .brand .logo{width:118px; height:40px; border-radius:11px; box-shadow:none; padding:5px 8px;}
+  html[data-app="1"] .brand h1{font-size:14.5px;}
+  html[data-app="1"] .brand p{display:none;}
+  html[data-app="1"] .who{background:var(--app-brand-soft); color:var(--app-brand); border-color:transparent;}
+  html[data-app="1"] .btn.hbtn{border-radius:999px; background:var(--app-surface); border:1px solid var(--app-line);
+    box-shadow:none; padding:7px 12px; font-weight:700;}
+  html[data-app="1"] #langBtn{font-size:0;}
+  html[data-app="1"] #langBtn::after{content:'🌐 EN'; font-size:12px; font-weight:800;}
+  html[data-app="1"] .hdr-month input{min-width:118px;}
+  /* شريط تبويبات سفلي (Bottom Navigation) */
+  html[data-app="1"] .tabs{position:fixed; left:0; right:0; bottom:0; z-index:900; margin:0; gap:0; flex-wrap:nowrap;
+    background:rgba(255,255,255,.97); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-top:1px solid var(--app-line); box-shadow:0 -10px 30px -24px rgba(16,24,40,.9);
+    padding:7px 6px calc(7px + env(safe-area-inset-bottom)); overflow-x:auto; scrollbar-width:none;}
+  html[data-app="1"] .tabs::-webkit-scrollbar{display:none;}
+  html[data-app="1"][data-theme="dark"] .tabs{background:rgba(17,26,46,.97);}
+  html[data-app="1"] .tabs .tab{flex:1 0 auto; min-width:52px; max-width:76px; margin:0; padding:7px 2px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    background:transparent; border:none; border-radius:15px; box-shadow:none;
+    font-size:9.5px; font-weight:800; color:var(--app-mut); line-height:1.15;
+    transition:background .15s ease,color .15s ease;}
+  html[data-app="1"] .tabs .tab:hover{transform:none; box-shadow:none; border:none; background:transparent;}
+  html[data-app="1"] .tabs .tab span{max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  html[data-app="1"] .tabs .tab.active{background:var(--app-brand-soft); color:var(--app-brand);
+    border:none; box-shadow:none;}
+  /* التبويبات الفرعية: شرائح (Chips) أفقية */
+  html[data-app="1"] .subtabs{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; gap:8px; margin-bottom:12px;}
+  html[data-app="1"] .subtabs::-webkit-scrollbar{display:none;}
+  html[data-app="1"] .subtabs .subtab{flex:0 0 auto; min-width:0; background:var(--app-surface);
+    border:1px solid var(--app-line); border-radius:999px; padding:8px 16px; font-size:12.5px; box-shadow:none;}
+  html[data-app="1"] .subtabs .subtab.active{background:var(--app-brand); color:#fff; border-color:transparent;
+    box-shadow:0 6px 14px -8px rgba(2,132,199,.9);}
+  /* بطاقات وأسطح */
+  html[data-app="1"] .card, html[data-app="1"] .login-box, html[data-app="1"] .staff-card, html[data-app="1"] .empdlg-card{
+    background:var(--app-surface); border:1px solid var(--app-line); box-shadow:var(--app-shadow); color:var(--app-txt);}
+  html[data-app="1"] .card{border-radius:22px; animation:none;}
+  html[data-app="1"] .card h2 .ic{background:var(--app-brand-soft); border-radius:13px;}
+  html[data-app="1"] .stat{background:var(--app-surface); border:1px solid var(--app-line);
+    border-top:4px solid var(--app-brand); box-shadow:var(--app-shadow); border-radius:20px; animation:none;}
+  html[data-app="1"] .stat:nth-child(2){border-top-color:var(--red);}
+  html[data-app="1"] .stat:nth-child(3){border-top-color:var(--blue);}
+  html[data-app="1"] .stat:nth-child(4){border-top-color:var(--green);}
+  html[data-app="1"] .stat:nth-child(5){border-top-color:var(--purple);}
+  html[data-app="1"] .stat:hover{transform:none; box-shadow:var(--app-shadow);}
+  html[data-app="1"] .dash-box{background:var(--app-surface2); border-color:var(--app-line);}
+  html[data-app="1"] .staff-photo{background:var(--app-brand-soft);}
+  html[data-app="1"] details.coll{background:var(--app-surface2); border-color:var(--app-line);}
+  html[data-app="1"] .empdlg-stat{background:var(--app-surface2);}
+  /* أزرار: حاويات مستديرة (Pills) */
+  html[data-app="1"] .btn{border-radius:999px; background:var(--app-surface); border:1px solid var(--app-line);
+    box-shadow:none; font-weight:800;}
+  html[data-app="1"] .btn:hover{transform:none; box-shadow:0 6px 16px -10px rgba(16,24,40,.6); border-color:var(--app-brand);}
+  html[data-app="1"] .btn-acc{background:var(--app-brand); color:#fff; border:none;
+    box-shadow:0 8px 18px -10px rgba(2,132,199,.9);}
+  html[data-app="1"] .btn-green{background:#059669; border:none;}
+  html[data-app="1"] .btn-red{border:none;}
+  html[data-app="1"] .btn-sm{border-radius:999px;}
+  /* حقول إدخال بطابع Material */
+  html[data-app="1"] input, html[data-app="1"] select, html[data-app="1"] textarea{
+    background:var(--app-surface2); border:1.5px solid var(--app-line); border-radius:14px;}
+  html[data-app="1"] input:focus, html[data-app="1"] select:focus, html[data-app="1"] textarea:focus{
+    border-color:var(--app-brand); background:var(--app-surface); box-shadow:0 0 0 4px rgba(2,132,199,.14);}
+  /* جداول */
+  html[data-app="1"] table{background:var(--app-surface); border:1px solid var(--app-line); border-radius:16px;}
+  html[data-app="1"] th{background:var(--app-surface2); color:var(--app-mut); border-bottom:2px solid var(--app-line);}
+  html[data-app="1"] tr:hover td{background:var(--app-brand-soft);}
+  /* شاشة الدخول */
+  html[data-app="1"] #loginScrim{background:var(--app-bg);
+    background-image:radial-gradient(900px 460px at 50% -140px, rgba(2,132,199,.12), transparent 70%);}
+  html[data-app="1"] .login-box{border-radius:30px; padding:34px 26px; animation:fadeUp .5s ease both;}
+  html[data-app="1"] .login-box input{border-radius:14px;}
+  /* مبدّل القروبات */
+  html[data-app="1"] .grp-seg{background:var(--app-surface2); border-color:var(--app-line); border-radius:999px;}
+  html[data-app="1"] .gseg.active{background:var(--app-brand); box-shadow:none;}
+  /* الدرج الجانبي */
+  html[data-app="1"] #settingsDrawer{background:var(--app-surface);}
+  html[data-app="1"] #settingsDrawer .dr-head{background:var(--app-brand);}
+  html[data-app="1"] #drawerOverlay{background:rgba(15,23,42,.5);}
+  /* التنبيهات فوق الشريط السفلي */
+  html[data-app="1"] .toast{bottom:88px; background:var(--app-txt); color:var(--app-surface); border-radius:16px;}
+  /* زر إظهار/إخفاء كلمة المرور (يعمل في الموقع والتطبيق معاً) */
+  .pw-wrap{position:relative;}
+  .pw-wrap input{padding-inline-end:44px;}
+  .eye-btn{position:absolute; bottom:6px; inset-inline-end:8px; width:34px; height:34px; border:none;
+    background:transparent; cursor:pointer; font-size:16px; border-radius:50%; z-index:3; padding:0; line-height:1;}
+  .eye-btn:hover{background:rgba(2,132,199,.10);}
 </style>
 <script>
-/* حدد السمة قبل رسم الصفحة لتفادي وميض أبيض */
+/* وضع التطبيق + السمة — تُضبط قبل الرسم لتفادي وميض أبيض */
 try{
-  var _t=localStorage.getItem('hse-theme');
-  if(_t==='dark'||(_t===null&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
-    document.documentElement.setAttribute('data-theme','dark');
+  var _root=document.documentElement;
+  var _detectApp=function(){
+    try{ if(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'&&Capacitor.isNativePlatform()) return 'native'; }catch(e){}
+    try{ if(localStorage.getItem('hse-app')==='1') return 'native'; }catch(e){}
+    try{ if(location.search.indexOf('app=1')>-1) return 'preview'; }catch(e){}
+    return false;
+  };
+  var _markApp=function(late){
+    var d=_detectApp(); if(!d) return false;
+    _root.setAttribute('data-app','1');
+    if(d==='native'){ try{ localStorage.setItem('hse-app','1'); }catch(e){} }
+    /* داخل التطبيق: النظام الفاتح افتراضياً ما لم يختر المستخدم الوضع الليلي صراحة */
+    if(late&&d==='native'){ try{ if(localStorage.getItem('hse-theme')===null) _root.removeAttribute('data-theme'); }catch(e){} }
+    return true;
+  };
+  if(_markApp(false)){
+    /* تطبيق: الوضع الليلي فقط إذا اختاره المستخدم يدوياً (لا من إعدادات النظام) */
+    try{ if(localStorage.getItem('hse-theme')==='dark') _root.setAttribute('data-theme','dark'); }catch(e){}
+  }else{
+    /* متصفح عادي: نفس منطق الموقع القديم */
+    try{
+      var _t=localStorage.getItem('hse-theme');
+      if(_t==='dark'||(_t===null&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
+        _root.setAttribute('data-theme','dark');
+      }
+    }catch(e){}
+    var _re=function(){ _markApp(true); };
+    document.addEventListener('DOMContentLoaded',_re);
+    window.addEventListener('load',function(){ _re(); setTimeout(_re,600); setTimeout(_re,2200); });
   }
 }catch(e){}
 </script>
@@ -320,7 +464,7 @@ try{
     <h1 data-i="login_title">تسجيل الدخول</h1>
     <p class="lg-sub" data-i="login_sub">نظام متابعة HSE — هونداي الهندسة والإنشاء</p>
     <div class="field"><label data-i="l_user">اسم المستخدم</label><input id="lgUser" autocomplete="username"></div>
-    <div class="field"><label data-i="l_pass">كلمة المرور</label><input type="password" id="lgPass" autocomplete="current-password"></div>
+    <div class="field pw-wrap"><label data-i="l_pass">كلمة المرور</label><input type="password" id="lgPass" autocomplete="current-password"><button type="button" id="lgEye" class="eye-btn" title="إظهار/إخفاء كلمة المرور" aria-label="إظهار كلمة المرور">👁</button></div>
     <button class="btn btn-acc" id="lgBtn" style="width:100%;margin-top:4px;" data-i="login">دخول</button>
     <div class="login-err" id="lgErr"></div>
   </div>
@@ -747,13 +891,22 @@ function sha256Hex(str){
   }
   return H.map(x=>x.toString(16).padStart(8,'0')).join('');
 }
-function hashPass(p){ return 'h$'+PWD_SALT+'$'+sha256Hex(PWD_SALT+'::'+String(p??'')); }
+/* توحيد صيغة النص: أرقام عربية/فارسية ← إنجليزية + NFC
+   يمنع رفض كلمة صحيحة كُتبت بلوحة مفاتيح عربية (١٢٣ بدل 123) */
+function normCred(s){
+  s=String(s==null?'':s);
+  if(s.normalize){ try{ s=s.normalize('NFC'); }catch(e){} }
+  return s.replace(/[\u0660-\u0669]/g,function(d){ return String(d.charCodeAt(0)-0x0660); })
+          .replace(/[\u06F0-\u06F9]/g,function(d){ return String(d.charCodeAt(0)-0x06F0); });
+}
+function normUser(s){ return normCred(s).trim().toLowerCase(); }
+function hashPass(p,raw){ return 'h$'+PWD_SALT+'$'+sha256Hex(PWD_SALT+'::'+(raw?String(p==null?'':p):normCred(p))); }
 function isHashed(p){ return typeof p==='string' && p.indexOf('h$'+PWD_SALT+'$')===0; }
 /* يقبل كلمة المرور المخزَّنة (مشفّرة أو نصية قديمة) ويعيد الترميز تلقائياً */
 function passMatch(user, pass){
   if(!user) return false;
-  if(isHashed(user.pass)) return user.pass===hashPass(pass);
-  return user.pass===pass; // سجلات قديمة غير مشفّرة — تُرقّى عند أول دخول ناجح
+  if(isHashed(user.pass)) return user.pass===hashPass(pass) || user.pass===hashPass(pass,true);
+  return user.pass===pass || user.pass===normCred(pass); // سجلات قديمة غير مشفّرة — تُرقّى عند أول دخول ناجح
 }
 async function upgradePass(user){
   if(!user || isHashed(user.pass)) return false;
@@ -770,7 +923,7 @@ const SB_H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-T
 async function sb(table, method='GET', body=null, qs='') {
   let url = SB_URL + '/rest/v1/' + table + qs;
   let opts = { method, headers: Object.assign({}, SB_H) };
-  if (method === 'GET') delete opts.headers.Prefer;
+  if (method === 'GET') { delete opts.headers.Prefer; opts.cache = 'no-store'; }
   if (body) opts.body = JSON.stringify(body);
   try {
     const controller = new AbortController();
@@ -852,6 +1005,9 @@ const I18N={
     type_vio:'مخالفة', type_abs:'غياب', type_per:'استئذان', type_oth:'أخرى',
     thisMonth:'الشهر الحالي', askDel:'حذف هذا السجل؟', err_emp:'اختر موظفاً', err_note:'اكتب ملاحظة',
     emp_placeholder:'اختر موظف...', admin:'مدير', logout:'خروج', err_login:'اسم المستخدم أو كلمة المرور غير صحيحة',
+    err_noUser:'اسم المستخدم غير موجود',
+    err_wrongPass:'كلمة المرور غير صحيحة — تأكد منها (أو اضغط 👁 لعرضها)',
+    err_conn:'تعذّر الوصول للخادم — تحقق من اتصال الإنترنت ثم أعد المحاولة',
     err_userExists:'اسم المستخدم موجود مسبقاً', err_fill:'أكمل جميع الحقول',
     mig_btn:'🔒 تشفير كلمات المرور', mig_ok:'تم تشفير كلمات المرور', mig_none:'كل كلمات المرور مشفّرة مسبقاً',
     tab_grp:'القروبات', grp_title:'قروبات الدوام (A / B / Daily)',
@@ -914,6 +1070,9 @@ const I18N={
     type_vio:'Violation', type_abs:'Absence', type_per:'Permit', type_oth:'Other',
     thisMonth:'Current Month', askDel:'Delete this record?', err_emp:'Select an employee', err_note:'Write a note',
     emp_placeholder:'Select employee...', admin:'Admin', logout:'Logout', err_login:'Incorrect username or password',
+    err_noUser:'Username not found',
+    err_wrongPass:'Incorrect password — check it (or tap 👁 to reveal)',
+    err_conn:'Cannot reach the server — check your internet and retry',
     err_userExists:'Username already exists', err_fill:'Fill all fields',
     mig_btn:'🔒 Hash passwords', mig_ok:'Passwords encrypted', mig_none:'All passwords already encrypted',
     tab_grp:'Groups', grp_title:'Duty Groups (A / B / Daily)',
@@ -1071,13 +1230,13 @@ document.getElementById('userBody').addEventListener('click',async e=>{
 
 /* ============ LOGIN ============ */
 async function doLogin(){
-  const user=document.getElementById('lgUser').value.trim().toLowerCase();
+  const user=normUser(document.getElementById('lgUser').value);
   const pass=document.getElementById('lgPass').value;
   const errEl=document.getElementById('lgErr');
   const btn=document.getElementById('lgBtn');
   errEl.textContent=''; btn.textContent='⏳...'; btn.disabled=true;
   // Check in-memory users FIRST (instant)
-  const found=D.users.find(u=>u.user===user && passMatch(u,pass));
+  const found=D.users.find(u=>normUser(u.user)===user && passMatch(u,pass));
   if(found){
     SESSION=user;
     upgradePass(found); // سجل قديم غير مشفّر ← يُرقّى تلقائياً
@@ -1096,14 +1255,18 @@ async function doLogin(){
     renderAuthUI(); applyLang();
     return;
   }
-  // Try Supabase as fallback
+  // Try Supabase as fallback — وحدّد سبب الرفض بدقة (غلط كلمة المرور / اسم غير موجود / انقطاع)
+  let users=null;
   try{
-    const users = await Promise.race([
-      sb('users','GET',null,'?username=eq.'+encodeURIComponent(user)),
+    users = await Promise.race([
+      sb('users','GET',null,'?username=ilike.'+encodeURIComponent(user)),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
     ]);
+  }catch(e){ console.warn('SB login fallback:', e.message); users=null; }
+  if(users){
     const mapped=(users||[]).map(u=>({id:u.id,name:u.name,user:u.username||u.user,pass:u.password||u.pass,role:u.role}));
-    const hit=mapped.find(u=>u.user===user && passMatch(u,pass));
+    const row=mapped.find(u=>normUser(u.user)===user);
+    const hit=row && passMatch(row,pass);
     if(hit){
       SESSION=user;
       D.users=mapped;
@@ -1123,19 +1286,38 @@ async function doLogin(){
       renderAuthUI(); applyLang();
       return;
     }
-  }catch(e){ console.warn('SB login fallback:', e.message); }
-  // Not found
+    // الخادم ردّ: الحساب موجود لكن كلمة المرور لا تطابق — أو الاسم غير مسجّل أصلاً
+    btn.textContent=T().login; btn.disabled=false;
+    errEl.textContent = row ? T().err_wrongPass : T().err_noUser;
+    return;
+  }
+  // لا ردّ من الخادم: نميّز بين كلمة خاطئة (معلومة من الذاكرة) وانقطاع الاتصال
+  const mem=D.users.find(u=>normUser(u.user)===user);
   btn.textContent=T().login; btn.disabled=false;
-  errEl.textContent=T().err_login;
+  errEl.textContent = (mem && !passMatch(mem,pass)) ? T().err_wrongPass : T().err_conn;
 }
 document.getElementById('lgBtn').onclick=doLogin;
 document.getElementById('lgPass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 document.getElementById('lgUser').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('lgPass').focus(); });
+/* زر إظهار/إخفاء كلمة المرور — لرؤية ما يُكتب فعلياً (يمنع أخطاء الكتابة الخفيّة) */
+(function(){
+  const eye=document.getElementById('lgEye'), inp=document.getElementById('lgPass');
+  if(!eye||!inp) return;
+  eye.onclick=()=>{ const show=inp.type==='password'; inp.type=show?'text':'password';
+    eye.textContent=show?'🙈':'👁'; try{ inp.focus(); }catch(e){} };
+})();
+/* داخل التطبيق: العودة لأعلى عند تبديل أي تبويب (الشريط السفلي ثابت) */
+document.addEventListener('click',e=>{
+  try{
+    if(!document.documentElement.hasAttribute('data-app')) return;
+    if(e.target && e.target.closest && e.target.closest('.tabs .tab')) window.scrollTo({top:0,behavior:'smooth'});
+  }catch(err){}
+});
 function doLogout(){ SESSION=null; document.getElementById('lgPass').value=''; renderAuthUI(); applyLang(); }
 function buildLogout(){
   const hd=document.querySelector('.hd-actions');
   if(document.getElementById('logoutBtn')) return;
-  const b=document.createElement('button'); b.id='logoutBtn'; b.className='btn btn-sm hbtn';
+  const b=document.createElement('button'); b.id="logoutBtn"; b.className='btn btn-sm hbtn';
   b.style.cssText='background:var(--red);color:#fff;border:none;';
   b.textContent='⇥ '+T().logout; b.onclick=doLogout; hd.appendChild(b);
 }
