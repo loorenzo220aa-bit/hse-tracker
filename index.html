@@ -418,7 +418,166 @@
     background:rgba(244,246,250,.88); border-radius:0;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='%230284c7'%3E%3Ccircle cx='24' cy='24' r='20' stroke='%230284c7' stroke-width='4' stroke-dasharray='31 12' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 24 24' to='360 24 24' dur='1s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:center; background-size:48px;}
-</style>
+
+/* ===== هوية هونداي (Brand Theme) — يُفعّل فقط عبر ?theme=brand ===== */
+html[data-theme="brand"]{
+  --brand-1:#0ea5e9; --brand-2:#14b8a6; --brand-3:#10b981;
+  --brand-grad:linear-gradient(135deg,#0ea5e9 0%,#14b8a6 55%,#10b981 100%);
+  --brand-glass:rgba(255,255,255,.75);
+}
+html[data-theme="brand"] body{
+  background:
+    radial-gradient(1000px 500px at 92% -10%, rgba(14,165,233,.20), transparent 60%),
+    radial-gradient(900px 520px at -5% 105%, rgba(16,185,129,.18), transparent 60%),
+    linear-gradient(160deg,#eff9ff 0%,#eafdf6 50%,#f3fdf7 100%);
+  background-attachment:fixed;
+}
+html[data-theme="brand"] .bg-blob{opacity:.35; filter:blur(60px);}
+
+/* — الهيدر الزجاجي المتدرّج — */
+html[data-theme="brand"] header{
+  background:linear-gradient(135deg, rgba(14,165,233,.14), rgba(16,185,129,.14));
+  backdrop-filter:blur(16px) saturate(140%);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  border:1px solid rgba(255,255,255,.85);
+  box-shadow:0 12px 34px rgba(2,132,199,.14);
+  border-radius:24px; position:relative; overflow:hidden;
+}
+html[data-theme="brand"] header::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:4px;
+  background:var(--brand-grad);
+}
+html[data-theme="brand"] .brand h1{
+  background:var(--brand-grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+/* — البحث العام — */
+html[data-theme="brand"] .global-search{flex:1 1 240px; min-width:200px;}
+html[data-theme="brand"] .global-search input{
+  width:100%; padding:12px 18px; border-radius:999px;
+  border:1px solid rgba(14,165,233,.28);
+  background:rgba(255,255,255,.92); font-size:14px; color:var(--txt);
+  box-shadow:inset 0 1px 3px rgba(2,132,199,.08); transition:.2s;
+}
+html[data-theme="brand"] .global-search input:focus{
+  outline:none; border-color:var(--brand-1);
+  box-shadow:0 0 0 4px rgba(14,165,233,.16);
+}
+html[data-theme="brand"] .global-search input::placeholder{color:#94a3b8;}
+
+/* — منطقة المحتوى الجديد — */
+html[data-theme="brand"] .brand-content{flex-direction:column; gap:18px; margin-bottom:18px;}
+
+/* — شبكة الإحصاءات — */
+html[data-theme="brand"] .stats-grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;
+}
+html[data-theme="brand"] .stat-card{
+  background:var(--brand-glass);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.9);
+  border-top:4px solid var(--brand-1);
+  border-radius:22px; padding:18px 12px; text-align:center;
+  box-shadow:0 8px 24px rgba(2,132,199,.10);
+  animation:fadeUp .5s ease both;
+}
+html[data-theme="brand"] .stats-grid .stat-card:nth-child(1){border-top-color:#0ea5e9; animation-delay:.04s;}
+html[data-theme="brand"] .stats-grid .stat-card:nth-child(2){border-top-color:#f43f5e; animation-delay:.08s;}
+html[data-theme="brand"] .stats-grid .stat-card:nth-child(3){border-top-color:#3b82f6; animation-delay:.12s;}
+html[data-theme="brand"] .stats-grid .stat-card:nth-child(4){border-top-color:#10b981; animation-delay:.16s;}
+html[data-theme="brand"] .stats-grid .stat-card:nth-child(5){border-top-color:#f59e0b; animation-delay:.20s;}
+html[data-theme="brand"] .stats-grid .stat-card:nth-child(6){border-top-color:#14b8a6; animation-delay:.24s;}
+html[data-theme="brand"] .stats-grid .stat-card:nth-child(7){border-top-color:#8b5cf6; animation-delay:.28s;}
+html[data-theme="brand"] .stat-card .stat-value{font-size:30px; font-weight:800; line-height:1.25;}
+html[data-theme="brand"] .stat-card .stat-label{font-size:13px; color:var(--mut); font-weight:600; margin-top:6px;}
+
+/* — بطاقات الإجراءات الكبيرة — */
+html[data-theme="brand"] .actions-grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px;
+}
+html[data-theme="brand"] .action-card{
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.95);
+  border-radius:24px; padding:22px 18px;
+  display:flex; flex-direction:column; gap:8px; cursor:pointer;
+  box-shadow:0 10px 26px rgba(2,132,199,.10);
+  transition:transform .18s ease, box-shadow .18s ease;
+  animation:fadeUp .55s ease both;
+}
+html[data-theme="brand"] .action-card:hover{transform:translateY(-6px); box-shadow:0 18px 40px rgba(2,132,199,.18);}
+html[data-theme="brand"] .action-card:active{transform:translateY(-2px);}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(1){animation-delay:.05s;}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(2){animation-delay:.10s;}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(3){animation-delay:.15s;}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(4){animation-delay:.20s;}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(5){animation-delay:.25s;}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(6){animation-delay:.30s;}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(7){animation-delay:.35s;}
+html[data-theme="brand"] .action-card .ac-icon{
+  width:54px; height:54px; border-radius:16px; display:grid; place-items:center;
+  font-size:26px; background:var(--brand-grad);
+  box-shadow:0 8px 18px rgba(16,185,129,.30);
+}
+html[data-theme="brand"] .action-card .ac-title{font-size:17px; font-weight:800; color:var(--txt);}
+html[data-theme="brand"] .action-card .ac-desc{font-size:13px; color:var(--mut);}
+
+/* — إخفاء التبويبات القديمة — */
+html[data-theme="brand"] .tabs{display:none !important;}
+
+/* — الشريط السفلي الثابت — */
+html[data-theme="brand"] .bottom-nav{
+  position:fixed; left:12px; right:12px;
+  bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  z-index:900; display:flex; gap:6px; justify-content:space-around;
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(18px) saturate(160%);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:22px; padding:8px;
+  box-shadow:0 14px 40px rgba(2,132,199,.20);
+}
+html[data-theme="brand"] .bottom-nav .nav-item{
+  flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  background:transparent; border:none; border-radius:16px; padding:8px 4px;
+  font-size:11px; font-weight:700; color:var(--mut); cursor:pointer;
+  min-height:54px; transition:background .18s, color .18s;
+}
+html[data-theme="brand"] .bottom-nav .nav-item .nav-icon{font-size:20px; line-height:1;}
+html[data-theme="brand"] .bottom-nav .nav-item:hover{background:rgba(14,165,233,.10); color:var(--acc2);}
+html[data-theme="brand"] .bottom-nav .nav-item.active{
+  background:var(--brand-grad); color:#fff;
+  box-shadow:0 8px 18px rgba(16,185,129,.35);
+}
+html[data-theme="brand"] #appWrap{padding-bottom:104px;}
+
+/* — تسجيل الدخول — */
+html[data-theme="brand"] #loginScrim{background:linear-gradient(150deg,#e0f2fe 0%,#ccfbf1 50%,#d1fae5 100%);}
+html[data-theme="brand"] .login-box{
+  border-radius:28px; border-top:5px solid transparent;
+  background:
+    linear-gradient(rgba(255,255,255,.94),rgba(255,255,255,.94)) padding-box,
+    var(--brand-grad) border-box;
+  box-shadow:0 24px 60px rgba(2,132,199,.20);
+}
+
+/* — استجابة الجوال — */
+@media(max-width:640px){
+  html[data-theme="brand"] header{border-radius:20px; padding:14px;}
+  html[data-theme="brand"] .stats-grid{grid-template-columns:repeat(2,1fr); gap:10px;}
+  html[data-theme="brand"] .stat-card .stat-value{font-size:26px;}
+  html[data-theme="brand"] .actions-grid{grid-template-columns:1fr 1fr; gap:12px;}
+  html[data-theme="brand"] .action-card{padding:16px 14px; border-radius:20px;}
+  html[data-theme="brand"] .action-card .ac-icon{width:46px; height:46px; font-size:22px;}
+  html[data-theme="brand"] .action-card .ac-title{font-size:15px;}
+  html[data-theme="brand"] .bottom-nav{left:8px; right:8px; padding:6px; border-radius:20px;}
+  html[data-theme="brand"] .bottom-nav .nav-item{font-size:10px; min-height:50px;}
+}
+@media(max-width:430px){
+  html[data-theme="brand"] .actions-grid{grid-template-columns:1fr;}
+  html[data-theme="brand"] .stats-grid{grid-template-columns:repeat(2,1fr);}
+}
+  </style>
 <script>
 /* وضع التطبيق + السمة — تُضبط قبل الرسم لتفادي وميض أبيض */
 try{
