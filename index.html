@@ -441,12 +441,12 @@ html[data-theme="brand"] header{
   -webkit-backdrop-filter:blur(16px) saturate(140%);
   border:1px solid rgba(255,255,255,.85);
   box-shadow:0 12px 34px rgba(2,132,199,.14);
-  border-radius:24px; position:relative; overflow:hidden;
+  border-radius:24px; position:relative; z-index:600;
 }
 html[data-theme="brand"] header::before{
   content:""; position:absolute; top:0; left:0; right:0; height:4px;
   background:var(--brand-grad);
-}
+ border-radius:24px 24px 0 0;}
 html[data-theme="brand"] .brand h1{
   background:var(--brand-grad); -webkit-background-clip:text; background-clip:text; color:transparent;
 }
@@ -577,7 +577,42 @@ html[data-theme="brand"] .login-box{
   html[data-theme="brand"] .actions-grid{grid-template-columns:1fr;}
   html[data-theme="brand"] .stats-grid{grid-template-columns:repeat(2,1fr);}
 }
-  </style>
+  /* — بحث عام: نتائج فورية — */
+html[data-theme="brand"] .global-search{position:relative;}
+html[data-theme="brand"] .gs-results{
+  display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:980;
+  background:rgba(255,255,255,.97); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(14,165,233,.25); border-radius:18px;
+  box-shadow:0 18px 44px rgba(2,132,199,.22); max-height:60vh; overflow-y:auto;
+}
+html[data-theme="brand"] .gs-results.show{display:block;}
+html[data-theme="brand"] .gs-item{
+  display:flex; align-items:center; gap:10px; width:100%; padding:11px 14px;
+  background:transparent; border:none; border-bottom:1px solid rgba(226,232,240,.75);
+  cursor:pointer; text-align:right; font-size:14px; color:var(--txt); transition:background .15s;
+}
+html[data-theme="brand"] .gs-item:last-child{border-bottom:none;}
+html[data-theme="brand"] .gs-item:hover,
+html[data-theme="brand"] .gs-item:focus-visible{
+  background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(16,185,129,.12)); outline:none;
+}
+html[data-theme="brand"] .gs-item .gs-ic{font-size:18px; line-height:1;}
+html[data-theme="brand"] .gs-item .gs-txt{display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0; text-align:right;}
+html[data-theme="brand"] .gs-item .gs-txt b{font-weight:800; font-size:14px;}
+html[data-theme="brand"] .gs-item .gs-txt i{
+  font-style:normal; font-size:12px; color:var(--mut); max-width:100%;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+html[data-theme="brand"] .gs-empty{padding:14px; text-align:center; color:var(--mut); font-size:13px;}
+/* بطاقة الإجراء النشطة */
+html[data-theme="brand"] .action-card.active{
+  border-color:rgba(14,165,233,.55); transform:translateY(-5px);
+  box-shadow:0 18px 40px rgba(2,132,199,.24);
+}
+@media(max-width:640px){
+  html[data-theme="brand"] header::before{border-radius:20px 20px 0 0;}
+}
+</style>
 <script>
 /* وضع التطبيق + السمة — تُضبط قبل الرسم لتفادي وميض أبيض */
 try{
@@ -596,25 +631,35 @@ try{
     _root.setAttribute('data-app','1');
     if(d==='native'){ try{ localStorage.setItem('hse-app','1'); }catch(e){} }
     /* داخل التطبيق: النظام الفاتح افتراضياً ما لم يختر المستخدم الوضع الليلي صراحة */
-    if(late&&d==='native'){ try{ if(localStorage.getItem('hse-theme')===null) _root.removeAttribute('data-theme'); }catch(e){} }
+    if(late&&d==='native'){ try{ var _tl=localStorage.getItem('hse-theme'); if(_tl===null||_tl==='light'||_tl==='brand'){ _root.setAttribute('data-theme','brand'); } }catch(e){} }
     return true;
   };
+  var _stored=null; try{ _stored=localStorage.getItem('hse-theme'); }catch(e){}
+  _markApp(false);   /* يضبط data-app قبل الرسم مهما كان الثيم */
+  var _detectClassic=function(){
+    try{ return location.search.indexOf('theme=classic')>-1; }catch(e){ return false; }
+  };
   if(_detectBrand()){
+    /* ?theme=brand يفرض الهوية مهما كان اختيار المستخدم */
     _root.setAttribute('data-theme','brand');
-  }else if(_markApp(false)){
-    try{ if(localStorage.getItem('hse-theme')==='dark') _root.setAttribute('data-theme','dark'); }catch(e){}
-  }else{
-    /* متصفح عادي: نفس منطق الموقع القديم */
+  }else if(_detectClassic()){
+    /* ?theme=classic → التصميم القديم كما كان تماماً */
     try{
-      var _t=localStorage.getItem('hse-theme');
-      if(_t==='dark'||(_t===null&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
+      if(_stored==='dark'||(_stored===null&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
         _root.setAttribute('data-theme','dark');
       }
     }catch(e){}
-    var _re=function(){ _markApp(true); };
-    document.addEventListener('DOMContentLoaded',_re);
-    window.addEventListener('load',function(){ _re(); setTimeout(_re,600); setTimeout(_re,2200); });
+  }else if(_stored==='dark'){
+    /* المستخدم اختار الوضع الليلي صراحةً */
+    _root.setAttribute('data-theme','dark');
+  }else{
+    /* الافتراضي الجديد: هوية هونداي (الموقع + التطبيق) */
+    _root.setAttribute('data-theme','brand');
   }
+  var _re=function(){ _markApp(true); };
+  document.addEventListener('DOMContentLoaded',_re);
+  window.addEventListener('load',function(){ _re(); setTimeout(_re,600); setTimeout(_re,2200); });
+
 }catch(e){}
 </script>
 </head>
@@ -655,6 +700,7 @@ try{
     <!-- بحث عام — يظهر في الثيم البراند فقط -->
     <div class="global-search" style="display:none;">
       <input type="search" id="globalSearch" placeholder="ابحث في الموظفين، المخالفات، السيارات..." autocomplete="off">
+          <div class="gs-results" id="gsResults"></div>
     </div>
     <div class="hd-actions">
       <div class="who" id="whoBox">👤 <span id="whoName"></span></div>
@@ -1676,6 +1722,8 @@ function renderStats(){
   document.getElementById('statPer').textContent=cnt('permission');
   document.getElementById('statWrn').textContent=cnt('warning');
   document.getElementById('statSick').textContent=cnt('sick');
+  /* تحديث شبكة إحصاءات الهوية عند توفرها */
+  try{ if(typeof renderBrandStats==='function') renderBrandStats(); }catch(e){}
   renderDash();
 }
 
@@ -1881,19 +1929,23 @@ document.getElementById('monthPicker').onchange=()=>{
 document.getElementById('langBtn').onclick=()=>{ LANG=LANG==='ar'?'en':'ar'; applyLang(); };
 
 /* ============ THEME (light / dark) ============ */
-function currentTheme(){ return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light'; }
+function currentTheme(){ return document.documentElement.getAttribute('data-theme')==='dark'?'dark':'brand'; }
 function paintThemeBtn(){
   const b=document.getElementById('themeBtn'); if(!b) return;
   const dark=currentTheme()==='dark';
   b.textContent=dark?'☀️':'🌙';
-  b.title=dark ? (LANG==='ar'?'الوضع النهاري':'Light mode') : (LANG==='ar'?'الوضع الليلي':'Dark mode');
+  b.title=dark ? (LANG==='ar'?'عرض هوية هونداي (نهاري)':'Brand (light mode)') : (LANG==='ar'?'الوضع الليلي':'Dark mode');
 }
 document.getElementById('themeBtn').onclick=()=>{
-  const next=currentTheme()==='dark'?'light':'dark';
-  if(next==='dark') document.documentElement.setAttribute('data-theme','dark');
-  else document.documentElement.removeAttribute('data-theme');
+  const next=currentTheme()==='dark'?'brand':'dark';
+  document.documentElement.setAttribute('data-theme',next);
   try{ localStorage.setItem('hse-theme',next); }catch(e){}
   paintThemeBtn();
+  /* إعادة ترتيب عناصر الهوية عند التبديل */
+  try{
+    if(next==='brand'){ if(typeof initBrandTheme==='function') initBrandTheme(); }
+    else if(typeof applyBrandMode==='function') applyBrandMode();
+  }catch(e){}
 };
 paintThemeBtn();
 
@@ -3089,35 +3141,53 @@ if('serviceWorker' in navigator && (location.protocol==='http:'||location.protoc
   
 
 <script>
-// ===== BRAND THEME INITIALIZATION =====
-function initBrandTheme() {
-  if(!document.documentElement.hasAttribute("data-theme") || document.documentElement.getAttribute("data-theme")!=="brand") return;
-  document.querySelectorAll(".global-search, .brand-content, .bottom-nav").forEach(el=>el.style.display="flex");
-  document.querySelector(".tabs")?.style.setProperty("display","none","important");
-  const renderBrandStats=function(){
-    const statsEl=document.getElementById("brandStats");
-    if(!statsEl || typeof D==='undefined') return false;
-    statsEl.innerHTML=`
-      <div class="stat-card"><div class="stat-value">${D.emp?.length||0}</div><div class="stat-label" data-i="s_emp">الموظفون المسجلون</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${(D.rec||[]).filter(r=>r.type==="vio" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_vio_m">مخالفات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${(D.rec||[]).filter(r=>r.type==="abs" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_abs_m">غيابات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${(D.rec||[]).filter(r=>r.type==="per" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_per_m">استأذانات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:#b45309">${(D.rec||[]).filter(r=>r.type==="wrn" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_wrn_m">إنذارات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${(D.rec||[]).filter(r=>r.type==="sick" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${D.users?.length||0}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
-    `;
-    return true;
-  };
-  let stTries=0;
-  const stTimer=setInterval(function(){
-    const ok=renderBrandStats();
-    const hasData=(typeof D!=='undefined')&&D.emp&&D.emp.length;
-    if((ok&&hasData)||++stTries>60) clearInterval(stTimer);
-  },1500);
-  renderBrandStats();
+// ===== هوية هونداي (Brand Theme) — التصميم الافتراضي للموقع والتطبيق =====
+let brandBuilt=false, brandStatsTimer=null;
+function brandModeOn(){ return document.documentElement.getAttribute("data-theme")==="brand"; }
+
+/* إظهار/إخفاء عناصر الهوية حسب الثيم الحالي */
+function applyBrandMode(){
+  const on=brandModeOn();
+  document.querySelectorAll(".global-search, .brand-content, .bottom-nav").forEach(el=>{ el.style.display = on ? "flex" : "none"; });
+  const tabs=document.querySelector(".tabs");
+  if(tabs){ if(on){ tabs.style.setProperty("display","none","important"); } else { tabs.style.removeProperty("display"); } }
+  const box=document.getElementById("gsResults"); if(box && !on) box.classList.remove("show");
+  if(on){
+    const cur=document.querySelector("#appWrap > div[id^=view]:not(.hide)");
+    setBrandActive(cur ? cur.id : "viewVio");
+    renderBrandStats();
+  }
+}
+
+function setBrandActive(viewId){
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(b=>b.classList.toggle("active", b.dataset.view===viewId));
+  document.querySelectorAll(".action-card").forEach(c=>c.classList.toggle("active", c.dataset.view===viewId));
+}
+
+/* شبكة الإحصاءات — تتحدّث تلقائياً مع renderStats() */
+function renderBrandStats(){
+  if(!brandModeOn()) return false;
+  const el=document.getElementById("brandStats"); if(!el || typeof D==='undefined') return false;
+  const m=curMonth(), recs=(D.rec||[]);
+  const cnt=t=>recs.filter(r=>r.type===t && (r.date||'').startsWith(m)).length;
+  el.innerHTML=`
+      <div class="stat-card"><div class="stat-value">${(D.emp||[]).length}</div><div class="stat-label" data-i="s_emp">الموظفون المسجلون</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${cnt('violation')}</div><div class="stat-label" data-i="s_vio_m">مخالفات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${cnt('absence')}</div><div class="stat-label" data-i="s_abs_m">غيابات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${cnt('permission')}</div><div class="stat-label" data-i="s_per_m">استأذانات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#b45309">${cnt('warning')}</div><div class="stat-label" data-i="s_wrn_m">إنذارات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${cnt('sick')}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${(D.users||[]).length}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
+  `;
+  return true;
+}
+
+/* بطاقات الإجراءات (تُبنى مرة واحدة) */
+function buildBrandActions(){
   const actionsEl=document.getElementById("brandActions");
-  if(actionsEl){
-    actionsEl.innerHTML=`
+  if(!actionsEl || actionsEl.dataset.built) return;
+  actionsEl.dataset.built="1";
+  actionsEl.innerHTML=`
       <div class="action-card" data-view="viewVio"><div class="ac-icon">🦺</div><div class="ac-title" data-i="tab_vio">المخالفات والغيابات</div><div class="ac-desc">تسجيل ومتابعة المخالفات</div></div>
       <div class="action-card" data-view="viewVeh"><div class="ac-icon">🚗</div><div class="ac-title" data-i="tab_veh">السيارات</div><div class="ac-desc">إدارة السيارات واللوحات</div></div>
       <div class="action-card" data-view="viewAppr"><div class="ac-icon">🛡️</div><div class="ac-title" data-i="tab_appr">اعتمادات ارامكو</div><div class="ac-desc">حالة ابروفل الموظفين</div></div>
@@ -3125,41 +3195,94 @@ function initBrandTheme() {
       <div class="action-card" data-view="viewDep"><div class="ac-icon">🗺️</div><div class="ac-title" data-i="tab_dep">التوزيع</div><div class="ac-desc">توزيع الموظفين للمناطق</div></div>
       <div class="action-card" data-view="viewEmp"><div class="ac-icon">👥</div><div class="ac-title" data-i="tab_emp">الموظفين</div><div class="ac-desc">إدارة بيانات الموظفين</div></div>
       <div class="action-card" data-view="viewTs"><div class="ac-icon">🗓️</div><div class="ac-title" data-i="tab_ts">التايم شيت</div><div class="ac-desc">ساعات العمل والحضور</div></div>
-    `;
-    actionsEl.querySelectorAll(".action-card").forEach(card=>{
-      card.addEventListener("click",()=>switchBrandView(card.dataset.view));
-    });
-  }
+  `;
+  actionsEl.querySelectorAll(".action-card").forEach(card=>{
+    card.addEventListener("click",()=>switchBrandView(card.dataset.view));
+  });
+}
+
+function bindBrandNav(){
   document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
+    if(btn.dataset.bound) return; btn.dataset.bound="1";
     btn.addEventListener("click",()=>switchBrandView(btn.dataset.view));
   });
-  const gSearch=document.getElementById("globalSearch");
-  if(gSearch){
-    gSearch.addEventListener("input",()=>{ const q=gSearch.value.toLowerCase(); });
-  }
-  applyLang();
 }
-function switchBrandView(viewId) {
-  document.querySelectorAll("#appWrap > div[id^=view]").forEach(v=>v.classList.add("hide"));
-  const target=document.getElementById(viewId);
-  if(target) target.classList.remove("hide");
-  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
-    btn.classList.toggle("active", btn.dataset.view===viewId);
-  });
-  document.querySelectorAll(".tabs .tab").forEach(btn=>{
-    btn.classList.toggle("active", btn.id==="tab"+viewId.replace("view",""));
-  });
-  const renderMap={viewVio:"renderVio",viewVeh:"renderVeh",viewAppr:"renderAppr",viewGrp:"renderGrp",viewDep:"renderDep",viewEmp:"renderEmp",viewTs:"renderTs"};
-  if(renderMap[viewId] && window[renderMap[viewId]]) window[renderMap[viewId]]();
-}
-document.addEventListener("DOMContentLoaded",()=>{
-  const checkBrand=setInterval(()=>{
-    if(document.documentElement.getAttribute("data-theme")==="brand"){
-      clearInterval(checkBrand);
-      setTimeout(initBrandTheme, 100);
+
+/* البحث العالمي: موظفون + سجلات + سيارات */
+function bindBrandSearch(){
+  const g=document.getElementById("globalSearch"), box=document.getElementById("gsResults");
+  if(!g || !box || g.dataset.bound) return;
+  g.dataset.bound="1";
+  const TYPE={violation:"مخالفة",absence:"غياب",permission:"استئذان",warning:"إنذار",sick:"سكليف",other:"أخرى"};
+  const run=function(){
+    const q=(g.value||"").trim().toLowerCase();
+    if(q.length<2){ box.classList.remove("show"); box.innerHTML=""; return; }
+    const out=[];
+    (D.emp||[]).forEach(function(e){
+      const hay=((e.ar||"")+" "+(e.en||"")+" "+(e.num||"")+" "+(e.dept||"")+" "+(e.phone||"")).toLowerCase();
+      if(hay.indexOf(q)>-1) out.push({ic:"👤", t:empName(e), s:(e.dept||"—")+" • "+(e.num||""), v:"viewEmp"});
+    });
+    (D.rec||[]).forEach(function(r){
+      const e=(D.emp||[]).find(x=>x.id===r.empId); const nm=e?empName(e):"";
+      const t=TYPE[r.type]||r.type||"";
+      const hay=(nm+" "+t+" "+(r.note||"")+" "+(r.date||"")).toLowerCase();
+      if(hay.indexOf(q)>-1) out.push({ic:"🧾", t:nm+" — "+t, s:(r.note||r.date||""), v:"viewVio"});
+    });
+    (D.veh||[]).forEach(function(v){
+      const e=(D.emp||[]).find(x=>x.id===v.empId); const nm=e?empName(e):"";
+      const hay=((v.plate||"")+" "+(v.make||"")+" "+(v.model||"")+" "+(v.company||"")+" "+nm).toLowerCase();
+      if(hay.indexOf(q)>-1) out.push({ic:"🚗", t:(v.plate||((v.make||"")+" "+(v.model||""))), s:nm||(v.company||"—"), v:"viewVeh"});
+    });
+    if(!out.length){
+      box.innerHTML='<div class="gs-empty">'+(LANG==='ar'?'لا توجد نتائج':'No results')+'</div>';
+      box.classList.add("show"); return;
     }
-  }, 100);
+    box.innerHTML=out.slice(0,10).map(function(r){
+      return '<button type="button" class="gs-item" data-view="'+r.v+'"><span class="gs-ic">'+r.ic+'</span><span class="gs-txt"><b>'+esc(r.t)+'</b><i>'+esc(r.s)+'</i></span></button>';
+    }).join("");
+    box.classList.add("show");
+    box.querySelectorAll(".gs-item").forEach(function(it){
+      it.addEventListener("click",function(){ switchBrandView(it.dataset.view); box.classList.remove("show"); g.value=""; });
+    });
+  };
+  g.addEventListener("input",run);
+  g.addEventListener("focus",run);
+  g.addEventListener("keydown",function(e){ if(e.key==="Escape"){ box.classList.remove("show"); g.blur(); } });
+  document.addEventListener("click",function(e){ try{ if(!box.contains(e.target) && e.target!==g) box.classList.remove("show"); }catch(_){} });
+}
+
+function initBrandTheme(){
+  if(!brandModeOn()) return;
+  applyBrandMode();
+  if(!brandBuilt){ brandBuilt=true; buildBrandActions(); bindBrandNav(); bindBrandSearch(); }
+  if(!brandStatsTimer){
+    let tries=0;
+    brandStatsTimer=setInterval(function(){
+      const ok=renderBrandStats();
+      const hasData=(typeof D!=='undefined') && D.emp && D.emp.length;
+      if((ok&&hasData) || ++tries>60){ clearInterval(brandStatsTimer); brandStatsTimer=null; }
+    },1500);
+  }
+  try{ applyLang(); }catch(e){}
+}
+
+function switchBrandView(viewId){
+  const map={viewVio:"vio",viewVeh:"veh",viewAppr:"appr",viewGrp:"grp",viewDep:"dep",viewEmp:"emp",viewTs:"ts"};
+  const v=map[viewId]||String(viewId||"").replace("view","");
+  try{ if(typeof switchView==="function") switchView(v); }catch(e){}
+  setBrandActive(viewId);
+  const box=document.getElementById("gsResults"); if(box) box.classList.remove("show");
+}
+
+document.addEventListener("DOMContentLoaded",function(){
+  if(brandModeOn()){ setTimeout(initBrandTheme,100); return; }
+  let tries=0;
+  const poll=setInterval(function(){
+    if(brandModeOn()){ clearInterval(poll); setTimeout(initBrandTheme,100); }
+    else if(++tries>300){ clearInterval(poll); }
+  },100);
 });
+
 </script>
 </body>
 </html>
