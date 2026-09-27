@@ -3088,7 +3088,7 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 
 /* ============ INIT ============ */
 // IMMEDIATE: seed admin so login always works (only the hash lives in the source, never the password)
-D.users.push({id:'admin-default', name:'علي', user:'علي', pass:'h$HSE-Tracker-2026$6ccdfaac241af299ebb3a195f458cdd96bb2e27ab456f9d0ea62ea7f4d0604be', role:'admin'});
+D.users.push({id:'admin-default', name:'admin', user:'admin', pass:'h$HSE-Tracker-2026$b7313516e83471c2ba862355cc14701ed866d0a654d9eeadce50bc848e0f21cb', role:'admin'});
 
 const mp=document.getElementById('monthPicker');
 const lm=localStorage.getItem('hse-last-month'); mp.value=lm||(()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1);})();

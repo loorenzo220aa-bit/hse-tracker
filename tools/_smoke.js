@@ -57,8 +57,8 @@ setTimeout(() => {
   t('no "XX" option labels left', !d.body.innerHTML.includes('>XX<'));
 
   // 3) login flow with the seeded default admin
-  d.getElementById('lgUser').value = 'علي';
-  d.getElementById('lgPass').value = 'علي123';
+  d.getElementById('lgUser').value = 'admin';
+  d.getElementById('lgPass').value = 'admin200';
   window.doLogin();
 
   setTimeout(() => {
@@ -105,12 +105,12 @@ setTimeout(() => {
 
     // 6) password hashing
     try {
-      const h = window.hashPass('علي123');
+      const h = window.hashPass('admin200');
       t('hashPass produces salted hash', typeof h === 'string' && h.startsWith('h$') && /^[0-9a-f]{64}$/.test(h.slice(h.lastIndexOf('$') + 1)), h.slice(0, 24) + '…');
-      t('hashPass is one-way (≠ plaintext)', h !== 'علي123');
-      t('hashPass deterministic', window.hashPass('علي123') === h);
+      t('hashPass is one-way (≠ plaintext)', h !== 'admin200');
+      t('hashPass deterministic', window.hashPass('admin200') === h);
       t('hashPass differs per password', window.hashPass('password1') !== h);
-      t('passMatch accepts hashed form', window.passMatch({ pass: h }, 'علي123') === true);
+      t('passMatch accepts hashed form', window.passMatch({ pass: h }, 'admin200') === true);
       t('passMatch rejects wrong password', window.passMatch({ pass: h }, 'wrong') === false);
       t('passMatch still accepts legacy plaintext', window.passMatch({ pass: 'legacy' }, 'legacy') === true);
       t('migration button exists', !!d.getElementById('migBtn'));

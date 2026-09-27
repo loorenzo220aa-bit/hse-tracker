@@ -6,7 +6,7 @@ const end = h.indexOf('/* يقبل كلمة المرور');
 const src = h.slice(start, end);
 eval(src);
 
-const vectors = ['', 'abc', 'hello world', 'علي123', 'كلمة-مرور-سريحة-جداً', 'a'.repeat(100), 'مرور', 'p@ssw0rd!'];
+const vectors = ['', 'abc', 'hello world', 'admin200', 'كلمة-مرور-سريحة-جداً', 'a'.repeat(100), 'مرور', 'p@ssw0rd!'];
 let ok = 0, bad = [];
 for (const v of vectors) {
   const mine = sha256Hex(v);
