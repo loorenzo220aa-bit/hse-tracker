@@ -145,10 +145,19 @@ setTimeout(() => {
         d.getElementById('tabGrp').click();
         t('groups view visible', !d.getElementById('viewGrp').classList.contains('hide'));
         t('groups header has 7 columns', d.querySelectorAll('#grpTable thead th').length === 7);
-        t('groups stats rendered (6 cards)', d.querySelectorAll('#grpStats .stat').length === 6,
+        t('groups stats rendered (8 cards incl. fire)', d.querySelectorAll('#grpStats .stat').length === 8,
           d.querySelectorAll('#grpStats .stat').length + ' cards');
         t('group A rows rendered', d.querySelectorAll('#grpBody tr').length === 71,
           d.querySelectorAll('#grpBody tr').length + ' rows');
+        const fdSeg = [...d.querySelectorAll('#grpSeg .gseg')].find(b => b.dataset.g === 'FD');
+        const fnSeg = [...d.querySelectorAll('#grpSeg .gseg')].find(b => b.dataset.g === 'FN');
+        t('fire day/night segments exist', !!fdSeg && !!fnSeg);
+        fdSeg && fdSeg.click();
+        t('fire day group selected (offline 0 rows)', d.querySelectorAll('#grpBody tr').length === 0,
+          'rows: ' + d.querySelectorAll('#grpBody tr').length);
+        fnSeg && fnSeg.click();
+        t('fire night group selected (offline 0 rows)', d.querySelectorAll('#grpBody tr').length === 0,
+          'rows: ' + d.querySelectorAll('#grpBody tr').length);
         const allSeg = [...d.querySelectorAll('#grpSeg .gseg')].find(b => b.dataset.g === '');
         allSeg.click();
         t('all groups listed together', d.querySelectorAll('#grpBody tr').length === 199,

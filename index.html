@@ -153,6 +153,8 @@
   .t-per{background:var(--green-bg); color:#047857;}
   .t-oth{background:var(--purple-bg); color:#6d28d9;}
   .t-wrn{background:var(--orange-bg); color:#b45309;}
+  .t-fd{background:var(--red-bg); color:#b91c1c;}
+  .t-fn{background:var(--purple-bg); color:#6d28d9;}
   .t-sick{background:#e0f2fe; color:#0284c7;}
   .t-none{background:#eef2f7; color:#64748b;}
   /* حبّة الحالة المضغوطة (ابروفل ارامكو) */
@@ -1014,13 +1016,15 @@ try{
 
   <div id="viewGrp" class="hide">
   <div class="card">
-    <h2><span class="ic">🗂️</span><span data-i="grp_title">قروبات الدوام (A / B / Daily)</span> <span class="mut" id="grpCount" style="color:var(--mut);font-size:13px;"></span></h2>
+    <h2><span class="ic">🗂️</span><span data-i="grp_title">قروبات الدوام (A / B / Daily / فاير)</span> <span class="mut" id="grpCount" style="color:var(--mut);font-size:13px;"></span></h2>
     <div class="grid" id="grpStats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;"></div>
     <div class="frow" style="margin-top:14px; align-items:flex-end;">
       <div class="grp-seg" id="grpSeg">
         <button type="button" class="gseg active" data-g="A" data-i="grp_a">قروب A</button>
         <button type="button" class="gseg" data-g="B" data-i="grp_b">قروب B</button>
         <button type="button" class="gseg" data-g="D" data-i="grp_d">قروب الديلي</button>
+<button type="button" class="gseg" data-g="FD" data-i="grp_fd">قروب فاير داي</button>
+<button type="button" class="gseg" data-g="FN" data-i="grp_fn">قروب فاير نايت</button>
         <button type="button" class="gseg" data-g="" data-i="f_all">الكل</button>
       </div>
       <div class="field" style="max-width:340px;"><input id="grpSearch" placeholder="🔍 بحث بالاسم أو الرقم..."></div>
@@ -1236,8 +1240,8 @@ const I18N={
     err_conn:'تعذّر الوصول للخادم — تحقق من اتصال الإنترنت ثم أعد المحاولة',
     err_userExists:'اسم المستخدم موجود مسبقاً', err_fill:'أكمل جميع الحقول',
     mig_btn:'🔒 تشفير كلمات المرور', mig_ok:'تم تشفير كلمات المرور', mig_none:'كل كلمات المرور مشفّرة مسبقاً',
-    tab_grp:'القروبات', grp_title:'قروبات الدوام (A / B / Daily)',
-    grp_a:'قروب A', grp_b:'قروب B', grp_d:'قروب الديلي', grp_total:'إجمالي الأسماء',
+    tab_grp:'القروبات', grp_title:'قروبات الدوام (A / B / Daily / فاير)',
+    grp_a:'قروب A', grp_b:'قروب B', grp_d:'قروب الديلي', grp_fd:'قروب فاير داي', grp_fn:'قروب فاير نايت', grp_total:'إجمالي الأسماء',
     grp_matched:'مطابقون مع قائمة الموظفين', grp_nogrp:'موظفون بدون قروب',
     grp_col:'القروب', grp_status:'الحالة', grp_ok:'✔ مطابق', grp_no:'⚠ غير مسجّل',
     grp_noHint:'هذا الرقم غير موجود في قائمة الموظفين',
@@ -1301,8 +1305,8 @@ const I18N={
     err_conn:'Cannot reach the server — check your internet and retry',
     err_userExists:'Username already exists', err_fill:'Fill all fields',
     mig_btn:'🔒 Hash passwords', mig_ok:'Passwords encrypted', mig_none:'All passwords already encrypted',
-    tab_grp:'Groups', grp_title:'Duty Groups (A / B / Daily)',
-    grp_a:'Group A', grp_b:'Group B', grp_d:'Daily Group', grp_total:'Total names',
+    tab_grp:'Groups', grp_title:'Duty Groups (A / B / Daily / Fire)',
+    grp_a:'Group A', grp_b:'Group B', grp_d:'Daily Group', grp_fd:'Fire Day Group', grp_fn:'Fire Night Group', grp_total:'Total names',
     grp_matched:'Matched to employee list', grp_nogrp:'Employees without a group',
     grp_col:'Group', grp_status:'Status', grp_ok:'✔ Matched', grp_no:'⚠ Not registered',
     grp_noHint:'This job number is not in the employee list',
@@ -2663,7 +2667,7 @@ document.getElementById('apprExportBtn').onclick=async()=>{
 };
 /* ==== ATTENDANCE TEMPLATE EXPORT (raw OOXML — preserves the template 100%) ==== */
 const ATT_SHEET_B='TTENDANCE SHEET GROUP B';
-const ATT_SHEET_N={A:'TTENDANCE SHEET GROUP A', B:ATT_SHEET_B, D:'TTENDANCE SHEET DAILY'};
+const ATT_SHEET_N={A:'TTENDANCE SHEET GROUP A', B:ATT_SHEET_B, D:'TTENDANCE SHEET DAILY', FD:'TTENDANCE SHEET FIRE DAY', FN:'TTENDANCE SHEET FIRE NIGHT'};
 const ATT_FIRST_ROW=12;      /* أول صف للأسماء */
 const ATT_NUMBERED_UNTIL=61; /* الترتيب مكتوب جاهزاً حتى هنا (1..50) */
 function attXmlEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;'); }
@@ -2755,7 +2759,7 @@ async function attExport(){
     if(appp){ let t=await appp.async('string'); t=t.split(ATT_SHEET_B).join(attSheetName(GRP_SEL)); zip.file('docProps/app.xml', t); }
     const blob=await zip.generateAsync({type:'blob', compression:'DEFLATE',
       mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const gLbl=GRP_SEL==='D'?'Daily':'Group '+GRP_SEL;
+    const gLbl=(GRP_SEL==='A'||GRP_SEL==='B')?'Group '+GRP_SEL:grpShort(GRP_SEL);
     attDownload(blob,'Attendance list for '+gLbl+'.xlsx');
     toast(T().grp_exported+' — '+gLbl+' ('+names.length+')');
   }catch(e){ toast('⚠ '+(e.message||e)); }
@@ -2764,14 +2768,21 @@ async function attExport(){
 /* ==== END ATTENDANCE ==== */
 
 /* ============ GROUPS (A / B / DAILY) ============ */
-const GRP_KEYS=['A','B','D'];
-const GRP_CLS={A:'t-abs',B:'t-per',D:'t-wrn'};
-const GRP_COL={A:'var(--blue)',B:'var(--green)',D:'#b45309'};
+const GRP_KEYS=['A','B','D','FD','FN'];
+const GRP_CLS={A:'t-abs',B:'t-per',D:'t-wrn',FD:'t-fd',FN:'t-fn'};
+const GRP_COL={A:'var(--blue)',B:'var(--green)',D:'#b45309',FD:'var(--red)',FN:'var(--purple)'};
 let GRP_SEL='A';
 const grpNorm=s=>String(s||'').toUpperCase().replace(/\s+/g,'').replace(/–|—/g,'-');
-const grpData=()=>window.GRP_DATA||{};
+/* قروبات الفاير تيم (داي/نايت) تُبنى من بيانات التوزيع نفسها — تتحدّث تلقائياً مع أي تعديل هناك */
+const FIRE_AREAS=[['FD',/^fire\s*team\s*day/i],['FN',/^fire\s*team\s*night/i]];
+const grpData=()=>{ const base=Object.assign({},window.GRP_DATA||{});
+  FIRE_AREAS.forEach(k=>{ base[k[0]]=(D.dep||[]).filter(d=>k[1].test(d.area||'')).map(d=>{
+      const e=empById(d.empId); const id=(e&&e.num)||d.empId||'';
+      return [id,(e&&(e.en||e.ar))||id]; }).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))); });
+  return base; };
 function grpEmpMap(){ const m=new Map(); D.emp.forEach(e=>{ const k=grpNorm(e.num); if(k&&!m.has(k)) m.set(k,e); }); return m; }
-function grpLabelOf(g){ return g==='A'?T().grp_a : g==='B'?T().grp_b : g==='D'?T().grp_d : T().f_all; }
+function grpLabelOf(g){ return g==='A'?T().grp_a : g==='B'?T().grp_b : g==='D'?T().grp_d : g==='FD'?T().grp_fd : g==='FN'?T().grp_fn : T().f_all; }
+const grpShort=g=>g==='D'?'Daily':g==='FD'?'Fire Day':g==='FN'?'Fire Night':g;
 function renderGrp(){
   const body=document.getElementById('grpBody'); if(!body) return;
   const data=grpData(), idx=grpEmpMap();
@@ -2801,7 +2812,7 @@ function renderGrp(){
     const e=idx.get(grpNorm(r.id));
     const tr=document.createElement('tr');
     tr.innerHTML='<td style="text-align:center; color:var(--mut);">'+shown+'</td>'
-      +'<td><span class="tag st '+GRP_CLS[r.g]+'">'+esc(r.g==='D'?'Daily':r.g)+'</span></td>'
+      +'<td><span class="tag st '+GRP_CLS[r.g]+'">'+esc(grpShort(r.g))+'</span></td>'
       +'<td>'+esc(r.name)+'</td>'
       +'<td style="direction:ltr;">'+esc(r.id)+'</td>'
       +'<td>'+esc(e?(e.ar||'—'):'—')+'</td>'
@@ -2829,7 +2840,7 @@ document.getElementById('grpExportBtn2').onclick=()=>{
   GRP_KEYS.forEach(g=>{
     const a=[[T().grp_col,T().c_num,T().c_emp,T().c_ar,T().l_dept]];
     (data[g]||[]).forEach((r,i)=>{ const e=idx.get(grpNorm(r.id));
-      a.push([g==='D'?'Daily':g, r[0], r[1], e?(e.ar||''):'', e?(e.dept||''):'' ]); });
+      a.push([grpShort(g), r[0], r[1], e?(e.ar||''):'', e?(e.dept||''):'' ]); });
     const ws=XLSX.utils.aoa_to_sheet(a);
     ws['!cols']=[{wch:8},{wch:14},{wch:34},{wch:26},{wch:18}];
     XLSX.utils.book_append_sheet(wb,ws,g==='D'?'Daily':'Group '+g);
@@ -3115,6 +3126,7 @@ window.addEventListener('offline',()=>toast('⚠️ بدون اتصال — تع
     SB_CONNECTED=true;
     // Re-render with fresh data
     if(SESSION) renderAuthUI();
+    if(typeof renderGrp==='function') renderGrp();
     toast('✅ تم الاتصال بقاعدة البيانات');
   }catch(e){
     console.warn('Supabase unavailable:', e.message);
