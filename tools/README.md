@@ -112,3 +112,5 @@ cd android; .\gradlew.bat assembleRelease
 - **الإحصاءات:** `renderBrandStats()` تُستدعى من `renderStats()` فتتحدّث مع كل تغيير بيانات أو شهر (مع تصحيح أنواع السجلات: violation / absence / permission / warning / sick).
 - **عناصر الهوية:** `.global-search` و `.brand-content` (إحصاءات + إجراءات) و `.bottom-nav` تُظهرها وتُخفيها `applyBrandMode()` حسب الثيم الحالي.
 - **العودة عند أي مشكلة:** حذف `hse-theme` من localStorage أو فتح `?theme=classic`.
+
+- **الخط:** Tajawal هو الخط الافتراضي الآن (يُحمَّل من Google Fonts بوزن 400-900) مع Cairo كخط بديل.
