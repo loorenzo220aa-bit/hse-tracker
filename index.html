@@ -1,69 +1,4 @@
-<!DOCTYP
-<script>
-// ===== BRAND THEME INITIALIZATION =====
-function initBrandTheme() {
-  if(!document.documentElement.hasAttribute("data-theme") || document.documentElement.getAttribute("data-theme")!=="brand") return;
-  document.querySelectorAll(".global-search, .brand-content, .bottom-nav").forEach(el=>el.style.display="flex");
-  document.querySelector(".tabs")?.style.setProperty("display","none","important");
-  const statsEl=document.getElementById("brandStats");
-  if(statsEl && window.D){
-    statsEl.innerHTML=`
-      <div class="stat-card"><div class="stat-value">${D.emp?.length||0}</div><div class="stat-label" data-i="s_emp">الموظفون المسجلون</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${(D.rec||[]).filter(r=>r.type==="vio" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_vio_m">مخالفات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${(D.rec||[]).filter(r=>r.type==="abs" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_abs_m">غيابات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${(D.rec||[]).filter(r=>r.type==="per" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_per_m">استأذانات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:#b45309">${(D.rec||[]).filter(r=>r.type==="wrn" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_wrn_m">إنذارات (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${(D.rec||[]).filter(r=>r.type==="sick" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
-      <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${D.users?.length||0}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
-    `;
-  }
-  const actionsEl=document.getElementById("brandActions");
-  if(actionsEl){
-    actionsEl.innerHTML=`
-      <div class="action-card" data-view="viewVio"><div class="ac-icon">🦺</div><div class="ac-title" data-i="tab_vio">المخالفات والغيابات</div><div class="ac-desc">تسجيل ومتابعة المخالفات</div></div>
-      <div class="action-card" data-view="viewVeh"><div class="ac-icon">🚗</div><div class="ac-title" data-i="tab_veh">السيارات</div><div class="ac-desc">إدارة السيارات واللوحات</div></div>
-      <div class="action-card" data-view="viewAppr"><div class="ac-icon">🛡️</div><div class="ac-title" data-i="tab_appr">اعتمادات ارامكو</div><div class="ac-desc">حالة ابروفل الموظفين</div></div>
-      <div class="action-card" data-view="viewGrp"><div class="ac-icon">🗂️</div><div class="ac-title" data-i="tab_grp">القروبات</div><div class="ac-desc">قروبات الدوام A/B/Daily</div></div>
-      <div class="action-card" data-view="viewDep"><div class="ac-icon">🗺️</div><div class="ac-title" data-i="tab_dep">التوزيع</div><div class="ac-desc">توزيع الموظفين للمناطق</div></div>
-      <div class="action-card" data-view="viewEmp"><div class="ac-icon">👥</div><div class="ac-title" data-i="tab_emp">الموظفين</div><div class="ac-desc">إدارة بيانات الموظفين</div></div>
-      <div class="action-card" data-view="viewTs"><div class="ac-icon">🗓️</div><div class="ac-title" data-i="tab_ts">التايم شيت</div><div class="ac-desc">ساعات العمل والحضور</div></div>
-    `;
-    actionsEl.querySelectorAll(".action-card").forEach(card=>{
-      card.addEventListener("click",()=>switchBrandView(card.dataset.view));
-    });
-  }
-  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
-    btn.addEventListener("click",()=>switchBrandView(btn.dataset.view));
-  });
-  const gSearch=document.getElementById("globalSearch");
-  if(gSearch){
-    gSearch.addEventListener("input",()=>{ const q=gSearch.value.toLowerCase(); });
-  }
-  applyLang();
-}
-function switchBrandView(viewId) {
-  document.querySelectorAll("#appWrap > div[id^=view]").forEach(v=>v.classList.add("hide"));
-  const target=document.getElementById(viewId);
-  if(target) target.classList.remove("hide");
-  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
-    btn.classList.toggle("active", btn.dataset.view===viewId);
-  });
-  document.querySelectorAll(".tabs .tab").forEach(btn=>{
-    btn.classList.toggle("active", btn.id==="tab"+viewId.replace("view",""));
-  });
-  const renderMap={viewVio:"renderVio",viewVeh:"renderVeh",viewAppr:"renderAppr",viewGrp:"renderGrp",viewDep:"renderDep",viewEmp:"renderEmp",viewTs:"renderTs"};
-  if(renderMap[viewId] && window[renderMap[viewId]]) window[renderMap[viewId]]();
-}
-document.addEventListener("DOMContentLoaded",()=>{
-  const checkBrand=setInterval(()=>{
-    if(document.documentElement.getAttribute("data-theme")==="brand"){
-      clearInterval(checkBrand);
-      setTimeout(initBrandTheme, 100);
-    }
-  }, 100);
-});
-</script>
-
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -494,6 +429,9 @@ try{
     try{ if(location.search.indexOf('app=1')>-1) return 'preview'; }catch(e){}
     return false;
   };
+  var _detectBrand=function(){
+    try{ return location.search.indexOf('theme=brand')>-1; }catch(e){ return false; }
+  };
   var _markApp=function(late){
     var d=_detectApp(); if(!d) return false;
     _root.setAttribute('data-app','1');
@@ -502,8 +440,9 @@ try{
     if(late&&d==='native'){ try{ if(localStorage.getItem('hse-theme')===null) _root.removeAttribute('data-theme'); }catch(e){} }
     return true;
   };
-  if(_markApp(false)){
-    /* تطبيق: الوضع الليلي فقط إذا اختاره المستخدم يدوياً (لا من إعدادات النظام) */
+  if(_detectBrand()){
+    _root.setAttribute('data-theme','brand');
+  }else if(_markApp(false)){
     try{ if(localStorage.getItem('hse-theme')==='dark') _root.setAttribute('data-theme','dark'); }catch(e){}
   }else{
     /* متصفح عادي: نفس منطق الموقع القديم */
@@ -2989,5 +2928,70 @@ if('serviceWorker' in navigator && (location.protocol==='http:'||location.protoc
     <button class="nav-item" data-view="viewTs"><span class="nav-icon">🗓️</span><span>التايم شيت</span></button>
   </nav>
   
+
+<script>
+// ===== BRAND THEME INITIALIZATION =====
+function initBrandTheme() {
+  if(!document.documentElement.hasAttribute("data-theme") || document.documentElement.getAttribute("data-theme")!=="brand") return;
+  document.querySelectorAll(".global-search, .brand-content, .bottom-nav").forEach(el=>el.style.display="flex");
+  document.querySelector(".tabs")?.style.setProperty("display","none","important");
+  const statsEl=document.getElementById("brandStats");
+  if(statsEl && window.D){
+    statsEl.innerHTML=`
+      <div class="stat-card"><div class="stat-value">${D.emp?.length||0}</div><div class="stat-label" data-i="s_emp">الموظفون المسجلون</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--red)">${(D.rec||[]).filter(r=>r.type==="vio" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_vio_m">مخالفات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--blue)">${(D.rec||[]).filter(r=>r.type==="abs" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_abs_m">غيابات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${(D.rec||[]).filter(r=>r.type==="per" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_per_m">استأذانات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:#b45309">${(D.rec||[]).filter(r=>r.type==="wrn" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_wrn_m">إنذارات (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${(D.rec||[]).filter(r=>r.type==="sick" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${D.users?.length||0}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
+    `;
+  }
+  const actionsEl=document.getElementById("brandActions");
+  if(actionsEl){
+    actionsEl.innerHTML=`
+      <div class="action-card" data-view="viewVio"><div class="ac-icon">🦺</div><div class="ac-title" data-i="tab_vio">المخالفات والغيابات</div><div class="ac-desc">تسجيل ومتابعة المخالفات</div></div>
+      <div class="action-card" data-view="viewVeh"><div class="ac-icon">🚗</div><div class="ac-title" data-i="tab_veh">السيارات</div><div class="ac-desc">إدارة السيارات واللوحات</div></div>
+      <div class="action-card" data-view="viewAppr"><div class="ac-icon">🛡️</div><div class="ac-title" data-i="tab_appr">اعتمادات ارامكو</div><div class="ac-desc">حالة ابروفل الموظفين</div></div>
+      <div class="action-card" data-view="viewGrp"><div class="ac-icon">🗂️</div><div class="ac-title" data-i="tab_grp">القروبات</div><div class="ac-desc">قروبات الدوام A/B/Daily</div></div>
+      <div class="action-card" data-view="viewDep"><div class="ac-icon">🗺️</div><div class="ac-title" data-i="tab_dep">التوزيع</div><div class="ac-desc">توزيع الموظفين للمناطق</div></div>
+      <div class="action-card" data-view="viewEmp"><div class="ac-icon">👥</div><div class="ac-title" data-i="tab_emp">الموظفين</div><div class="ac-desc">إدارة بيانات الموظفين</div></div>
+      <div class="action-card" data-view="viewTs"><div class="ac-icon">🗓️</div><div class="ac-title" data-i="tab_ts">التايم شيت</div><div class="ac-desc">ساعات العمل والحضور</div></div>
+    `;
+    actionsEl.querySelectorAll(".action-card").forEach(card=>{
+      card.addEventListener("click",()=>switchBrandView(card.dataset.view));
+    });
+  }
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
+    btn.addEventListener("click",()=>switchBrandView(btn.dataset.view));
+  });
+  const gSearch=document.getElementById("globalSearch");
+  if(gSearch){
+    gSearch.addEventListener("input",()=>{ const q=gSearch.value.toLowerCase(); });
+  }
+  applyLang();
+}
+function switchBrandView(viewId) {
+  document.querySelectorAll("#appWrap > div[id^=view]").forEach(v=>v.classList.add("hide"));
+  const target=document.getElementById(viewId);
+  if(target) target.classList.remove("hide");
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.view===viewId);
+  });
+  document.querySelectorAll(".tabs .tab").forEach(btn=>{
+    btn.classList.toggle("active", btn.id==="tab"+viewId.replace("view",""));
+  });
+  const renderMap={viewVio:"renderVio",viewVeh:"renderVeh",viewAppr:"renderAppr",viewGrp:"renderGrp",viewDep:"renderDep",viewEmp:"renderEmp",viewTs:"renderTs"};
+  if(renderMap[viewId] && window[renderMap[viewId]]) window[renderMap[viewId]]();
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const checkBrand=setInterval(()=>{
+    if(document.documentElement.getAttribute("data-theme")==="brand"){
+      clearInterval(checkBrand);
+      setTimeout(initBrandTheme, 100);
+    }
+  }, 100);
+});
+</script>
 </body>
 </html>
