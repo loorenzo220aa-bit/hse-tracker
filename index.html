@@ -672,8 +672,8 @@ try{
 <div class="bg-blob blob3"></div>
 <div id="splash">
   <div class="sp-emoji">🦺</div>
-  <div class="sp-t">نظام متابعة HSE</div>
-  <div class="sp-s">هونداي الهندسة والإنشاء 🏗️</div>
+  <div class="sp-t" data-i="sp_t">نظام متابعة HSE</div>
+  <div class="sp-s" data-i="sp_s">هونداي الهندسة والإنشاء 🏗️</div>
   <div class="sp-bar"><i></i></div>
 </div>
 
@@ -702,7 +702,7 @@ try{
     </div>
     <!-- بحث عام — يظهر في الثيم البراند فقط -->
     <div class="global-search" style="display:none;">
-      <input type="search" id="globalSearch" placeholder="ابحث في الموظفين، المخالفات، السيارات..." autocomplete="off">
+      <input type="search" id="globalSearch" placeholder="ابحث في الموظفين، المخالفات، السيارات..." data-i-ph="gs_ph" autocomplete="off">
           <div class="gs-results" id="gsResults"></div>
     </div>
     <div class="hd-actions">
@@ -774,7 +774,7 @@ try{
   <div class="card admin-only" id="usersCard">
     <h2><span class="ic">👥</span><span data-i="t_users">إدارة الزملاء (المستخدمون)</span></h2>
     <div class="frow">
-      <div class="field"><label data-i="u_name">اسم الزميل</label><input id="uName" placeholder="مثال: خالد الحربي"></div>
+      <div class="field"><label data-i="u_name">اسم الزميل</label><input id="uName" placeholder="مثال: خالد الحربي" data-i-ph="ph_uName"></div>
       <div class="field"><label data-i="l_user">اسم المستخدم</label><input id="uUser" placeholder="khaled"></div>
       <div class="field"><label data-i="l_pass">كلمة المرور</label><input id="uPass" placeholder="••••••"></div>
       <div class="field"><label data-i="u_perms">الصلاحيات</label>
@@ -797,12 +797,12 @@ try{
   <div class="card">
     <h2><span class="ic">👷</span><span data-i="t_emp">إدارة الموظفين (إضافة / تعديل / حذف)</span></h2>
     <div class="frow edit-only">
-      <div class="field"><label data-i="l_empname">اسم الموظف (عربي)</label><input id="empNameAr" placeholder="مثال: محمد السالم"></div>
+      <div class="field"><label data-i="l_empname">اسم الموظف (عربي)</label><input id="empNameAr" placeholder="مثال: محمد السالم" data-i-ph="ph_empAr"></div>
       <div class="field"><label data-i="l_empname2">الاسم بالإنجليزية</label><input id="empNameEn" placeholder="Mohammed Al-Salem"></div>
       <div class="field"><label data-i="l_empnum">الرقم الوظيفي</label><input id="empNum" placeholder="SASL-0001"></div>
-      <div class="field"><label data-i="l_dept">القسم / المهنة</label><input id="empDept" placeholder="مثال: سائق"></div>
+      <div class="field"><label data-i="l_dept">القسم / المهنة</label><input id="empDept" placeholder="مثال: سائق" data-i-ph="ph_empDept"></div>
       <div class="field"><label data-i="l_phone">رقم الهاتف</label><input id="empPhone" type="tel" placeholder="05xxxxxxxx"></div>
-      <div class="field"><label data-i="l_plate">رقم لوحة المركبة</label><input id="empPlate" placeholder="أ ب ج 1234"></div>
+      <div class="field"><label data-i="l_plate">رقم لوحة المركبة</label><input id="empPlate" placeholder="أ ب ج 1234" data-i-ph="ph_empPlate"></div>
       <div class="field"><label data-i="l_group">المجموعة</label><select id="empGrp"><option value="HDEC">HDEC</option><option value="HEC">HEC</option></select></div>
       <div class="field"><label data-i="l_photo">صورة الموظف</label><input type="file" id="empPhoto" accept="image/*"><div id="empPhotoPrev" style="margin-top:6px;"></div></div>
       <div><button class="btn btn-acc" id="addEmpBtn" data-i="addEmp">➕ إضافة</button></div>
@@ -840,9 +840,9 @@ try{
         </select>
       </div>
       <div class="field"><label data-i="l_date">التاريخ</label><input type="date" id="recDate"></div>
-      <div class="field" style="grid-column:span 2;"><label data-i="l_note">الملاحظة / تفاصيل المخالفة</label><textarea id="recNote" placeholder="اكتب هنا تفاصيل المخالفة أو الغياب..."></textarea></div>
+      <div class="field" style="grid-column:span 2;"><label data-i="l_note">الملاحظة / تفاصيل المخالفة</label><textarea id="recNote" placeholder="اكتب هنا تفاصيل المخالفة أو الغياب..." data-i-ph="ph_recNote"></textarea></div>
       <div class="field" style="grid-column:span 2;">
-        <label>📎 إرفاق مستند / دليل (صورة أو PDF)</label>
+        <label data-i="rec_attach">📎 إرفاق مستند / دليل (صورة أو PDF)</label>
         <input type="file" id="recFile" accept="image/*,.pdf,.doc,.docx" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--card2);color:var(--txt);">
         <div id="filePreview" style="margin-top:8px;font-size:12px;color:var(--mut);"></div>
       </div>
@@ -929,7 +929,7 @@ try{
       <button class="btn subtab active" id="subHdec">🟦 HDEC (120)</button>
       <button class="btn subtab" id="subHec">🟨 HEC (68)</button>
     </div>
-    <div class="field" style="max-width:360px;margin-bottom:14px;"><input id="staffSearch" placeholder="بحث..."></div>
+    <div class="field" style="max-width:360px;margin-bottom:14px;"><input id="staffSearch" placeholder="بحث..." data-i-ph="ph_search"></div>
     <div class="staff-grid" id="staffGrid"></div>
   </div>
   <div id="empDlg" class="empdlg hide"><div class="empdlg-card"><button class="empdlg-x" id="empDlgX">✕</button><div id="empDlgBody"></div></div></div>
@@ -1269,7 +1269,7 @@ const I18N={
     veh_logged:'مسجل (بلوحة)', veh_remaining:'متبقي (بدون لوحة)',
     veh_total:'الإجمالي', veh_rows:'المركبات المسجلة', dep_title:'توزيع الأفراد على المناطق',
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
-    dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', dep_noLoc:'بدون موقع عمل', dep_assign:'تعيين', dep_pickArea:'اختر منطقة العمل ثم اضغط «حفظ التوزيع»', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
+    dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', dep_noLoc:'بدون موقع عمل', dep_assign:'تعيين', dep_pickArea:'اختر منطقة العمل ثم اضغط «حفظ التوزيع»', sp_t:'نظام متابعة HSE', sp_s:'هونداي الهندسة والإنشاء 🏗️', pw_show:'إظهار/إخفاء كلمة المرور', gs_ph:'ابحث في الموظفين، المخالفات، السيارات...', rec_attach:'📎 إرفاق مستند / دليل (صورة أو PDF)', ph_uName:'مثال: خالد الحربي', ph_empAr:'مثال: محمد السالم', ph_empDept:'مثال: سائق', ph_empPlate:'أ ب ج 1234', ph_recNote:'اكتب هنا تفاصيل المخالفة أو الغياب...', ph_search:'بحث...', ac_desc_vio:'تسجيل ومتابعة المخالفات', ac_desc_veh:'إدارة السيارات واللوحات', ac_desc_appr:'حالة ابروفل الموظفين', ac_desc_grp:'قروبات الدوام A/B/Daily', ac_desc_dep:'توزيع الموظفين للمناطق', ac_desc_emp:'إدارة بيانات الموظفين', ac_desc_ts:'ساعات العمل والحضور', nav_vio:'المخالفات', nav_veh:'السيارات', nav_appr:'الاعتمادات', nav_grp:'القروبات', nav_dep:'التوزيع', nav_emp:'الموظفين', nav_ts:'التايم شيت', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
     ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً',
     set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅', c_phone:'الهاتف',
@@ -1334,7 +1334,7 @@ const I18N={
     veh_logged:'Logged (plated)', veh_remaining:'Remaining (no plate)',
     veh_total:'Total', veh_rows:'Logged Vehicles', dep_title:'Area Deployment',
     dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
-    dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', dep_noLoc:'No work location', dep_assign:'Assign', dep_pickArea:'Pick the work area then press "Save Deployment"', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
+    dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', dep_noLoc:'No work location', dep_assign:'Assign', dep_pickArea:'Pick the work area then press "Save Deployment"', sp_t:'HSE Tracking System', sp_s:'Hyundai Engineering & Construction 🏗️', pw_show:'Show/hide password', gs_ph:'Search employees, violations, vehicles...', rec_attach:'📎 Attach document / evidence (image or PDF)', ph_uName:'Example: Khaled Al-Harbi', ph_empAr:'Example: Mohammed Al-Salem', ph_empDept:'Example: Driver', ph_empPlate:'ABC 1234', ph_recNote:'Type the violation or absence details here...', ph_search:'Search...', ac_desc_vio:'Log & track violations', ac_desc_veh:'Manage vehicles & plates', ac_desc_appr:'Employee profile status', ac_desc_grp:'Shift groups A/B/Daily', ac_desc_dep:'Area deployment of personnel', ac_desc_emp:'Manage employee data', ac_desc_ts:'Working hours & attendance', nav_vio:'Violations', nav_veh:'Vehicles', nav_appr:'Approvals', nav_grp:'Groups', nav_dep:'Deployment', nav_emp:'Employees', nav_ts:'Timesheet', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', c_phone:'Phone', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
     list_export_a_done:'✅ List A exported',
@@ -1368,22 +1368,35 @@ function renderAuthUI(){
   fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh(); renderAppr();
 }
 
+function applyI18nDom(root){
+  (root||document).querySelectorAll('[data-i]').forEach(el=>{
+    const k=el.getAttribute('data-i');
+    if(T()[k]!==undefined) el.textContent=T()[k];
+  });
+  (root||document).querySelectorAll('[data-i-ph]').forEach(el=>{
+    const k=el.getAttribute('data-i-ph');
+    if(T()[k]!==undefined) el.placeholder=T()[k];
+  });
+  const eye=document.getElementById('lgEye');
+  if(eye){ eye.title=T().pw_show; eye.setAttribute('aria-label',T().pw_show); }
+  const lo=document.getElementById('logoutBtn');
+  if(lo){ const m=lo.textContent.match(/^\S+\s*/); lo.textContent=(m?m[0]:'\u{1F6AA} ')+T().logout; }
+}
+function rerenderActiveView(){
+  if(!SESSION) return;
+  const cur=document.querySelector('#appWrap > div[id^=view]:not(.hide)');
+  if(cur) switchView(cur.id.replace('view','').toLowerCase());
+}
 function applyLang(){
-  document.querySelectorAll('#appWrap [data-i]').forEach(el=>{
-    const k=el.getAttribute('data-i');
-    if(T()[k]!==undefined) el.textContent=T()[k];
-  });
-  document.querySelectorAll('#loginScrim [data-i]').forEach(el=>{
-    const k=el.getAttribute('data-i');
-    if(T()[k]!==undefined) el.textContent=T()[k];
-  });
   document.documentElement.lang=LANG==='ar'?'ar':'en';
   document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
   document.getElementById('langBtn').textContent=(LANG==='ar')?'English / الإنجليزية':'عربي';
   document.getElementById('lgBtn').textContent=T().login;
   if(typeof paintThemeBtn==='function') paintThemeBtn();
   if(SESSION) renderAuthUI();
+  applyI18nDom();
   refreshTypeLabels();
+  rerenderActiveView();
 }
 function refreshTypeLabels(){}
 
@@ -1641,7 +1654,7 @@ function renderEmps(){
   sortedEmp().forEach(e=>{
     const tr=document.createElement('tr');
     if(editingEmpId===e.id){
-      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="عربي"></td><td><select id="edGrp" style="width:90px;direction:ltr"><option value="HDEC">HDEC</option><option value="HEC">HEC</option></select><input type="file" id="edPhoto" accept="image/*" style="margin-top:6px;font-size:11px;max-width:130px;"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
+      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="'+(LANG==='ar'?'عربي':'Arabic')+'"></td><td><select id="edGrp" style="width:90px;direction:ltr"><option value="HDEC">HDEC</option><option value="HEC">HEC</option></select><input type="file" id="edPhoto" accept="image/*" style="margin-top:6px;font-size:11px;max-width:130px;"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
     } else {
       const nm=empName(e);
       const thumb=e.photo?'<img src="'+e.photo+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-inline-end:6px;">':'';
@@ -1921,7 +1934,7 @@ document.getElementById('recFile').addEventListener('change', e=>{
   const file = e.target.files[0];
   const preview = document.getElementById('filePreview');
   if(!file){ preview.textContent=''; pendingFile=null; return; }
-  if(file.size > 5*1024*1024){ toast('الملف كبير جداً (الحد الأقصى 5MB)'); e.target.value=''; return; }
+  if(file.size > 5*1024*1024){ toast(LANG==='ar'?'الملف كبير جداً (الحد الأقصى 5MB)':'File too large (max 5MB)'); e.target.value=''; return; }
   const reader = new FileReader();
   reader.onload = ev=>{
     pendingFile = { name:file.name, type:file.type, data:ev.target.result };
@@ -2322,7 +2335,7 @@ document.getElementById('tsExportBtn').onclick=async()=>{
   if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
   const m=tsMonth(); if(!m||!D.emp.length){ toast(T().ts_noemp); return; }
   try{
-    toast('⏳ جاري تجهيز الملف من القالب...');
+    toast(LANG==='ar'?'⏳ جاري تجهيز الملف من القالب...':'⏳ Preparing file from template...');
     const M=await loadTsTemplate();
     const wb=new ExcelJS.Workbook(); wb.creator='HSE Tracker'; wb.created=new Date();
     const days=tsPeriodDays();
@@ -2839,12 +2852,26 @@ const GRP_CLS={A:'t-abs',B:'t-per',D:'t-wrn',FD:'t-fd',FN:'t-fn'};
 const GRP_COL={A:'var(--blue)',B:'var(--green)',D:'#b45309',FD:'var(--red)',FN:'var(--purple)'};
 let GRP_SEL='A';
 const grpNorm=s=>String(s||'').toUpperCase().replace(/\s+/g,'').replace(/–|—/g,'-');
-/* قروبات الفاير تيم (داي/نايت) تُبنى من بيانات التوزيع نفسها — تتحدّث تلقائياً مع أي تعديل هناك */
+/* القروبات مربوطة بالتوزيع — مصدر الحقيقة جدول deployment:
+   • فريق الفاير (داي/نايت) من المنطقة، وباقي القروبات من مجموعة الدوام (rotation):
+     A/B/daily_duty ← قروب A / B / الديلي، وoffice/ssc/training_room بلا قروب (كالوضع الحالي).
+   • من ليس له صف توزيع يبقى في قوائم groups-data.js الثابتة (A/B/الديلي).
+   أي تعديل في التوزيعات ينعكس فوراً على تبويب القروبات والإحصاءات وتصدير الحضور (كلها grpData()). */
 const FIRE_AREAS=[['FD',/^fire\s*team\s*day/i],['FN',/^fire\s*team\s*night/i]];
+const rotGrp=r=>{ r=String(r||'').trim().toLowerCase();
+  return r==='a'?'A': r==='b'?'B': (r==='d'||r==='daily'||r==='daily_duty')?'D': null; };
 const grpData=()=>{ const base=Object.assign({},window.GRP_DATA||{});
-  FIRE_AREAS.forEach(k=>{ base[k[0]]=(D.dep||[]).filter(d=>k[1].test(d.area||'')).map(d=>{
-      const e=empById(d.empId); const id=(e&&e.num)||d.empId||'';
-      return [id,(e&&(e.en||e.ar))||id]; }).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))); });
+  const depByEmp=new Map((D.dep||[]).map(d=>[grpNorm(d.empId),d]));
+  ['A','B','D'].forEach(g=>{ base[g]=(base[g]||[]).filter(r=>!depByEmp.has(grpNorm(r[0]))); });
+  (D.dep||[]).forEach(d=>{
+    let g=null;
+    FIRE_AREAS.forEach(k=>{ if(k[1].test(d.area||'')) g=k[0]; });
+    if(!g) g=rotGrp(d.rotation);
+    if(!g) return;
+    const e=empById(d.empId); const id=(e&&e.num)||d.empId||'';
+    base[g]=base[g]||[]; base[g].push([id,(e&&(e.en||e.ar))||id]);
+  });
+  ['A','B','D','FD','FN'].forEach(g=>{ base[g]=(base[g]||[]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))); });
   return base; };
 function grpEmpMap(){ const m=new Map(); D.emp.forEach(e=>{ const k=grpNorm(e.num); if(k&&!m.has(k)) m.set(k,e); }); return m; }
 function grpLabelOf(g){ return g==='A'?T().grp_a : g==='B'?T().grp_b : g==='D'?T().grp_d : g==='FD'?T().grp_fd : g==='FN'?T().grp_fn : T().f_all; }
@@ -3181,8 +3208,8 @@ applyLang();
 renderAuthUI();
 
 // مؤشر حالة الشبكة
-window.addEventListener('online',()=>toast('✅ متصل بقاعدة البيانات'));
-window.addEventListener('offline',()=>toast('⚠️ بدون اتصال — تعرض آخر بيانات'));
+window.addEventListener('online',()=>toast(LANG==='ar'?'✅ متصل بقاعدة البيانات':'✅ Connected to the database'));
+window.addEventListener('offline',()=>toast(LANG==='ar'?'⚠️ بدون اتصال — تعرض آخر بيانات':'⚠️ Offline — showing last saved data'));
 
 // BACKGROUND: try loading from Supabase (non-blocking)
 (async function(){
@@ -3193,7 +3220,7 @@ window.addEventListener('offline',()=>toast('⚠️ بدون اتصال — تع
     // Re-render with fresh data
     if(SESSION) renderAuthUI();
     if(typeof renderGrp==='function') renderGrp();
-    toast('✅ تم الاتصال بقاعدة البيانات');
+    toast(LANG==='ar'?'✅ تم الاتصال بقاعدة البيانات':'✅ Database connected');
   }catch(e){
     console.warn('Supabase unavailable:', e.message);
   } finally {
@@ -3208,13 +3235,13 @@ if('serviceWorker' in navigator && (location.protocol==='http:'||location.protoc
 </script>
 <!-- Bottom Navigation — يظهر في الثيم البراند فقط -->
   <nav class="bottom-nav" style="display:none;">
-    <button class="nav-item active" data-view="viewVio"><span class="nav-icon">🦺</span><span>المخالفات</span></button>
-    <button class="nav-item" data-view="viewVeh"><span class="nav-icon">🚗</span><span>السيارات</span></button>
-    <button class="nav-item" data-view="viewAppr"><span class="nav-icon">🛡️</span><span>الاعتمادات</span></button>
-    <button class="nav-item" data-view="viewGrp"><span class="nav-icon">🗂️</span><span>القروبات</span></button>
-    <button class="nav-item" data-view="viewDep"><span class="nav-icon">🗺️</span><span>التوزيع</span></button>
-    <button class="nav-item" data-view="viewEmp"><span class="nav-icon">👥</span><span>الموظفين</span></button>
-    <button class="nav-item" data-view="viewTs"><span class="nav-icon">🗓️</span><span>التايم شيت</span></button>
+    <button class="nav-item active" data-view="viewVio"><span class="nav-icon">🦺</span><span data-i="nav_vio">المخالفات</span></button>
+    <button class="nav-item" data-view="viewVeh"><span class="nav-icon">🚗</span><span data-i="nav_veh">السيارات</span></button>
+    <button class="nav-item" data-view="viewAppr"><span class="nav-icon">🛡️</span><span data-i="nav_appr">الاعتمادات</span></button>
+    <button class="nav-item" data-view="viewGrp"><span class="nav-icon">🗂️</span><span data-i="nav_grp">القروبات</span></button>
+    <button class="nav-item" data-view="viewDep"><span class="nav-icon">🗺️</span><span data-i="nav_dep">التوزيع</span></button>
+    <button class="nav-item" data-view="viewEmp"><span class="nav-icon">👥</span><span data-i="nav_emp">الموظفين</span></button>
+    <button class="nav-item" data-view="viewTs"><span class="nav-icon">🗓️</span><span data-i="nav_ts">التايم شيت</span></button>
   </nav>
   
 
@@ -3257,6 +3284,7 @@ function renderBrandStats(){
       <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${cnt('sick')}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
       <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${(D.users||[]).length}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
   `;
+  applyI18nDom(el);
   return true;
 }
 
@@ -3266,14 +3294,15 @@ function buildBrandActions(){
   if(!actionsEl || actionsEl.dataset.built) return;
   actionsEl.dataset.built="1";
   actionsEl.innerHTML=`
-      <div class="action-card" data-view="viewVio"><div class="ac-icon">🦺</div><div class="ac-title" data-i="tab_vio">المخالفات والغيابات</div><div class="ac-desc">تسجيل ومتابعة المخالفات</div></div>
-      <div class="action-card" data-view="viewVeh"><div class="ac-icon">🚗</div><div class="ac-title" data-i="tab_veh">السيارات</div><div class="ac-desc">إدارة السيارات واللوحات</div></div>
-      <div class="action-card" data-view="viewAppr"><div class="ac-icon">🛡️</div><div class="ac-title" data-i="tab_appr">اعتمادات ارامكو</div><div class="ac-desc">حالة ابروفل الموظفين</div></div>
-      <div class="action-card" data-view="viewGrp"><div class="ac-icon">🗂️</div><div class="ac-title" data-i="tab_grp">القروبات</div><div class="ac-desc">قروبات الدوام A/B/Daily</div></div>
-      <div class="action-card" data-view="viewDep"><div class="ac-icon">🗺️</div><div class="ac-title" data-i="tab_dep">التوزيع</div><div class="ac-desc">توزيع الموظفين للمناطق</div></div>
-      <div class="action-card" data-view="viewEmp"><div class="ac-icon">👥</div><div class="ac-title" data-i="tab_emp">الموظفين</div><div class="ac-desc">إدارة بيانات الموظفين</div></div>
-      <div class="action-card" data-view="viewTs"><div class="ac-icon">🗓️</div><div class="ac-title" data-i="tab_ts">التايم شيت</div><div class="ac-desc">ساعات العمل والحضور</div></div>
+      <div class="action-card" data-view="viewVio"><div class="ac-icon">🦺</div><div class="ac-title" data-i="tab_vio">المخالفات والغيابات</div><div class="ac-desc" data-i="ac_desc_vio">تسجيل ومتابعة المخالفات</div></div>
+      <div class="action-card" data-view="viewVeh"><div class="ac-icon">🚗</div><div class="ac-title" data-i="tab_veh">السيارات</div><div class="ac-desc" data-i="ac_desc_veh">إدارة السيارات واللوحات</div></div>
+      <div class="action-card" data-view="viewAppr"><div class="ac-icon">🛡️</div><div class="ac-title" data-i="tab_appr">اعتمادات ارامكو</div><div class="ac-desc" data-i="ac_desc_appr">حالة ابروفل الموظفين</div></div>
+      <div class="action-card" data-view="viewGrp"><div class="ac-icon">🗂️</div><div class="ac-title" data-i="tab_grp">القروبات</div><div class="ac-desc" data-i="ac_desc_grp">قروبات الدوام A/B/Daily</div></div>
+      <div class="action-card" data-view="viewDep"><div class="ac-icon">🗺️</div><div class="ac-title" data-i="tab_dep">التوزيع</div><div class="ac-desc" data-i="ac_desc_dep">توزيع الموظفين للمناطق</div></div>
+      <div class="action-card" data-view="viewEmp"><div class="ac-icon">👥</div><div class="ac-title" data-i="tab_emp">الموظفين</div><div class="ac-desc" data-i="ac_desc_emp">إدارة بيانات الموظفين</div></div>
+      <div class="action-card" data-view="viewTs"><div class="ac-icon">🗓️</div><div class="ac-title" data-i="tab_ts">التايم شيت</div><div class="ac-desc" data-i="ac_desc_ts">ساعات العمل والحضور</div></div>
   `;
+  applyI18nDom(actionsEl);
   actionsEl.querySelectorAll(".action-card").forEach(card=>{
     card.addEventListener("click",()=>switchBrandView(card.dataset.view));
   });
@@ -3291,7 +3320,7 @@ function bindBrandSearch(){
   const g=document.getElementById("globalSearch"), box=document.getElementById("gsResults");
   if(!g || !box || g.dataset.bound) return;
   g.dataset.bound="1";
-  const TYPE={violation:"مخالفة",absence:"غياب",permission:"استئذان",warning:"إنذار",sick:"سكليف",other:"أخرى"};
+  const TYPE=LANG==='ar'?{violation:"مخالفة",absence:"غياب",permission:"استئذان",warning:"إنذار",sick:"سكليف",other:"أخرى"}:{violation:"Violation",absence:"Absence",permission:"Permission",warning:"Warning",sick:"Sick",other:"Other"};
   const run=function(){
     const q=(g.value||"").trim().toLowerCase();
     if(q.length<2){ box.classList.remove("show"); box.innerHTML=""; return; }

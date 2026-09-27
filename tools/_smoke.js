@@ -180,6 +180,39 @@ setTimeout(() => {
         abtn.remove(); sel.innerHTML = '';
       } catch (e) { bad.push('assign handler threw: ' + e.message); }
 
+      // ربط القروبات بالتوزيع — deployment هو مصدر الحقيقة
+      try {
+        const link = JSON.parse(window.eval(`(function(){
+          const bakD=D.dep; const g0=grpData(); const victim=(g0.D&&g0.D[0]||[])[0];
+          D.dep=[{id:'t-l1',empId:victim,area:'SRU 1',list:'A',rotation:'A',status:'Active'}];
+          const g1=grpData();
+          const moved=!!victim&&!g1.D.some(r=>r[0]===victim)&&g1.A.some(r=>r[0]===victim);
+          D.dep=[{id:'t-l2',empId:'NEW-999',area:'SRU 2',list:'B',rotation:'daily_duty',status:'Active'}];
+          const g2=grpData();
+          const daily=g2.D.some(r=>r[0]==='NEW-999');
+          D.dep=bakD;
+          const g3=grpData();
+          return JSON.stringify({moved:moved,daily:daily,restore:g3.D.length===g0.D.length&&g3.A.length===g0.A.length});
+        })()`));
+        t('groups follow deployment: person moved Daily→A', link.moved);
+        t('groups follow deployment: daily_duty lands in Daily', link.daily);
+        t('grpData leaves static lists unmutated', link.restore);
+      } catch (e) { bad.push('group linkage eval: ' + e.message); }
+
+      // ترجمة شاملة عند تبديل اللغة (خارج #appWrap أيضاً: القائمة السفلية + placeholders)
+      try {
+        const IW = window.eval('I18N');
+        const navSp = d.querySelector('.bottom-nav .nav-item [data-i]');
+        t('bottom-nav items carry data-i', !!navSp);
+        d.getElementById('langBtn').click();
+        t('lang switch translates bottom-nav (EN)', !!navSp && navSp.textContent === IW.en[navSp.getAttribute('data-i')],
+          navSp ? navSp.textContent : 'no nav');
+        t('lang switch translates placeholder (EN)', d.getElementById('globalSearch').placeholder === IW.en.gs_ph,
+          d.getElementById('globalSearch').placeholder);
+        d.getElementById('langBtn').click();
+        t('lang switch back restores Arabic nav', !!navSp && navSp.textContent === IW.ar[navSp.getAttribute('data-i')]);
+      } catch (e) { bad.push('i18n switch: ' + e.message); }
+
       // 8b) groups tab (A / B / Daily)
       try {
         t('groups data injected', !!window.GRP_DATA && (window.GRP_DATA.A || []).length === 71 && (window.GRP_DATA.B || []).length === 74 && (window.GRP_DATA.D || []).length === 54,
