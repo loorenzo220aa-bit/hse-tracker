@@ -184,10 +184,10 @@ setTimeout(() => {
       try {
         const link = JSON.parse(window.eval(`(function(){
           const bakD=D.dep; const g0=grpData(); const victim=(g0.D&&g0.D[0]||[])[0];
-          D.dep=[{id:'t-l1',empId:victim,area:'SRU 1',list:'A',rotation:'A',status:'Active'}];
+          D.dep=[{id:'t-l1',empId:victim,area:'SRU 1',list:'A',rot:'A',status:'Active'}];
           const g1=grpData();
           const moved=!!victim&&!g1.D.some(r=>r[0]===victim)&&g1.A.some(r=>r[0]===victim);
-          D.dep=[{id:'t-l2',empId:'NEW-999',area:'SRU 2',list:'B',rotation:'daily_duty',status:'Active'}];
+          D.dep=[{id:'t-l2',empId:'NEW-999',area:'SRU 2',list:'B',rot:'daily_duty',status:'Active'}];
           const g2=grpData();
           const daily=g2.D.some(r=>r[0]==='NEW-999');
           D.dep=bakD;

@@ -2866,7 +2866,7 @@ const grpData=()=>{ const base=Object.assign({},window.GRP_DATA||{});
   (D.dep||[]).forEach(d=>{
     let g=null;
     FIRE_AREAS.forEach(k=>{ if(k[1].test(d.area||'')) g=k[0]; });
-    if(!g) g=rotGrp(d.rotation);
+    if(!g) g=rotGrp(d.rot||d.rotation); /* الحقل داخل التطبيق = rot، وREST = rotation */
     if(!g) return;
     const e=empById(d.empId); const id=(e&&e.num)||d.empId||'';
     base[g]=base[g]||[]; base[g].push([id,(e&&(e.en||e.ar))||id]);
