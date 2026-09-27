@@ -176,6 +176,8 @@ setTimeout(() => {
         t('groups export wired', typeof d.getElementById('grpExportBtn').onclick === 'function');
         t('template export is attExport', typeof window.attExport === 'function' && typeof d.getElementById('grpExportBtn2').onclick === 'function');
         t('auto-date helper present', typeof window.attDateCell === 'function' && window.attDateCell('<c r="D9" s="8"/>', new Date(2026, 0, 2)).includes('DATE: 02/01/2026'));
+        t('fire sheet names wired', typeof window.attSheetName === 'function' && window.attSheetName('FD') === 'TTENDANCE SHEET FIRE DAY' && window.attSheetName('FN') === 'TTENDANCE SHEET FIRE NIGHT',
+          window.attSheetName('FD') + ' / ' + window.attSheetName('FN'));
         t('export degrades gracefully without JSZip', (() => {
           try { d.getElementById('grpExportBtn').click(); return !d.getElementById('grpExportBtn').disabled; }
           catch (e) { return false; }
