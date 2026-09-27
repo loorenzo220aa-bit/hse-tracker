@@ -115,6 +115,13 @@ setTimeout(() => {
       t('passMatch still accepts legacy plaintext', window.passMatch({ pass: 'legacy' }, 'legacy') === true);
       t('migration button exists', !!d.getElementById('migBtn'));
 
+      // صلاحيات المستخدمين
+      t('permission checkbox replaces role select', !!d.getElementById('uPermFull') && !d.getElementById('uRole'));
+      t('user row has edit (permissions) button', !!d.querySelector('#userBody [data-editu]'));
+      t('admin holds full permissions', window.isAdmin() === true);
+      t('admin data-perm = edit', d.documentElement.getAttribute('data-perm') === 'edit',
+        'got: ' + d.documentElement.getAttribute('data-perm'));
+
       // create a user → the payload written to Supabase must contain a hash, not plaintext
       d.getElementById('uName').value = 'اختبار التشفير';
       d.getElementById('uUser').value = 'cryptotest';
@@ -126,7 +133,24 @@ setTimeout(() => {
         const saved = bodies.find(b => b.username === 'cryptotest');
         t('new user payload has hashed password', !!saved && saved.password !== 'MySecret123' && /^h\$/.test(saved.password || ''),
           saved ? String(saved.password).slice(0, 20) + '…' : 'no users POST captured');
-        finish();
+
+        // حساب بلا صلاحيات (role=user): يرى كل شيء ولا يعدّل شيئاً
+        window.doLogout();
+        d.getElementById('lgUser').value = 'cryptotest';
+        d.getElementById('lgPass').value = 'MySecret123';
+        window.doLogin();
+        setTimeout(function () {
+          t('view-only login succeeds', !d.getElementById('appWrap').classList.contains('hide'));
+          t('view-only has no permissions', window.isAdmin() === false);
+          t('data-perm = view for view-only user', d.documentElement.getAttribute('data-perm') === 'view',
+            'got: ' + d.documentElement.getAttribute('data-perm'));
+          t('users card hidden from view-only user', d.getElementById('usersCard').classList.contains('hide'));
+          t('every save control marked edit-only',
+            !!d.getElementById('addEmpBtn').closest('.edit-only') && !!d.getElementById('addRecBtn').closest('.edit-only')
+            && !!d.getElementById('tsSaveBtn').closest('.edit-only') && !!d.getElementById('depSaveBtn').closest('.edit-only')
+            && !!d.getElementById('vehSaveBtn').closest('.edit-only') && !!d.getElementById('importBtn').closest('.edit-only'));
+          finish();
+        }, 300);
       }, 250);
     } catch (e) { bad.push('password hashing threw: ' + e.message); finish(); }
 

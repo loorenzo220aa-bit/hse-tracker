@@ -155,6 +155,7 @@
   .t-wrn{background:var(--orange-bg); color:#b45309;}
   .t-fd{background:var(--red-bg); color:#b91c1c;}
   .t-fn{background:var(--purple-bg); color:#6d28d9;}
+  html[data-perm="view"] .edit-only{display:none !important;}
   .t-sick{background:#e0f2fe; color:#0284c7;}
   .t-none{background:#eef2f7; color:#64748b;}
   /* حبّة الحالة المضغوطة (ابروفل ارامكو) */
@@ -776,15 +777,16 @@ try{
       <div class="field"><label data-i="u_name">اسم الزميل</label><input id="uName" placeholder="مثال: خالد الحربي"></div>
       <div class="field"><label data-i="l_user">اسم المستخدم</label><input id="uUser" placeholder="khaled"></div>
       <div class="field"><label data-i="l_pass">كلمة المرور</label><input id="uPass" placeholder="••••••"></div>
-      <div class="field"><label data-i="u_role">الصلاحية</label>
-        <select id="uRole"><option value="admin" data-i="u_roleAdmin">مدير (Admin)</option><option value="user" data-i="u_roleUser">مستخدم (User)</option></select>
+      <div class="field"><label data-i="u_perms">الصلاحيات</label>
+        <label style="display:flex;gap:6px;align-items:center;font-size:13px;padding-top:8px;white-space:nowrap;"><input type="checkbox" id="uPermFull"> <span data-i="u_permFull">👑 صلاحيات كاملة (تعديل وإدارة المستخدمين)</span></label>
+        <div data-i="u_permHint" style="font-size:11px;color:var(--mut);margin-top:3px;">غير مفعّلة ← عرض وتصدير فقط</div>
       </div>
       <div><button class="btn btn-acc" id="addUserBtn" data-i="u_add">＋ إضافة زميل</button></div>
       <div><button class="btn" id="migBtn" data-i="mig_btn">🔒 تشفير كلمات المرور</button></div>
     </div>
     <div class="tbl-holder" style="margin-top:16px;">
       <table>
-        <thead><tr><th data-i="u_name">اسم الزميل</th><th data-i="l_user">اسم المستخدم</th><th data-i="u_role">الصلاحية</th><th></th></tr></thead>
+        <thead><tr><th data-i="u_name">اسم الزميل</th><th data-i="l_user">اسم المستخدم</th><th data-i="u_perms">الصلاحيات</th><th></th></tr></thead>
         <tbody id="userBody"></tbody>
       </table>
       <div class="empty hide" id="userEmpty"></div>
@@ -794,7 +796,7 @@ try{
 
   <div class="card">
     <h2><span class="ic">👷</span><span data-i="t_emp">إدارة الموظفين (إضافة / تعديل / حذف)</span></h2>
-    <div class="frow">
+    <div class="frow edit-only">
       <div class="field"><label data-i="l_empname">اسم الموظف (عربي)</label><input id="empNameAr" placeholder="مثال: محمد السالم"></div>
       <div class="field"><label data-i="l_empname2">الاسم بالإنجليزية</label><input id="empNameEn" placeholder="Mohammed Al-Salem"></div>
       <div class="field"><label data-i="l_empnum">الرقم الوظيفي</label><input id="empNum" placeholder="SASL-0001"></div>
@@ -807,7 +809,7 @@ try{
     </div>
     <div class="frow" style="margin-top:14px;">
       <div class="field"><input type="file" id="importFile" accept=".xlsx,.xls" style="display:none"></div>
-      <button class="btn btn-acc" id="importBtn">📤 <span data-i="importEmp">استيراد من ملف Excel</span></button>
+      <button class="btn btn-acc edit-only" id="importBtn">📤 <span data-i="importEmp">استيراد من ملف Excel</span></button>
       <button class="btn btn-green" id="exportEmpBtn">📥 <span data-i="exportEmp">تصدير الموظفين</span></button>
     </div>
     <details class="coll">
@@ -827,7 +829,7 @@ try{
 
   <div class="card">
     <h2><span class="ic">📝</span><span data-i="t_rec">تسجيل حركة يومية (مخالفة / غياب / استئذان)</span></h2>
-    <div class="frow">
+    <div class="frow edit-only">
       <div class="field"><label data-i="l_recEmp">الموظف</label><select id="recEmp"></select></div>
       <div class="field"><label data-i="l_type">النوع</label>
         <select id="recType">
@@ -901,7 +903,7 @@ try{
       <div class="field"><label data-i="l_recEmp">الموظف</label><select id="tsEmp"></select></div>
       <div class="field"><label data-i="ts_position">المسمى الوظيفي</label><input id="tsPosition" placeholder="SAFETY OFFICER"></div>
       <div class="field"><label data-i="ts_nationality">الجنسية</label><input id="tsNationality" placeholder="Saudi"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-acc" id="tsFillBtn">🪄 <span data-i="ts_fill">تعبئة افتراضية</span></button>
+      <div class="edit-only" style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-acc" id="tsFillBtn">🪄 <span data-i="ts_fill">تعبئة افتراضية</span></button>
             <button class="btn btn-green" id="tsSaveBtn">💾 <span data-i="ts_save">حفظ التايم شيت</span></button></div>
     </div>
     <div class="frow" style="margin-top:12px;">
@@ -936,7 +938,7 @@ try{
   <div id="viewDep" class="hide">
   <div class="card">
     <h2><span class="ic">🗺️</span><span data-i="dep_title">توزيع الأفراد على المناطق</span> <span class="mut" id="depCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
-    <div class="frow">
+    <div class="frow edit-only">
       <div class="field"><label data-i="l_recEmp">الموظف</label><select id="depEmp"></select></div>
       <div class="field"><label data-i="dep_area">المنطقة</label><input id="depArea" list="depAreasList" placeholder="K9"><datalist id="depAreasList"></datalist></div>
       <div class="field"><label data-i="dep_list">القائمة</label><select id="depList"><option>A</option><option>B</option><option>(no list)</option></select></div>
@@ -958,7 +960,7 @@ try{
   <div class="card">
     <h2><span class="ic">🚗</span><span data-i="veh_title">سجل السيارات</span> <span class="mut" id="vehCountLbl" style="color:var(--mut);font-size:13px;"></span></h2>
     <div class="grid" id="vehStats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));"></div>
-    <div class="frow">
+    <div class="frow edit-only">
       <div class="field"><label data-i="l_recEmp">الموظف</label><select id="vehEmp"></select></div>
       <div class="field"><label data-i="veh_make">الماركة</label><input id="vehMake" list="vehMakesList" placeholder="Toyota"><datalist id="vehMakesList"></datalist></div>
       <div class="field"><label data-i="veh_model">الموديل</label><input id="vehModel" placeholder="Camry"></div>
@@ -1220,7 +1222,7 @@ const I18N={
     s_vio_m:'مخالفات (الشهر)', s_abs_m:'غيابات (الشهر)', s_per_m:'استأذانات (الشهر)', s_wrn_m:'إنذارات (الشهر)', s_sick_m:'سكليف (الشهر)',
     dash_title:'لوحة التحكم', dash_daily:'الحركات اليومية خلال الشهر', dash_types:'التوزيع حسب النوع',
     dash_top:'الأكثر تسجيلاً (أعلى 8)', dash_months:'مقارنة آخر 6 أشهر', dash_none:'لا توجد حركات في هذا الشهر',
-    t_users:'إدارة الزملاء (المستخدمون)', u_name:'اسم الزميل', u_role:'الصلاحية', u_roleAdmin:'مدير (Admin)', u_roleUser:'مستخدم (User)', u_add:'＋ إضافة زميل',
+    t_users:'إدارة الزملاء (المستخدمون)', u_name:'اسم الزميل', u_role:'الصلاحية', u_roleAdmin:'مدير (Admin)', u_roleUser:'مستخدم (User)', u_add:'＋ إضافة زميل', u_perms:'الصلاحيات', u_permFull:'👑 صلاحيات كاملة (تعديل وإدارة المستخدمين)', u_permHint:'غير مفعّلة ← عرض وتصدير فقط', u_roleEmp:'موظف (عرض فقط)', u_edited:'تم حفظ التعديلات', u_lastAdmin:'تعذّر إلغاء الصلاحيات: أنت آخر مدير',
     t_emp:'إدارة الموظفين (إضافة / تعديل / حذف)', l_empname:'اسم الموظف (عربي)', l_empname2:'الاسم بالإنجليزية', l_empnum:'الرقم الوظيفي',
     l_dept:'القسم / المهنة', addEmp:'➕ إضافة',
     t_rec:'تسجيل حركة يومية (مخالفة / غياب / استئذان)', l_recEmp:'الموظف', l_type:'النوع',
@@ -1285,7 +1287,7 @@ const I18N={
     s_vio_m:'Violations (month)', s_abs_m:'Absences (month)', s_per_m:'Permits (month)', s_wrn_m:'Warnings (month)', s_sick_m:'Sick Leave (month)',
     dash_title:'Dashboard', dash_daily:'Daily activity this month', dash_types:'Distribution by type',
     dash_top:'Top recorded (top 8)', dash_months:'Last 6 months comparison', dash_none:'No entries this month',
-    t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'+ Add Colleague',
+    t_users:'Manage Colleagues (Users)', u_name:'Colleague Name', u_role:'Role', u_roleAdmin:'Admin', u_roleUser:'User', u_add:'+ Add Colleague', u_perms:'Permissions', u_permFull:'👑 Full permissions (edit + manage users)', u_permHint:'Off ← view & export only', u_roleEmp:'Employee (view only)', u_edited:'Changes saved', u_lastAdmin:'Cannot revoke: you are the last admin',
     t_emp:'Manage Employees (Add / Edit / Delete)', l_empname:'Employee Name (Arabic)', l_empname2:'Name (English)', l_empnum:'Job Number',
     l_dept:'Department / Job', addEmp:'+ Add',
     t_rec:'Daily Entry (Violation / Absence / Permit)', l_recEmp:'Employee', l_type:'Type',
@@ -1353,6 +1355,9 @@ function isAdmin(){ const u=currentUser(); return !!u && u.role==='admin'; }
 function renderAuthUI(){
   const u=currentUser();
   const isAdminUser=isAdmin();
+  document.documentElement.setAttribute('data-perm', isAdminUser?'edit':'view');
+  if(u && !isAdminUser) editingEmpId=null;
+  ['tsPosition','tsNationality'].forEach(id=>{ const el=document.getElementById(id); if(el) el.readOnly=!isAdminUser; });
   document.getElementById('appWrap').classList.toggle('hide', !u);
   document.getElementById('loginScrim').classList.toggle('hide', !!u);
   if(!u) return;
@@ -1384,6 +1389,7 @@ function refreshTypeLabels(){}
 
 /* ============ USERS (admin) ============ */
 let pwdEditUser=null;
+let editUserRow=null;
 function renderUsers(){
   const es=document.getElementById('userBody'); if(!es) return;
   es.innerHTML='';
@@ -1393,8 +1399,9 @@ function renderUsers(){
   D.users.forEach(u=>{
     const tr=document.createElement('tr');
     const isSelf=u.user===SESSION;
-    const roleTag=u.role==='admin'?'<span class="tag t-admin">'+T().admin+'</span>':'<span class="tag t-user">User</span>';
-    let acts='<button class="btn btn-sm" data-pwd="'+esc(u.user)+'" title="&#128273;">&#128273;</button> ';
+    const roleTag=u.role==='admin'?'<span class="tag t-admin">'+esc(T().admin)+'</span>':'<span class="tag t-none">'+esc(T().u_roleEmp)+'</span>';
+    let acts='<button class="btn btn-sm" data-editu="'+esc(u.user)+'" title="'+esc(T().edit)+'">✏️</button> ';
+    acts+='<button class="btn btn-sm" data-pwd="'+esc(u.user)+'" title="&#128273;">&#128273;</button> ';
     acts+=(isSelf?'':'<button class="del" data-u="'+esc(u.user)+'" title="'+T().u_del+'">🗑</button>');
     tr.innerHTML='<td>'+esc(u.name)+' '+(isSelf?'<span style="color:var(--mut);font-size:11px;">('+T().you+')</span>':'')+'</td>      <td>'+esc(u.user)+'</td><td>'+roleTag+'</td>      <td style="white-space:normal;">'+acts+'</td>';
     es.appendChild(tr);
@@ -1406,6 +1413,16 @@ function renderUsers(){
         '<button class="btn btn-sm" id="pwdCancelBtn">✖</button></div></td>';
       es.appendChild(tr2);
     }
+    if(editUserRow===u.user){
+      const tr3=document.createElement('tr');
+      tr3.innerHTML='<td colspan="4"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f0f9ff;padding:10px;border-radius:12px;">'+
+        '<input type="text" id="euName" value="'+esc(u.name)+'" placeholder="'+esc(T().u_name)+'" style="max-width:180px;">'+
+        '<input type="text" id="euUser" value="'+esc(u.user)+'" placeholder="'+esc(T().l_user)+'" style="max-width:140px;direction:ltr;">'+
+        '<label style="display:flex;gap:5px;align-items:center;font-size:12px;white-space:nowrap;"><input type="checkbox" id="euFull"'+(u.role==='admin'?' checked':'')+'> '+esc(T().u_permFull)+'</label>'+
+        '<button class="btn btn-sm btn-green" id="euSaveBtn">💾 '+esc(T().save_edit)+'</button>'+
+        '<button class="btn btn-sm" id="euCancelBtn">✖</button></div></td>';
+      es.appendChild(tr3);
+    }
   });
 }
 
@@ -1413,7 +1430,7 @@ document.getElementById('addUserBtn').onclick=async()=>{
   const name=document.getElementById('uName').value.trim();
   const user=document.getElementById('uUser').value.trim().toLowerCase();
   const pass=document.getElementById('uPass').value.trim();
-  const role=document.getElementById('uRole').value;
+  const role=document.getElementById('uPermFull').checked?'admin':'user';
   if(!name||!user||!pass){ toast(T().err_fill); return; }
   if(D.users.find(u=>u.user===user)){ toast(T().err_userExists); return; }
   const u={id:uid(),name,user,pass,role};
@@ -1421,6 +1438,7 @@ document.getElementById('addUserBtn').onclick=async()=>{
   await saveUser(u);
   renderAuthUI();
   document.getElementById('uName').value='';document.getElementById('uUser').value='';document.getElementById('uPass').value='';
+  document.getElementById('uPermFull').checked=false;
   toast(T().toast_addUser);
 };
 
@@ -1437,11 +1455,17 @@ document.getElementById('migBtn').onclick=async()=>{
 };
 
 document.getElementById('userBody').addEventListener('click',async e=>{
+  const edituBtn=e.target.closest('[data-editu]');
+  const euSave=e.target.closest('#euSaveBtn');
+  const euCancel=e.target.closest('#euCancelBtn');
   const pwdBtn=e.target.closest('[data-pwd]');
   const saveBtn=e.target.closest('#pwdSaveBtn');
   const cancelBtn=e.target.closest('#pwdCancelBtn');
-  if(pwdBtn){ pwdEditUser=pwdBtn.dataset.pwd; renderUsers(); const inp=document.getElementById('pwdNew'); if(inp) inp.focus(); return; }
-  if(cancelBtn){ pwdEditUser=null; renderUsers(); return; }
+  if(edituBtn){ editUserRow=edituBtn.dataset.editu; pwdEditUser=null; renderUsers(); const _f=document.getElementById('euName'); if(_f) _f.focus(); return; }
+  if(euCancel){ editUserRow=null; renderUsers(); return; }
+  if(euSave){ await saveUserEdit(); return; }
+  if(pwdBtn){ editUserRow=null; pwdEditUser=pwdBtn.dataset.pwd; renderUsers(); const inp=document.getElementById('pwdNew'); if(inp) inp.focus(); return; }
+  if(cancelBtn){ pwdEditUser=null; editUserRow=null; renderUsers(); return; }
   if(saveBtn){
     const np=document.getElementById('pwdNew').value.trim();
     if(np.length<4){ toast(T().err_short); return; }
@@ -1457,6 +1481,24 @@ document.getElementById('userBody').addEventListener('click',async e=>{
   if(u) await delUser(u.id);
   renderAuthUI(); toast(T().toast_delUser);
 });
+
+async function saveUserEdit(){
+  const target=D.users.find(x=>x.user===editUserRow); if(!target){ editUserRow=null; renderUsers(); return; }
+  const newName=(document.getElementById('euName').value||'').trim();
+  const newUser=(document.getElementById('euUser').value||'').trim().toLowerCase();
+  const full=document.getElementById('euFull').checked;
+  if(!newName||!newUser){ toast(T().err_fill); return; }
+  if(D.users.some(x=>x!==target && x.user===newUser)){ toast(T().err_userExists); return; }
+  if(target.role==='admin' && !full && !D.users.some(x=>x!==target && x.role==='admin')){ toast(T().u_lastAdmin); return; }
+  const role=full?'admin':'user';
+  const oldUser=target.user;
+  target.name=newName; target.user=newUser; target.role=role;
+  if(oldUser===SESSION) SESSION=newUser;
+  await updateUser(target.id,{name:newName, username:newUser, role:role});
+  editUserRow=null;
+  renderAuthUI();
+  toast(T().u_edited);
+}
 
 /* ============ LOGIN ============ */
 async function doLogin(){
@@ -1604,7 +1646,7 @@ function renderEmps(){
       const nm=empName(e);
       const thumb=e.photo?'<img src="'+e.photo+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-inline-end:6px;">':'';
       const gbadge='<span class="tag '+(empGroup(e)==='HEC'?'t-user':'t-admin')+'" style="direction:ltr;">'+esc(empGroup(e))+'</span>';
-      tr.innerHTML='<td>'+thumb+esc(nm)+'</td><td>'+gbadge+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.plate||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del" data-del="'+e.id+'">🗑</button>        </td>';
+      tr.innerHTML='<td>'+thumb+esc(nm)+'</td><td>'+gbadge+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.plate||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm edit-only" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del edit-only" data-del="'+e.id+'">🗑</button>        </td>';
     }
     body.appendChild(tr);
   });
@@ -2059,6 +2101,7 @@ function loadTsForm(){
     if(fri) tr.querySelectorAll('td').forEach(td=>td.classList.add('fri'));
     body.appendChild(tr);
   });
+  if(!isAdmin()) body.querySelectorAll('input').forEach(i=>{ i.readOnly=true; });
 }
 function readTsGrid(){
   const days={};
@@ -2645,7 +2688,7 @@ function renderAppr(){
       +'<td>'+esc(x.r)+'</td><td><span class="tag st '+apprClass(x.a)+'" title="'+esc(x.a||'')+'">'+esc(apprLabel(x.a))+'</span></td>'
       +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td><td style="direction:ltr;">'+esc(x.ar||'—')+'</td>'
       +'<td>'+esc(x.x||'—')+'</td>'
-    +'<td><button class="btn btn-sm" data-appredit="'+esc(x.i)+'">✏️</button></td>';
+    +'<td><button class="btn btn-sm edit-only" data-appredit="'+esc(x.i)+'">✏️</button></td>';
     body.appendChild(tr);
   });
   const ed=document.getElementById('apprEmpty');
