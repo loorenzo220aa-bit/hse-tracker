@@ -2935,8 +2935,9 @@ function initBrandTheme() {
   if(!document.documentElement.hasAttribute("data-theme") || document.documentElement.getAttribute("data-theme")!=="brand") return;
   document.querySelectorAll(".global-search, .brand-content, .bottom-nav").forEach(el=>el.style.display="flex");
   document.querySelector(".tabs")?.style.setProperty("display","none","important");
-  const statsEl=document.getElementById("brandStats");
-  if(statsEl && window.D){
+  const renderBrandStats=function(){
+    const statsEl=document.getElementById("brandStats");
+    if(!statsEl || typeof D==='undefined') return false;
     statsEl.innerHTML=`
       <div class="stat-card"><div class="stat-value">${D.emp?.length||0}</div><div class="stat-label" data-i="s_emp">الموظفون المسجلون</div></div>
       <div class="stat-card"><div class="stat-value" style="color:var(--red)">${(D.rec||[]).filter(r=>r.type==="vio" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_vio_m">مخالفات (الشهر)</div></div>
@@ -2946,7 +2947,15 @@ function initBrandTheme() {
       <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${(D.rec||[]).filter(r=>r.type==="sick" && r.date?.startsWith(curMonth())).length}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
       <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${D.users?.length||0}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
     `;
-  }
+    return true;
+  };
+  let stTries=0;
+  const stTimer=setInterval(function(){
+    const ok=renderBrandStats();
+    const hasData=(typeof D!=='undefined')&&D.emp&&D.emp.length;
+    if((ok&&hasData)||++stTries>60) clearInterval(stTimer);
+  },1500);
+  renderBrandStats();
   const actionsEl=document.getElementById("brandActions");
   if(actionsEl){
     actionsEl.innerHTML=`
