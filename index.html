@@ -1269,7 +1269,7 @@ const I18N={
     veh_logged:'مسجل (بلوحة)', veh_remaining:'متبقي (بدون لوحة)',
     veh_total:'الإجمالي', veh_rows:'المركبات المسجلة', dep_title:'توزيع الأفراد على المناطق',
     dep_area:'المنطقة', dep_list:'القائمة', dep_rot:'مجموعة الدوام', dep_status:'الحالة',
-    dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
+    dep_save:'حفظ التوزيع', dep_export:'تصدير التوزيع Excel', dep_search:'🔍 بحث باسم أو منطقة...', dep_saved:'تم حفظ التوزيع ✅', dep_noLoc:'بدون موقع عمل', dep_assign:'تعيين', dep_pickArea:'اختر منطقة العمل ثم اضغط «حفظ التوزيع»', emp_list:'قائمة الموظفين', sum_list:'الملخص التفصيلي', staff_search:'🔍 بحث بالاسم أو الرقم الوظيفي', tab_ts:'التايم شيت', ts_title:'التايم شيت الشهري',
     ts_position:'المسمى الوظيفي', ts_nationality:'الجنسية', ts_fill:'تعبئة افتراضية', ts_save:'حفظ التايم شيت',
     ts_export:'تصدير التايم شيت Excel', ts_day:'اليوم', ts_saved:'تم حفظ التايم شيت ✅', ts_noemp:'أضف موظفاً أولاً',
     set_new_pass:'كلمة مرور جديدة', pwd_changed:'تم تغيير كلمة المرور ✅', c_phone:'الهاتف',
@@ -1334,7 +1334,7 @@ const I18N={
     veh_logged:'Logged (plated)', veh_remaining:'Remaining (no plate)',
     veh_total:'Total', veh_rows:'Logged Vehicles', dep_title:'Area Deployment',
     dep_area:'Area', dep_list:'List', dep_rot:'Rotation Group', dep_status:'Status',
-    dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
+    dep_save:'Save Deployment', dep_export:'Export Deployment Excel', dep_search:'🔍 Search name or area...', dep_saved:'Deployment saved ✅', dep_noLoc:'No work location', dep_assign:'Assign', dep_pickArea:'Pick the work area then press "Save Deployment"', emp_list:'Employee List', sum_list:'Detailed Summary', staff_search:'🔍 Search name or job number', tab_ts:'Timesheet', ts_title:'Monthly Timesheet',
     ts_position:'Position', ts_nationality:'Nationality', ts_fill:'Auto Fill', ts_save:'Save Timesheet',
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', c_phone:'Phone', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
     list_export_a_done:'✅ List A exported',
@@ -2381,6 +2381,23 @@ function renderDep(){
   const groups=depGroups();
   let total=0;
   wrap.innerHTML='';
+  /* ---- بدون موقع عمل: الموظفون بلا صف توزيع ---- */
+  const depIds=new Set((D.dep||[]).map(x=>x.empId));
+  const noLoc=sortedEmp().filter(e=>!depIds.has(e.num));
+  const nlBox=document.createElement('details');
+  nlBox.id='depNoLoc'; nlBox.className='coll'+(noLoc.length?'':' hide');
+  let nlh='<summary style="background:#fff7ed;border:2px dashed #f59e0b;color:#b45309;font-weight:800;border-radius:12px;">⚠️ '
+    +esc(T().dep_noLoc||'No work location')+' <span>('+noLoc.length+')</span></summary>'
+    +'<div class="tbl-holder" style="margin-top:0;"><table><thead><tr><th>#</th>'
+    +'<th data-i="c_emp">'+esc(T().c_emp||'Employee')+'</th><th data-i="c_num">'+esc(T().c_num||'Job No.')+'</th>'
+    +'<th data-i="l_dept">'+esc(T().l_dept||'Department')+'</th><th></th></tr></thead><tbody>';
+  noLoc.forEach((e,i)=>{
+    nlh+='<tr><td>'+(i+1)+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(e.dept||'')+'</td>'
+      +((isAdmin()&&e.id)?'<td><button class="btn btn-sm btn-acc edit-only" data-assign="'+esc(e.id)+'">➕ '+esc(T().dep_assign||'Assign')+'</button></td>':'<td></td>')+'</tr>';
+  });
+  nlh+='</tbody></table></div>';
+  nlBox.innerHTML=nlh;
+  wrap.appendChild(nlBox);
   groups.forEach(g=>{
     const rows=g.lists.flatMap(l=>l.rows).filter(match);
     if(!rows.length) return;
@@ -2398,7 +2415,7 @@ function renderDep(){
     det.innerHTML=h;
     wrap.appendChild(det);
   });
-  if(!total) wrap.innerHTML='<div class="empty">'+esc(T().empty)+'</div>';
+  if(!total){ wrap.innerHTML='<div class="empty">'+esc(T().empty)+'</div>'; wrap.appendChild(nlBox); }
   document.getElementById('depCountLbl').textContent=groups.length+' / '+total;
 }
 document.getElementById('depSearch').oninput=renderDep;
@@ -2424,6 +2441,12 @@ document.getElementById('depSaveBtn').onclick=async()=>{
 
 
 document.getElementById('depBody').addEventListener('click',async e=>{
+  const asg=e.target.closest('[data-assign]');
+  if(asg){ const sel=document.getElementById('depEmp'); const v=asg.dataset.assign;
+    if(sel&&v){ sel.value=v; if(sel.value!==v){ const f=(D.emp||[]).find(x=>x.id===v||x.num===v); if(f) sel.value=f.id; } }
+    const ar=document.getElementById('depArea');
+    if(ar){ try{ ar.scrollIntoView({behavior:'smooth',block:'center'}); }catch(_){} ar.focus(); }
+    toast(T().dep_pickArea); return; }
   const btn=e.target.closest('[data-depdel]'); if(!btn) return;
   if(!confirm(T().askDel)) return;
   D.dep=(D.dep||[]).filter(d=>d.id!==btn.dataset.depdel);

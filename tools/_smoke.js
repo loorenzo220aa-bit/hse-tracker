@@ -161,6 +161,25 @@ setTimeout(() => {
       });
       t('viewVio active at end', !d.getElementById('viewVio').classList.contains('hide'));
 
+      // deployment: no-location box (الموظفون بلا موقع عمل)
+      const nlBox = d.getElementById('depNoLoc');
+      t('deployment no-location box rendered', !!nlBox);
+      t('no-location box hidden when nobody unassigned (offline: 0 employees)', !!nlBox && nlBox.classList.contains('hide'));
+      try {
+        // معالجة زر «تعيين»: يملأ نموذج التوزيع ويرشد لاختيار المنطقة
+        const sel = d.getElementById('depEmp');
+        sel.innerHTML = '<option value="syn-1">Synthetic — SYN-1</option>';
+        const abtn = d.createElement('button');
+        abtn.setAttribute('data-assign', 'syn-1');
+        d.getElementById('depBody').appendChild(abtn);
+        abtn.click();
+        t('assign button fills employee select', sel.value === 'syn-1', 'value=' + sel.value);
+        const picks = [...html.matchAll(/dep_pickArea:'([^']+)'/g)].map(m => m[1]);
+        t('assign shows area guidance toast', picks.includes(d.getElementById('toast').textContent),
+          JSON.stringify(d.getElementById('toast').textContent));
+        abtn.remove(); sel.innerHTML = '';
+      } catch (e) { bad.push('assign handler threw: ' + e.message); }
+
       // 8b) groups tab (A / B / Daily)
       try {
         t('groups data injected', !!window.GRP_DATA && (window.GRP_DATA.A || []).length === 71 && (window.GRP_DATA.B || []).length === 74 && (window.GRP_DATA.D || []).length === 54,
