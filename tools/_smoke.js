@@ -98,6 +98,26 @@ setTimeout(() => {
       t('company filter wired', typeof d.getElementById('apprCo').onchange === 'function');
       t('bell + counter exist in header', !!d.getElementById('apprBellBtn') && !!d.getElementById('apprBellN'));
       t('add button marked edit-only', !!d.getElementById('apprAddBtn').closest('.edit-only'));
+      // تصدير Excel بنفس تنسيق ملف TR STATUS (قالب OOXML + كتابة خلايا محفوظة التنسيق)
+      t('apprExportBtn handler registered', typeof d.getElementById('apprExportBtn').onclick === 'function');
+      t('Aramco template committed', fs.existsSync(require('path').join(require('path').dirname(file), 'Aramco_Template.xlsx')));
+      const exRow = window.apprExportRow({ i: 'SASL-9999', n: 'TEST SUBJECT', c: 'HYUNDAI (DIRECT)', t: 'SAFETY OFFICER',
+        ws: 'ACTIVE', nat: 'Saudi', rd: 'Direct', ap: '90 DAYS', apn: 'APPROVED', xi: '2026-07-01', xf: '2026-12-31',
+        ed: '2026-01-05', ex: 'PASSED', ad: '2026-01-10', tr: 'TR-77', iv: 'PASSED', ivd: '2026-01-06', note: 'r' }, 0, '2026-06-01');
+      t('export row has exactly 36 columns', exRow.length === 36 && window.eval('APPR_EXPORT_COLS') === 36, exRow.length + ' cols');
+      t('export row maps file columns (NO/NAME/STATUS/dates)',
+        exRow[0] === 1 && exRow[2] === 'TEST SUBJECT' && exRow[7] === 'ACTIVE' && exRow[14] === '2026-01-05'
+        && exRow[16] === '2026-01-10' && exRow[17] === '2026-07-01' && exRow[24] === '2026-12-31' && exRow[35] === 'r',
+        JSON.stringify(exRow.slice(0, 4)));
+      t('export row computes remaining days (S/Z)', exRow[18] === window.apprDays('2026-06-01', '2026-07-01')
+        && exRow[25] === window.apprDays('2026-06-01', '2026-12-31'), 'S=' + exRow[18] + ' Z=' + exRow[25]);
+      t('export keeps legacy approval text in SAUDI column',
+        window.apprExportRow({ i: 'LEG-1', a: 'Safety officer 90-day', s: 'under_evaluation' }, 4, '2026-06-01')[11] === 'Safety officer 90-day');
+      t('export column letters A..AJ', window.apprCol(1) === 'A' && window.apprCol(12) === 'L' && window.apprCol(36) === 'AJ');
+      t('appr export degrades gracefully without JSZip', (() => {
+        try { d.getElementById('apprExportBtn').click(); return !d.getElementById('apprExportBtn').disabled; }
+        catch (e) { return false; }
+      })());
       t('alert: overdue probation', window.apprAlerts({ i: 'X', s: 'under_evaluation', xp: '2020-01-01' }).some(a => a.k === 'overdue'));
       t('alert: stale transmittal (>30d)', window.apprAlerts({ i: 'X', s: 'passed_pending_transmittal', ed: '2026-01-01' }).some(a => a.k === 'stale'));
       t('alert: failed status', window.apprAlerts({ i: 'X', s: 'failed_non_compliant' }).some(a => a.k === 'failed'));

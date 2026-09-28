@@ -1331,6 +1331,7 @@ const I18N={
     appr_err_new:'أدخل الرقم الوظيفي أو الاسم أولاً', appr_exists:'هذا الموظف مسجل في الاعتمادات مسبقاً',
     appr_bell:'التنبيهات اليومية', appr_bell_sub:'اضغط على التنبيه لفتح السجل ومعالجته',
     appr_bell_empty:'لا توجد تنبيهات — الوضع مطابق ✅',
+    appr_exporting:'جارٍ التصدير…', appr_xlsx:'تم التصدير بنفس تنسيق ملف TR STATUS ✅',
     appr_al_failed:'لم يجتاز الاختبار', appr_al_overdue:'تجاوز فترة التجربة (90/180 يوم) دون اجتياز',
     appr_al_expired:'انتهت صلاحية الاعتماد — يلزم تجديد', appr_al_stale:'تأخرت أوراق الترانزميتال عن موعدها',
     appr_al_nogreen:'في مجموعة ميدانية بدون هلمت أخضر',
@@ -1414,6 +1415,7 @@ const I18N={
     appr_err_new:'Enter the employee number or name first', appr_exists:'This employee already has an approval record',
     appr_bell:'Daily Alerts', appr_bell_sub:'Tap an alert to open the record and fix it',
     appr_bell_empty:'No alerts — all clear ✅',
+    appr_exporting:'Exporting…', appr_xlsx:'Exported in TR STATUS file format ✅',
     appr_al_failed:'Failed exam', appr_al_overdue:'Probation period (90/180 days) exceeded',
     appr_al_expired:'Approval expired — renewal required', appr_al_stale:'Transmittal papers overdue',
     appr_al_nogreen:'In a field team without a green helmet',
@@ -2774,7 +2776,10 @@ const SEED_APPR = [
    محتوى JSON داخل approval:
      { s: ApprStatus, c: الشركة, t: المسمى, n: الاسم, ad: تاريخ الاعتماد,
        xp: تاريخ الانتهاء, ed: تاريخ الاختبار, ex: نتيجة الاختبار,
-       ws: الحالة الوظيفية, tr: رقم الترانزميتال, note: ملاحظة المعاملة }
+       ws: الحالة الوظيفية, tr: رقم الترانزميتال, note: ملاحظة المعاملة,
+       nat: الجنسة, rd: Rental/Direct, ap: نوع اعتماد السعودية, apn: نوع اعتماد غير السعوديين,
+       xi: انتهاء 90/180 (خام), xf: انتهاء النهائي (خام),
+       iv: نتيجة المقابلة, ivd: تاريخ المقابلة, fin: حالة المقابلة النهائية }
    ApprStatus = 'green_helmet_approved' | 'passed_pending_transmittal'
               | 'under_evaluation' | 'failed_non_compliant'
    ============================================================ */
@@ -2811,7 +2816,7 @@ function apprParse(raw){
 }
 function apprEncode(rec){
   const o={s:rec.s};
-  ['c','t','n','ad','xp','ed','ex','ws','tr','note'].forEach(k=>{ if(rec[k]) o[k]=rec[k]; });
+  ['c','t','n','ad','xp','ed','ex','ws','tr','note','nat','rd','ap','apn','xi','xf','iv','ivd','fin'].forEach(k=>{ if(rec[k]) o[k]=rec[k]; });
   return JSON.stringify(o);
 }
 function mapAppr(v){
@@ -2821,6 +2826,8 @@ function mapAppr(v){
     s:APPR_ST.indexOf(o.s)>=0?o.s:'under_evaluation',
     n:o.n||'', c:o.c||'', t:o.t||'', ad:o.ad||'', xp:o.xp||'', ed:o.ed||'',
     ex:o.ex||'', ws:o.ws||'', tr:o.tr||'', note:o.note||'',
+    nat:o.nat||'', rd:o.rd||'', ap:o.ap||'', apn:o.apn||'', xi:o.xi||'', xf:o.xf||'',
+    iv:o.iv||'', ivd:o.ivd||'', fin:o.fin||'',
     p:v.phone||v.p||'', ar:v.aramco_id||v.ar||'', x:v.area||v.x||''};
 }
 /* --- التواريخ والتنبيهات --- */
@@ -2922,16 +2929,111 @@ document.getElementById('apprSearch').oninput=renderAppr;
 document.getElementById('apprStatus').onchange=renderAppr;
 document.getElementById('apprCo').onchange=renderAppr;
 document.getElementById('apprAddBtn').onclick=()=>openApprEdit(null);
+/* — تصدير Excel بنفس تنسيق ملف TR STATUS 2026 عبر قالب Aramco_Template.xlsx —
+   القالب يحمل التنسيق الأصلي كاملاً (عرض الأعمدة، أنماط الخلايا، إعدادات الطباعة) وقيمته ممسوحة؛
+   نكتب القيم خلية بخلية عبر OOXML مع الحفاظ على نمط كل خلية (s=) — منطق مطابق لتصدير الحضور. */
+const APPR_EXPORT_COLS=36;
+/* صف تصدير من سجل اعتماد: 36 عموداً بالترتيب نفسه لملف الكتاب (A..AJ) */
+function apprExportRow(x,i,today){
+  const e=empNumRec(x.i);
+  const rem=xp=>{ if(!xp) return ''; const d=apprDays(today,xp); return d===null?'':d; };
+  const rawA=String(x.a==null?'':x.a);
+  const legacyA=(rawA&&rawA.charAt(0)!=='{')?rawA:''; /* صفوف قديمة: القيمة الأصلية ← عمود SAUDI APPROVAL */
+  return [
+    i+1,                          /* A  NO. */
+    apprCompany(x)||'',           /* B  COMPANY */
+    apprName(x),                  /* C  NAME */
+    x.t||(e&&e.dept)||'',         /* D  POSITION */
+    x.nat||'',                    /* E  NATIONALITY */
+    '',                      /* F  PASSPORT NO. (لا نحفظه عمداً) */
+    '',                      /* G  IQAMA NO. (لا نحفظه عمداً) */
+    x.ws||'',                     /* H  STATUS */
+    '',                      /* I  ARRIVAL/JOINING DATE */
+    x.rd||'',                     /* J  Rental / Direct */
+    x.apn||'',                    /* K  NON-SAUDI APPROVAL TYPE */
+    x.ap||legacyA||'',            /* L  SAUDI APPROVAL TYPE */
+    '',                      /* M  TR Sent by Hyundai */
+    x.tr||'',                     /* N  TR Sent by PMT */
+    x.ed||'',                     /* O  ARAMCO EXAM DATE */
+    x.ex||'',                     /* P  ARAMCO EXAM RESULT */
+    x.ad||'',                     /* Q  TRANSMITTAL APPROVAL DATE */
+    x.xi||'',                     /* R  90/180 DAYS APPROVAL DATE EXPIRATION */
+    rem(x.xi),                    /* S  REMAINING DAYS */
+    '',                      /* T  FINAL TR Sent by Hyundai */
+    '',                      /* U  TR SENT BY ARAMCO */
+    '',                      /* V  TR RECEIVED DATE */
+    x.ivd||'',                    /* W  EXAM & INTERVIEW DATE */
+    x.iv||'',                     /* X  INTERVIEW RESULT */
+    x.xf||'',                     /* Y  FINAL APPROVAL EXPIRATION DATE */
+    rem(x.xf),                    /* Z  REMAINING DAYS */
+    '',                      /* AA FINAL TR Sent by Hyundai */
+    '',                      /* AB FINAL TR Sent by PMT */
+    x.fin||'',                    /* AC FINAL INTERVIEW STATUS */
+    '',                      /* AD APPROVAL DATE */
+    '',                      /* AE Second Approval date */
+    '',                      /* AF Days */
+    '',                      /* AG 2nd FINAL TR Sent by Hyundai */
+    '',                      /* AH 2nd FINAL TR Sent by PMT */
+    '',                      /* AI 2nd FINAL INTERVIEW STATUS */
+    x.note||''                    /* AJ REMARKS */
+  ];
+}
+function apprCol(n){ let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+/* كتابة مصفوفة القيم في صف: خلية فارغة تُمسح، رقم يُكتب <v>، نص يُكتب inlineStr — مع بقاء التنسيق */
+function apprSetVals(xml,rowN,vals){
+  let out=xml;
+  for(let k=0;k<vals.length;k++){
+    const v=vals[k], addr=apprCol(k+1)+rowN;
+    if(v===''||v===null||v===undefined) out=attSetCell(out,addr,'','');
+    else if(typeof v==='number') out=attSetCell(out,addr,'','<v>'+v+'</v>');
+    else out=attSetCell(out,addr,'inlineStr','<is><t xml:space="preserve">'+attXmlEsc(v)+'</t></is>');
+  }
+  return out;
+}
+/* صف جديد لما زاد عدد السجلات عن صفوف القالب: نسخ صف 3 (التنسيق s= وht) برقم جديد */
+function apprCloneRow(patXml,newN){
+  const m=patXml.match(/^<row\b[^>]*\br="(\d+)"/); if(!m) return '';
+  return patXml.replace(new RegExp('r="([A-Z]*)'+m[1]+'"','g'),'r="$1'+newN+'"');
+}
 document.getElementById('apprExportBtn').onclick=async()=>{
-  if(typeof XLSX==='undefined'){ toast('Excel lib'); return; }
-  const a=[]; a.push([T().appr_title]); a.push([]);
-  a.push([T().c_emp,T().c_num,T().appr_pos,T().appr_co,T().appr_stat,T().appr_dates,T().c_phone,T().appr_aramco,T().appr_area,T().appr_rot]);
-  (D.appr||[]).forEach(x=>{ const e=empNumRec(x.i);
-    a.push([apprName(x),(e&&e.num)||x.i,x.t,x.c||apprCompany(x),apprFullText(x.s),x.ad||'',x.p,x.ar,x.x,x.r]); });
-  const ws=XLSX.utils.aoa_to_sheet(a);
-  ws['!cols']=[{wch:26},{wch:13},{wch:18},{wch:18},{wch:30},{wch:14},{wch:13},{wch:22},{wch:14},{wch:10}];
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Approval');
-  XLSX.writeFile(wb,'Aramco_Approval.xlsx'); toast(T().toast_xlsx);
+  const btn=document.getElementById('apprExportBtn');
+  const rows=D.appr||[];
+  if(!rows.length){ toast(T().empty); return; }
+  if(typeof JSZip==='undefined'){ toast('JSZip lib'); return; }
+  const old=btn.innerHTML;
+  try{
+    btn.disabled=true; btn.innerHTML='⏳ '+esc(T().appr_exporting);
+    const resp=await fetch('Aramco_Template.xlsx');
+    if(!resp.ok) throw new Error('template HTTP '+resp.status);
+    const zip=await JSZip.loadAsync(await resp.arrayBuffer());
+    const sheetPath=Object.keys(zip.files).find(p=>/^xl\/worksheets\/sheet\d+\.xml$/.test(p));
+    if(!sheetPath) throw new Error('sheet xml missing');
+    let xml=await zip.file(sheetPath).async('string');
+    const today=apprToday(), first=3, last=first+rows.length-1;
+    /* خانة UPDATED AS OF (C1) ← تاريخ اليوم بنفس تنسيق الملف الأصلي */
+    xml=attSetCell(xml,'C1','inlineStr','<is><t xml:space="preserve">'+attXmlEsc(new Date().toString())+'</t></is>');
+    /* آخر صف موجود في القالب — ما زاد عنه نُنشئه منسوخاً من تنسيق الصف 3 */
+    let tplLast=0;
+    (xml.match(/<row\b[^>]*\br="(\d+)"/g)||[]).forEach(m=>{ const n=+m.match(/r="(\d+)"/)[1]; if(n>tplLast) tplLast=n; });
+    const patM=xml.match(/<row\b[^>]*\br="3"[^>]*>[\s\S]*?<\/row>/), pat=patM?patM[0]:null;
+    rows.forEach((x,i)=>{
+      const rn=first+i;
+      if(rn>tplLast&&pat) xml=xml.replace('</sheetData>',apprCloneRow(pat,rn)+'</sheetData>');
+      xml=apprSetVals(xml,rn,apprExportRow(x,i,today));
+    });
+    /* نطاق الفلتر داخل الورقة ← حتى آخر صف بيانات */
+    xml=xml.replace(/ref="A2:AJ\d+"/g,'ref="A2:AJ'+last+'"');
+    zip.file(sheetPath,xml);
+    /* مناطق الطباعة/الفلتر (definedNames في workbook.xml) ← حتى آخر صف بيانات */
+    const wbP=Object.keys(zip.files).find(p=>p==='xl/workbook.xml');
+    if(wbP){ let wb=await zip.file(wbP).async('string');
+      wb=wb.replace(/\$A\$2:\$[A-Z]+\$\d+/g,'$A$2:$AJ$'+last);
+      zip.file(wbP,wb); }
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    attDownload(blob,'Aramco_TR_STATUS_'+today+'.xlsx');
+    toast(T().appr_xlsx);
+  }catch(e){ toast('⚠ '+(e&&e.message?e.message:e)); }
+  finally{ btn.disabled=false; btn.innerHTML=old; }
 };
 /* — مزامنة الاعتمادات مع كل التبويبات المرتبطة (المجموعات/التوزيع/القائمة/اللوحة) — */
 function syncApprovalChange(){

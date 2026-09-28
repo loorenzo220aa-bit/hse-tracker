@@ -53,6 +53,8 @@ function colMap(ws, hdrRow) {
     else if (h === 'NAME') set('name');
     else if (h === 'POSITION') set('pos');
     else if (h === 'STATUS') set('ws');
+    else if (h === 'NATIONALITY') set('nat');
+    else if (h.indexOf('RENTAL') >= 0) set('rd');
     else if (h.indexOf('NON-SAUDI APPROVAL') >= 0) set('apNS');
     else if (h.indexOf('SAUDI APPROVAL') >= 0) set('apSA');
     else if (h === 'TR SENT BY PMT') set('tr');
@@ -87,7 +89,8 @@ const STATUS_KEY = { green_helmet_approved: 'أخضر', passed_pending_transmitt
 
 function apprEncode(o) {
   const out = { s: o.s };
-  ['c', 't', 'n', 'ad', 'xp', 'ed', 'ex', 'ws', 'tr', 'note'].forEach(k => { if (o[k]) out[k] = o[k]; });
+  ['c', 't', 'n', 'ad', 'xp', 'ed', 'ex', 'ws', 'tr', 'note',
+    'nat', 'rd', 'ap', 'apn', 'xi', 'xf', 'iv', 'ivd', 'fin'].forEach(k => { if (o[k]) out[k] = o[k]; });
   return JSON.stringify(out);
 }
 function apprSynthId(name) {
@@ -129,7 +132,9 @@ const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i +=
     const g = k => { const v = raw(k); if (v == null) return ''; if (v instanceof Date) return dstr(v); return String(v).trim().replace(/\s+/g, ' '); };
     const rec = {
       rn: rn, co: g('co'), name: g('name'), pos: g('pos'), ws: g('ws'),
-      ap: g('apSA') || g('apNS'), tr: g('tr'), ed: dstr(g('ed')), ex: g('ex'),
+      nat: g('nat'), rd: g('rd'),
+      ap: g('apSA') || g('apNS'), apS: g('apSA'), apN: g('apNS'),
+      tr: g('tr'), ed: dstr(g('ed')), ex: g('ex'),
       ad: dstr(g('ad')), xp: dstr(g('xp')), xpFinal: dstr(g('xpFinal')),
       ivd: dstr(g('ivd')), iv: g('iv'), fin: g('fin'), note: g('note')
     };
@@ -170,7 +175,12 @@ const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i +=
       n: keepName ? rec.name : '', ad: rec.ad || '',
       xp: permanent ? '' : (rec.xp || rec.xpFinal || ''),
       ed: rec.ed || '', ex: rec.ex || '', ws: rec.ws || '',
-      tr: rec.tr || '', note: rec.note || ''
+      tr: rec.tr || '', note: rec.note || '',
+      /* حقول خام لتصدير تنسيق TR STATUS (الجنسة/rental/أنواع الاعتماد/انتهاءات خام/المقابلة) */
+      nat: rec.nat || '', rd: rec.rd || '',
+      ap: rec.apS || '', apn: rec.apN || '',
+      xi: rec.xp || '', xf: rec.xpFinal || '',
+      iv: rec.iv || '', ivd: rec.ivd || '', fin: rec.fin || ''
     };
     if (emp) {
       matched++;
@@ -186,7 +196,14 @@ const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i +=
         inserts.push({ emp_id: id, rotation: '', approval: apprEncode(body), phone: emp.phone || '', aramco_id: rec.tr || '', area: '' });
       }
     } else {
-      inserts.push({ emp_id: apprSynthId(rec.name), rotation: '', approval: apprEncode(body), phone: '', aramco_id: rec.tr || '', area: '' });
+      const sid = apprSynthId(rec.name);
+      const existing = apprIdx[sid];
+      if (existing) {
+        /* تشغيل ثانٍ: الصف موجود ← تحديث بدل إدراج مكرر */
+        updates.push({ id: sid, name: rec.name, status: status, body: { approval: apprEncode(body) } });
+      } else {
+        inserts.push({ emp_id: sid, rotation: '', approval: apprEncode(body), phone: '', aramco_id: rec.tr || '', area: '' });
+      }
     }
   });
   const idList = inserts.map(i => i.emp_id);
@@ -240,12 +257,13 @@ const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i +=
   const final = await sb('approvals', 'GET', null, '?select=emp_id,approval');
   const d2 = { green_helmet_approved: 0, passed_pending_transmittal: 0, under_evaluation: 0, failed_non_compliant: 0, other: 0 };
   const today = new Date().toISOString().slice(0, 10);
-  let alerts = 0;
+  let alerts = 0, withRaw = 0;
   final.forEach(a => {
     let o = {};
     try { o = JSON.parse(a.approval || '{}'); } catch (e) { }
     const s = o.s;
     if (d2[s] !== undefined) d2[s]++; else d2.other++;
+    if (o.nat || o.rd || o.ap || o.apn || o.xi || o.xf || o.iv || o.ivd || o.fin) withRaw++;
     let al = 0;
     if (s === 'failed_non_compliant') al++;
     if (s === 'under_evaluation' && o.xp && o.xp < today) al++;
@@ -255,5 +273,5 @@ const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i +=
   });
   console.log('التحقق: إجمالي الصفوف ' + final.length + ' | أخضر ' + d2.green_helmet_approved + ' | ترانزميتال '
     + d2.passed_pending_transmittal + ' | تجربة ' + d2.under_evaluation + ' | فشل ' + d2.failed_non_compliant
-    + ' | قديمة/أخرى ' + d2.other + ' | صفوف عليها تنبيه ' + alerts);
+    + ' | قديمة/أخرى ' + d2.other + ' | صفوف عليها تنبيه ' + alerts + ' | صفوف بحقول خام للتصدير ' + withRaw);
 })().catch(e => { console.error('ERR', e.stack); process.exit(1); });
