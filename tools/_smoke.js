@@ -118,6 +118,43 @@ setTimeout(() => {
         try { d.getElementById('apprExportBtn').click(); return !d.getElementById('apprExportBtn').disabled; }
         catch (e) { return false; }
       })());
+      // ثلاثة أتصارات: كامل / مفلتر / PDF بتصميم الموقع
+      t('filtered export button registered', typeof d.getElementById('apprExportFBtn').onclick === 'function');
+      t('PDF export button registered', typeof d.getElementById('apprPdfBtn').onclick === 'function');
+      t('apprFilterRows follows status filter', (() => {
+        const sel = d.getElementById('apprStatus');
+        const all = window.apprFilterRows();
+        if (!all.length || !all[0].s) return false;
+        const st0 = all[0].s;
+        sel.value = st0;
+        const f = window.apprFilterRows();
+        sel.value = '';
+        return f.length > 0 && f.length <= all.length && f.every(x => x.s === st0);
+      })());
+      t('apprFilterRows follows search box', (() => {
+        const se = d.getElementById('apprSearch');
+        const all = window.apprFilterRows();
+        if (!all.length) return false;
+        se.value = 'ZZQQXX'; const z = window.apprFilterRows();
+        const nm = window.apprName(all[0]).trim();
+        se.value = nm; const m = window.apprFilterRows();
+        se.value = '';
+        return z.length === 0 && m.length > 0 && m.length <= all.length;
+      })());
+      t('PDF libraries committed (jsPDF + html2canvas)', (() => {
+        const p = require('path'), dir = p.dirname(file);
+        return fs.existsSync(p.join(dir, 'jspdf.umd.min.js')) && fs.existsSync(p.join(dir, 'html2canvas.min.js'));
+      })());
+      t('apprPdfBuild renders off-screen page (head + 4 KPIs + rows + foot)', (() => {
+        const el = window.apprPdfBuild([{ i: 'P1', s: 'green_helmet_approved', n: 'PDF ONE', c: 'CO',
+          t: 'SAFETY OFFICER', ad: '2026-01-01', p: '0500000000', xp: '' }]);
+        const ok = el.classList.contains('appr-pdf')
+          && el.querySelectorAll('.appr-pdf-table tbody tr').length === 1
+          && el.querySelectorAll('.appr-pdf-kpi .stat').length === 4
+          && !!el.querySelector('.appr-pdf-head') && !!el.querySelector('.appr-pdf-foot');
+        el.remove();
+        return ok;
+      })());
       t('alert: overdue probation', window.apprAlerts({ i: 'X', s: 'under_evaluation', xp: '2020-01-01' }).some(a => a.k === 'overdue'));
       t('alert: stale transmittal (>30d)', window.apprAlerts({ i: 'X', s: 'passed_pending_transmittal', ed: '2026-01-01' }).some(a => a.k === 'stale'));
       t('alert: failed status', window.apprAlerts({ i: 'X', s: 'failed_non_compliant' }).some(a => a.k === 'failed'));

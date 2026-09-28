@@ -174,6 +174,44 @@
   .appr-days{font-size:11px; color:var(--mut); margin-top:2px;}
   .appr-days.over{color:#be123c; font-weight:800;}
   .appr-days.soon{color:#b45309; font-weight:800;}
+  /* — حاوية تصدير PDF: مطابقة تصميم الموقع وتُبنى خارج الشاشة أثناء البناء — */
+  .appr-pdf{position:absolute; left:-10000px; top:0; width:1100px; box-sizing:border-box;
+    padding:18px 22px; background:#fff; color:#0f172a; direction:rtl; font-family:inherit;
+    font-size:13px; line-height:1.5;}
+  .appr-pdf .appt{display:flex; align-items:center; gap:10px; font-size:21px; font-weight:900; color:#0369a1;}
+  .appr-pdf .appt .appt-ic{width:38px; height:38px; border-radius:12px; font-size:18px;
+    background:linear-gradient(135deg,#e0f2fe,#d1fae5); display:flex; align-items:center; justify-content:center;}
+  .appr-pdf-meta{font-size:12.5px; color:#64748b; margin-top:5px;}
+  .appr-pdf-meta b{color:#0f172a;}
+  .appr-pdf-kpi{display:flex; gap:10px; margin:12px 0 14px;}
+  .appr-pdf-kpi .stat{flex:1; background:#fff; border:1px solid #e2e8f0; border-top:5px solid #0ea5e9;
+    border-radius:14px; padding:10px 12px; text-align:center;}
+  .appr-pdf-kpi .stat .k{font-size:11.5px; color:#64748b; font-weight:700;}
+  .appr-pdf-kpi .stat .v{font-size:21px; font-weight:900; margin-top:2px;}
+  .appr-pdf-table{width:100%; border-collapse:collapse; font-size:12.5px; background:#fff;
+    border-radius:14px; overflow:hidden; table-layout:auto;}
+  .appr-pdf-table th,.appr-pdf-table td{padding:8px 10px; text-align:right; border-bottom:1px solid #e2e8f0;
+    white-space:normal;}
+  .appr-pdf-table th{color:#0369a1; font-weight:800; font-size:12px; background:#f0f9ff;}
+  .appr-pdf-table td.idx{color:#94a3b8; font-size:11.5px; text-align:center;}
+  .appr-pdf-table td.ltr{direction:ltr; text-align:right; font-size:11.5px; white-space:nowrap;}
+  .appr-pdf-table th{white-space:nowrap;}
+  .appr-pdf-table tr:hover td{background:transparent;}
+  /* حبّات الحالة بنفس ألوان الموقع (نسخة صريحة لضمان رسمها في PDF) */
+  .appr-pdf .tag{display:inline-block; padding:4px 12px; border-radius:99px; font-size:12px; font-weight:800; white-space:nowrap;}
+  .appr-pdf .tag.t-vio{background:#ffe4e6; color:#be123c;}
+  .appr-pdf .tag.t-abs{background:#dbeafe; color:#1d4ed8;}
+  .appr-pdf .tag.t-per{background:#d1fae5; color:#047857;}
+  .appr-pdf .tag.t-wrn{background:#fef3c7; color:#b45309;}
+  .appr-pdf .tag.t-oth{background:#ede9fe; color:#6d28d9;}
+  html[data-theme="dark"] .appr-pdf .tag{filter:none;}
+  html[data-theme="dark"] .appr-pdf{color:#0f172a;}
+  .appr-pdf .appr-warn{animation:none; background:#ffe4e6; color:#be123c; border-radius:99px;}
+  .appr-pdf .appr-days{font-size:11px; color:#64748b; margin-top:2px;}
+  .appr-pdf .appr-days.over{color:#be123c; font-weight:800;}
+  .appr-pdf .appr-days.soon{color:#b45309; font-weight:800;}
+  .appr-pdf-foot{margin-top:12px; padding-top:7px; border-top:1px solid #e2e8f0;
+    font-size:11px; color:#94a3b8; display:flex; justify-content:space-between;}
   .appr-alert-item{display:flex; gap:10px; align-items:flex-start; width:100%; text-align:start; background:#fff;
       border:none; border-bottom:1px solid var(--line); padding:11px 8px; cursor:pointer; font-family:inherit; transition:.15s;}
   .appr-alert-item:hover{background:#fff1f2;}
@@ -1026,7 +1064,11 @@ try{
       </select></div>
       <div class="field" style="max-width:230px;"><select id="apprCo"><option value="" data-i="appr_co_all">كل الشركات</option></select></div>
       <div class="field" style="max-width:320px;"><input id="apprSearch" data-i-ph="appr_search" placeholder="🔍 بحث بالاسم أو الرقم..."></div>
-      <div><button class="btn btn-green" id="apprExportBtn">📥 <span data-i="appr_export">تصدير</span></button></div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn btn-green" id="apprExportBtn">📥 <span data-i="appr_export">تصدير كامل</span></button>
+        <button class="btn btn-green" id="apprExportFBtn">📋 <span data-i="appr_export_f">تصدير الفلتر</span></button>
+        <button class="btn btn-acc" id="apprPdfBtn">🧾 <span data-i="appr_export_pdf">تصدير PDF</span></button>
+      </div>
       <div class="edit-only"><button class="btn btn-acc" id="apprAddBtn">➕ <span data-i="appr_add">إضافة موظف</span></button></div>
     </div>
     <div class="tbl-holder" style="margin-top:14px;">
@@ -1297,7 +1339,7 @@ const I18N={
     settings:'الإعدادات',
     tab_vio:'المخالفات والغيابات', tab_emp:'الموظفين', tab_dep:'التوزيع', tab_veh:'السيارات',
     tab_appr:'ابروفل ارامكو', appr_title:'ابروفل ارامكو', appr_rot:'مجموعة الدوام',
-    appr_stat:'حالة الابروفل', appr_aramco:'ارامكو', appr_area:'المنطقة', appr_export:'تصدير', veh_title:'سجل السيارات',
+    appr_stat:'حالة الابروفل', appr_aramco:'ارامكو', appr_area:'المنطقة', appr_export:'تصدير كامل', veh_title:'سجل السيارات',
     veh_make:'الماركة', veh_model:'الموديل', veh_year:'السنة', veh_colour:'اللون',
     veh_rot:'مجموعة الدوام', veh_save:'حفظ السيارة', veh_export:'تصدير سجل السيارات',
     veh_search:'🔍 بحث باسم أو لوحة...', veh_saved:'تم حفظ السيارة ✅',
@@ -1332,6 +1374,10 @@ const I18N={
     appr_bell:'التنبيهات اليومية', appr_bell_sub:'اضغط على التنبيه لفتح السجل ومعالجته',
     appr_bell_empty:'لا توجد تنبيهات — الوضع مطابق ✅',
     appr_exporting:'جارٍ التصدير…', appr_xlsx:'تم التصدير بنفس تنسيق ملف TR STATUS ✅',
+    appr_export_f:'تصدير الفلتر', appr_export_pdf:'تصدير PDF',
+    appr_pdf_building:'جارٍ بناء PDF…', appr_pdf_fail:'تعذّر بناء PDF — تأكد من اتصال الشبكة',
+    appr_pdf_date:'تاريخ التصدير', appr_pdf_scope:'النطاق', appr_pdf_rows:'عدد السجلات',
+    appr_pdf_scope_all:'الكل', appr_pdf_done:'تم بناء ملف PDF ✅',
     appr_al_failed:'لم يجتاز الاختبار', appr_al_overdue:'تجاوز فترة التجربة (90/180 يوم) دون اجتياز',
     appr_al_expired:'انتهت صلاحية الاعتماد — يلزم تجديد', appr_al_stale:'تأخرت أوراق الترانزميتال عن موعدها',
     appr_al_nogreen:'في مجموعة ميدانية بدون هلمت أخضر',
@@ -1385,7 +1431,7 @@ const I18N={
     settings:'Settings',
     tab_vio:'Violations & Absences', tab_emp:'Employees', tab_dep:'Deployment', tab_veh:'Vehicles',
     tab_appr:'Aramco Approval', appr_title:'Aramco Approval', appr_rot:'Rotation',
-    appr_stat:'Approval', appr_aramco:'Aramco', appr_area:'Area', appr_export:'Export', veh_title:'Vehicle Log',
+    appr_stat:'Approval', appr_aramco:'Aramco', appr_area:'Area', appr_export:'Full export', veh_title:'Vehicle Log',
     veh_make:'Make', veh_model:'Model', veh_year:'Year', veh_colour:'Colour',
     veh_rot:'Rotation', veh_save:'Save Vehicle', veh_export:'Export Vehicle Log',
     veh_search:'🔍 Search name or plate...', veh_saved:'Vehicle saved ✅',
@@ -1416,6 +1462,10 @@ const I18N={
     appr_bell:'Daily Alerts', appr_bell_sub:'Tap an alert to open the record and fix it',
     appr_bell_empty:'No alerts — all clear ✅',
     appr_exporting:'Exporting…', appr_xlsx:'Exported in TR STATUS file format ✅',
+    appr_export_f:'Filtered export', appr_export_pdf:'PDF export',
+    appr_pdf_building:'Building PDF…', appr_pdf_fail:'PDF build failed — check your connection',
+    appr_pdf_date:'Export date', appr_pdf_scope:'Scope', appr_pdf_rows:'Rows',
+    appr_pdf_scope_all:'All', appr_pdf_done:'PDF file ready ✅',
     appr_al_failed:'Failed exam', appr_al_overdue:'Probation period (90/180 days) exceeded',
     appr_al_expired:'Approval expired — renewal required', appr_al_stale:'Transmittal papers overdue',
     appr_al_nogreen:'In a field team without a green helmet',
@@ -2863,6 +2913,31 @@ function apprBadge(x,kinds){
   if(!al.length) return '';
   return ' <span class="tag st t-vio appr-warn" title="'+esc(al.map(a=>a.t).join(' / '))+'">⚠️</span>';
 }
+/* — الفلتر الحالي (حالة + شركة + بحث): الدالة نفسها للعرض وللتصدير المفلتر — */
+function apprFilterRows(){
+  const stEl=document.getElementById('apprStatus'), coEl=document.getElementById('apprCo'), seEl=document.getElementById('apprSearch');
+  const st=stEl?(stEl.value||''):'', co=coEl?(coEl.value||''):'', q=seEl?(seEl.value||'').toLowerCase():'';
+  if(!st&&!co&&!q) return (D.appr||[]).slice();
+  return (D.appr||[]).filter(x=>{
+    if(st&&x.s!==st) return false;
+    const xc=apprCompany(x);
+    if(co&&xc!==co) return false;
+    if(q){
+      const e=empNumRec(x.i);
+      const hay=(apprName(x)+' '+(e?(e.num||''):'')+' '+x.i+' '+(x.t||'')+' '+(x.x||'')+' '+(x.p||'')+' '+(x.ar||'')+' '+xc).toLowerCase();
+      if(hay.indexOf(q)<0) return false;
+    }
+    return true;
+  });
+}
+/* — السطر الفرعي للاعتماد: تاريخ الانتهاء + عدّاد الأيام (للجدول وصفحة PDF معاً) — */
+function apprDayBits(x,today){
+  if(!x.xp) return {sub:'',cls:''};
+  const d=apprDays(today,x.xp);
+  if(d===null) return {sub:x.xp,cls:''};
+  if(d<0) return {sub:'⏰ +'+(-d)+' '+T().appr_days_over,cls:'over'};
+  return {sub:x.xp+' · '+d+' '+T().appr_days_left,cls:d<=7?'soon':''};
+}
 function renderAppr(){
   if(!document.getElementById('apprBody')) return;
   const rows=D.appr||[], today=apprToday();
@@ -2885,29 +2960,15 @@ function renderAppr(){
    +'<div class="stat"><div class="k">'+esc(T().appr_kpi_green)+'</div><div class="v" style="color:var(--green)">'+nG+'</div></div>'
    +'<div class="stat"><div class="k">'+esc(T().appr_kpi_pending)+'</div><div class="v" style="color:var(--blue)">'+nP+'</div></div>'
    +'<div class="stat"><div class="k">'+esc(T().appr_kpi_alerts)+'</div><div class="v" style="color:var(--red)">'+nAlert+'</div></div>';
-  /* — الفلاتر: الحالة + الشركة + بحث — */
-  const st=document.getElementById('apprStatus').value||'';
-  const co=coSel?coSel.value:'';
-  const q=(document.getElementById('apprSearch').value||'').toLowerCase();
+  /* — الفلاتر: الحالة + الشركة + بحث — نفس apprFilterRows المستعملة في التصدير — */
   const body=document.getElementById('apprBody'); body.innerHTML='';
   let shown=0;
-  rows.forEach(x=>{
+  apprFilterRows().forEach(x=>{
     const e=empNumRec(x.i);
-    if(st&&x.s!==st) return;
     const xc=apprCompany(x);
-    if(co&&xc!==co) return;
-    if(q){
-      const hay=(apprName(x)+' '+(e?(e.num||''):'')+' '+x.i+' '+(x.t||'')+' '+(x.x||'')+' '+(x.p||'')+' '+(x.ar||'')+' '+xc).toLowerCase();
-      if(hay.indexOf(q)<0) return;
-    }
     shown++;
     /* أيام متبقية على الاعتماد أو تأخير */
-    let dsub='', dcls='';
-    if(x.xp){ const d=apprDays(today,x.xp);
-      if(d===null) dsub=x.xp;
-      else if(d<0){ dsub='⏰ +'+(-d)+' '+T().appr_days_over; dcls=' over'; }
-      else { dsub=x.xp+' · '+d+' '+T().appr_days_left; if(d<=7) dcls=' soon'; }
-    }
+    const db=apprDayBits(x,today), dsub=db.sub, dcls=db.cls?' '+db.cls:'';
     const tr=document.createElement('tr');
     tr.innerHTML='<td>'+apprBadge(x,['failed','overdue','expired','stale','nogreen'])+esc(apprName(x))+'</td>'
       +'<td style="direction:ltr; white-space:nowrap;">'+esc((e&&e.num)||x.i||'—')+'</td>'
@@ -2995,9 +3056,9 @@ function apprCloneRow(patXml,newN){
   const m=patXml.match(/^<row\b[^>]*\br="(\d+)"/); if(!m) return '';
   return patXml.replace(new RegExp('r="([A-Z]*)'+m[1]+'"','g'),'r="$1'+newN+'"');
 }
-document.getElementById('apprExportBtn').onclick=async()=>{
+/* — تصدير Excel بتنسيق TR STATUS — يُستدعى بالسجلات الكاملة أو المفلترة — */
+async function apprExportRows(rows){
   const btn=document.getElementById('apprExportBtn');
-  const rows=D.appr||[];
   if(!rows.length){ toast(T().empty); return; }
   if(typeof JSZip==='undefined'){ toast('JSZip lib'); return; }
   const old=btn.innerHTML;
@@ -3034,7 +3095,138 @@ document.getElementById('apprExportBtn').onclick=async()=>{
     toast(T().appr_xlsx);
   }catch(e){ toast('⚠ '+(e&&e.message?e.message:e)); }
   finally{ btn.disabled=false; btn.innerHTML=old; }
-};
+}
+document.getElementById('apprExportBtn').onclick=()=>apprExportRows(D.appr||[]);
+document.getElementById('apprExportFBtn').onclick=()=>apprExportRows(apprFilterRows());
+/* — تحميل مكتبات PDF محلياً عند أول ضغطة (لا يثقل تحميل الصفحة الأول) — */
+const APPR_LIBP={};
+function apprLoadLib(src){
+  if(APPR_LIBP[src]) return APPR_LIBP[src];
+  APPR_LIBP[src]=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=src; s.async=true;
+    s.onload=()=>res();
+    s.onerror=()=>{ delete APPR_LIBP[src]; rej(new Error(src)); };
+    document.head.appendChild(s);
+  });
+  return APPR_LIBP[src];
+}
+/* — بناء صفحة PDF: عنوان + نطاق الفلتر + المؤشرات + الجدول بتصميم الموقع — */
+function apprPdfBuild(rows){
+  const L=T(), today=apprToday();
+  const stEl=document.getElementById('apprStatus'), coEl=document.getElementById('apprCo'), seEl=document.getElementById('apprSearch');
+  const scope=[];
+  if(stEl&&stEl.value) scope.push(apprFullText(stEl.value));
+  if(coEl&&coEl.value) scope.push(coEl.value);
+  if(seEl&&seEl.value) scope.push('«'+seEl.value+'»');
+  let nG=0,nP=0,nA=0;
+  rows.forEach(x=>{ if(x.s==='green_helmet_approved') nG++;
+    else if(x.s==='passed_pending_transmittal') nP++;
+    if(apprAlerts(x).length) nA++; });
+  const el=document.createElement('div');
+  el.className='appr-pdf';
+  let h='<div class="appr-pdf-head">'
+    +'<div class="appt"><span class="appt-ic">🛡️</span>'+esc(L.appr_title)
+    +'<span style="font-size:14px;color:#94a3b8;font-weight:700;">· HSE Tracker</span></div>'
+    +'<div class="appr-pdf-meta">'
+      +esc(L.appr_pdf_date)+': <b>'+today+'</b> · '
+      +esc(L.appr_pdf_scope)+': <b>'+esc(scope.length?scope.join(' · '):L.appr_pdf_scope_all)+'</b> · '
+      +esc(L.appr_pdf_rows)+': <b>'+rows.length+'</b></div>'
+    +'<div class="appr-pdf-kpi">'
+      +'<div class="stat"><div class="k">'+esc(L.appr_kpi_total)+'</div><div class="v" style="color:#0ea5e9;">'+rows.length+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.appr_kpi_green)+'</div><div class="v" style="color:#10b981;">'+nG+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.appr_kpi_pending)+'</div><div class="v" style="color:#3b82f6;">'+nP+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.appr_kpi_alerts)+'</div><div class="v" style="color:#f43f5e;">'+nA+'</div></div>'
+    +'</div></div>';
+  h+='<table class="appr-pdf-table"><thead><tr>'
+    +'<th>#</th><th>'+esc(L.c_emp)+'</th><th>'+esc(L.c_num)+'</th><th>'+esc(L.appr_pos)+'</th>'
+    +'<th>'+esc(L.appr_co)+'</th><th>'+esc(L.appr_stat)+'</th><th>'+esc(L.appr_dates)+'</th><th>'+esc(L.c_phone)+'</th>'
+    +'</tr></thead><tbody>';
+  rows.forEach((x,i)=>{
+    const e=empNumRec(x.i), xc=apprCompany(x), db=apprDayBits(x,today);
+    h+='<tr><td class="idx">'+(i+1)+'</td>'
+      +'<td>'+apprBadge(x,['failed','overdue','expired','stale','nogreen'])+esc(apprName(x))+'</td>'
+      +'<td class="ltr">'+esc((e&&e.num)||x.i||'—')+'</td>'
+      +'<td>'+esc(x.t||(e&&e.dept)||'—')+'</td>'
+      +'<td>'+esc(xc||'—')+'</td>'
+      +'<td><span class="tag st '+apprTagCls(x.s)+'" title="'+esc(apprFullText(x.s))+'">'+esc(apprPillText(x.s))+'</span></td>'
+      +'<td class="ltr">'+esc(x.ad||'—')+(db.sub?'<div class="appr-days'+(db.cls?' '+db.cls:'')+'">'+esc(db.sub)+'</div>':'')+'</td>'
+      +'<td class="ltr">'+esc(x.p||'—')+'</td></tr>';
+  });
+  h+='</tbody></table>'
+    +'<div class="appr-pdf-foot"><span>HSE Tracker · '+esc(L.appr_title)+'</span>'
+    +'<span>'+esc(L.appr_pdf_date)+': '+today+'</span></div>';
+  el.innerHTML=h;
+  return el;
+}
+/* — تصدير PDF: الصفوف مقسّمة على صفحات A4 عرضية (ترويسة تتكرر) + رقم صفحة — */
+async function apprPdfExport(){
+  const L=T(), btn=document.getElementById('apprPdfBtn');
+  const rows=apprFilterRows(); /* PDF يعرض دائماً ما يظهره الفلتر الحالي */
+  if(!rows.length){ toast(L.empty); return; }
+  const old=btn.innerHTML;
+  try{
+    btn.disabled=true; btn.innerHTML='⏳ '+esc(L.appr_pdf_building);
+    if(typeof window.jspdf==='undefined') await apprLoadLib('jspdf.umd.min.js');
+    if(typeof window.html2canvas==='undefined') await apprLoadLib('html2canvas.min.js');
+    const J=window.jspdf&&window.jspdf.jsPDF;
+    if(!J||!window.html2canvas) throw new Error('PDF lib');
+    /* حاوية قياس خارج الشاشة: العنوان + ترويسة الجدول + كل الصفوف */
+    const host=apprPdfBuild(rows);
+    document.body.appendChild(host);
+    const head=host.querySelector('.appr-pdf-head');
+    const tbl=host.querySelector('.appr-pdf-table');
+    const thead=tbl.tHead, tbody=tbl.tBodies[0];
+    const foot=host.querySelector('.appr-pdf-foot');
+    const all=Array.prototype.slice.call(tbody.rows);
+    /* ميزانية الارتفاع: A4 عرضي 297×210 بهامش 8مم — عرض 1100px يقابل 281مم */
+    const PW=1100, PWmm=281, PHmm=194;
+    const cs=getComputedStyle(host);
+    const padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+    const pagePx=Math.floor(PHmm/PWmm*PW);
+    const fixed=padY+head.offsetHeight+thead.offsetHeight+(foot?foot.offsetHeight:0);
+    const budget=pagePx-fixed;
+    const pages=[]; let cur=[], h=0;
+    all.forEach(r=>{ const rh=r.offsetHeight;
+      if(cur.length&&h+rh>budget){ pages.push(cur); cur=[]; h=0; }
+      cur.push(r); h+=rh; });
+    if(cur.length) pages.push(cur);
+    host.remove();
+    if(!pages.length) throw new Error('no rows');
+    const pdf=new J({unit:'mm',format:'a4',orientation:'landscape',compress:true});
+    for(let pi=0;pi<pages.length;pi++){
+      const pg=document.createElement('div');
+      pg.className='appr-pdf';
+      pg.appendChild(head.cloneNode(true));
+      const t=document.createElement('table');
+      t.className='appr-pdf-table';
+      t.appendChild(thead.cloneNode(true));
+      const tb=document.createElement('tbody');
+      pages[pi].forEach(r=>tb.appendChild(r.cloneNode(true)));
+      t.appendChild(tb);
+      pg.appendChild(t);
+      if(foot) pg.appendChild(foot.cloneNode(true));
+      document.body.appendChild(pg);
+      const cv=await window.html2canvas(pg,{scale:2,backgroundColor:'#ffffff',logging:false,windowWidth:PW});
+      pg.remove();
+      const img=cv.toDataURL('image/jpeg',0.93);
+      const w=PWmm, hh=Math.min(PHmm,PWmm*cv.height/cv.width);
+      if(pi>0) pdf.addPage('a4','landscape');
+      pdf.addImage(img,'JPEG',8,8,w,hh);
+      /* رقم الصفحة بالأرقام فقط (خط jsPDF المدمج لا يحوي محارف عربية) */
+      pdf.setFontSize(9); pdf.setTextColor(140);
+      pdf.text((pi+1)+' / '+pages.length,289,205,{align:'right'});
+    }
+    const blob=pdf.output('blob');
+    const a=document.createElement('a'), url=URL.createObjectURL(blob);
+    a.href=url; a.download='Aramco_Approvals_'+apprToday()+'.pdf';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },2000);
+    toast(L.appr_pdf_done);
+  }catch(e){ toast('⚠ '+L.appr_pdf_fail+(e&&e.message?' ('+e.message+')':'')); }
+  finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+document.getElementById('apprPdfBtn').onclick=apprPdfExport;
 /* — مزامنة الاعتمادات مع كل التبويبات المرتبطة (المجموعات/التوزيع/القائمة/اللوحة) — */
 function syncApprovalChange(){
   try{ renderAppr(); }catch(e){}
