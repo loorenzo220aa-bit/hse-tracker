@@ -81,6 +81,34 @@ setTimeout(() => {
     t('full status kept in tooltip', pills.every(p => p.hasAttribute('title')));
     t('long text no longer wraps in pill', /\.st\{[^}]*white-space:nowrap/.test(html.replace(/\s+/g, ' ')));
 
+    // 4b) نموذج التصنيفات الأربعة + محرك التنبيهات (ابروفل ارامكو)
+    try {
+      const ST = window.eval('APPR_ST');
+      t('status model: exactly 4 statuses', Array.isArray(ST) && ST.length === 4 && ST.indexOf('green_helmet_approved') >= 0,
+        JSON.stringify(ST));
+      t('legacy PASS(Waiting…) → pending transmittal', window.apprParse('PASS(Waiting for a transmittal)').s === 'passed_pending_transmittal');
+      t('legacy ACCEPTED → green helmet', window.apprParse('ACCEPTED').s === 'green_helmet_approved');
+      t('legacy Trainee 180-day → under evaluation', window.apprParse('Trainee for 180-day').s === 'under_evaluation');
+      t('JSON payload round-trips through approval field',
+        window.apprParse(window.apprEncode({ s: 'under_evaluation', c: 'HYUNDAI (DIRECT)', t: 'SAFETY TRAINEE', xp: '2026-12-31' })).xp === '2026-12-31');
+      t('KPI cards rendered (4)', d.querySelectorAll('#apprKpi .stat').length === 4,
+        d.querySelectorAll('#apprKpi .stat').length + ' cards');
+      t('status filter: all + 4 statuses', d.querySelectorAll('#apprStatus option').length === 5,
+        d.querySelectorAll('#apprStatus option').length + ' options');
+      t('company filter wired', typeof d.getElementById('apprCo').onchange === 'function');
+      t('bell + counter exist in header', !!d.getElementById('apprBellBtn') && !!d.getElementById('apprBellN'));
+      t('add button marked edit-only', !!d.getElementById('apprAddBtn').closest('.edit-only'));
+      t('alert: overdue probation', window.apprAlerts({ i: 'X', s: 'under_evaluation', xp: '2020-01-01' }).some(a => a.k === 'overdue'));
+      t('alert: stale transmittal (>30d)', window.apprAlerts({ i: 'X', s: 'passed_pending_transmittal', ed: '2026-01-01' }).some(a => a.k === 'stale'));
+      t('alert: failed status', window.apprAlerts({ i: 'X', s: 'failed_non_compliant' }).some(a => a.k === 'failed'));
+      t('no alert for fresh green helmet', window.apprAlerts({ i: 'X', s: 'green_helmet_approved' }).length === 0);
+      d.getElementById('apprBellBtn').click();
+      t('bell drawer opens with content', !d.getElementById('apprBellDlg').classList.contains('hide')
+        && d.getElementById('apprBellList').textContent.trim().length > 0);
+      d.getElementById('apprBellX').click();
+      t('bell drawer closes', d.getElementById('apprBellDlg').classList.contains('hide'));
+    } catch (e) { bad.push('approvals model threw: ' + e.message); }
+
     // 5) dashboard / charts
     const dd = d.getElementById('dashDaily');
     t('dashboard card exists', !!d.getElementById('dashCard'));
@@ -160,6 +188,22 @@ setTimeout(() => {
         try { d.getElementById(id).click(); } catch (e) { bad.push('tab ' + id + ' click threw: ' + e.message); }
       });
       t('viewVio active at end', !d.getElementById('viewVio').classList.contains('hide'));
+
+      // تكامل عبر التبويبات: حالة الاعتماد على بطاقات الموظفين + شارة الميدان في القروبات
+      t('staff cards carry approval status pill', d.querySelectorAll('#staffGrid .staff-st').length > 0,
+        d.querySelectorAll('#staffGrid .staff-st').length + ' pills');
+      try {
+        const gl = JSON.parse(window.eval(`(function(){
+          const bak=D.dep;
+          D.dep=[{id:'t-fd1',empId:'HYU-TEST1',area:'Fire Team Day',list:'A',rot:'A',status:'Active'}];
+          const inFire=apprInFireGroup('HYU-TEST1');
+          const warn=apprBadge({i:'HYU-TEST1',s:'under_evaluation'},['failed','nogreen']);
+          const ok=apprBadge({i:'HYU-TEST1',s:'green_helmet_approved'},['failed','nogreen']);
+          D.dep=bak;
+          return JSON.stringify({inFire:inFire,warn:warn.indexOf('appr-warn')>=0,ok:ok===''});
+        })()`));
+        t('field member without green helmet flagged', gl.inFire && gl.warn && gl.ok, JSON.stringify(gl));
+      } catch (e) { bad.push('field badge eval: ' + e.message); }
 
       // deployment: no-location box (الموظفون بلا موقع عمل)
       const nlBox = d.getElementById('depNoLoc');

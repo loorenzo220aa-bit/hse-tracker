@@ -164,6 +164,26 @@
   .st::before{content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
       background:currentColor; opacity:.7; margin-inline-end:6px; vertical-align:-1px;}
   #viewAppr table{min-width:820px;}
+  /* جرس التنبيهات + الشارة الحمراء + عدّاد الأيام */
+  #apprBellBtn{position:relative;}
+  .bell-n{position:absolute; top:-7px; inset-inline-start:-6px; background:#e11d48; color:#fff; font-size:10px;
+      font-weight:800; min-width:17px; height:17px; border-radius:99px; display:inline-flex; align-items:center;
+      justify-content:center; padding:0 4px; line-height:1;}
+  .appr-warn{padding:2px 7px; font-size:11px; cursor:pointer; margin-inline-end:4px; animation:bellPulse 2.4s ease-in-out infinite;}
+  @keyframes bellPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+  .appr-days{font-size:11px; color:var(--mut); margin-top:2px;}
+  .appr-days.over{color:#be123c; font-weight:800;}
+  .appr-days.soon{color:#b45309; font-weight:800;}
+  .appr-alert-item{display:flex; gap:10px; align-items:flex-start; width:100%; text-align:start; background:#fff;
+      border:none; border-bottom:1px solid var(--line); padding:11px 8px; cursor:pointer; font-family:inherit; transition:.15s;}
+  .appr-alert-item:hover{background:#fff1f2;}
+  .appr-alert-item .ai-ic{font-size:15px;}
+  .appr-alert-item .ai-txt{display:flex; flex-direction:column; gap:2px;}
+  .appr-alert-item .ai-txt b{font-size:13.5px; color:var(--txt);}
+  .appr-alert-item .ai-txt i{font-style:normal; font-size:12px; color:#be123c; font-weight:700;}
+  .staff-st{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;}
+  html[data-theme="dark"] .appr-alert-item{background:#0d1730;}
+  html[data-theme="dark"] .appr-alert-item:hover{background:#2a1220;}
   html[data-theme="dark"] .t-none{background:#1e293b; color:#94a3b8;}
   /* مبدّل القروبات */
   .grp-seg{display:inline-flex; gap:4px; background:var(--card2); border:1px solid var(--line);
@@ -712,6 +732,7 @@ try{
         <input type="month" id="monthPicker">
       </div>
       <span class="hdr-sep"></span>
+      <button class="btn hbtn" id="apprBellBtn" title="التنبيهات اليومية">🔔<span id="apprBellN" class="bell-n hide">0</span></button>
       <button class="btn hbtn" id="settingsBtn">⚙️ <span data-i="settings">الإعدادات</span></button>
       <button class="btn hbtn" id="langBtn">English / الإنجليزية</button>
       <button class="btn hbtn" id="themeBtn" title="الوضع الليلي / النهاري">🌙</button>
@@ -994,19 +1015,27 @@ try{
   <div id="viewAppr" class="hide">
   <div class="card">
     <h2><span class="ic">🛡️</span><span data-i="appr_title">ابروفل ارامكو</span> <span class="mut" id="apprCount" style="color:var(--mut);font-size:13px;"></span></h2>
-    <div class="grid" id="apprStats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;"></div>
+    <div class="grid" id="apprKpi" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;"></div>
     <div class="frow" style="margin-top:14px;">
-      <div class="field" style="max-width:280px;"><select id="apprRot"><option value="" data-i="f_all">الكل</option><option value="A">A</option><option value="B">B</option><option value="Daily">Daily</option></select></div>
-      <div class="field" style="max-width:340px;"><input id="apprSearch" placeholder="بحث..."></div>
+      <div class="field" style="max-width:260px;"><select id="apprStatus">
+        <option value="" data-i="appr_st_all">كل الحالات</option>
+        <option value="green_helmet_approved" data-i="appr_st_green">مقبول — هلمت أخضر</option>
+        <option value="passed_pending_transmittal" data-i="appr_st_pending">اجتاز — بانتظار الترانزميتال</option>
+        <option value="under_evaluation" data-i="appr_st_under">خاضع للاختبار والتثبيت</option>
+        <option value="failed_non_compliant" data-i="appr_st_failed">لم يجتاز / غير مطابق</option>
+      </select></div>
+      <div class="field" style="max-width:230px;"><select id="apprCo"><option value="" data-i="appr_co_all">كل الشركات</option></select></div>
+      <div class="field" style="max-width:320px;"><input id="apprSearch" data-i-ph="appr_search" placeholder="🔍 بحث بالاسم أو الرقم..."></div>
       <div><button class="btn btn-green" id="apprExportBtn">📥 <span data-i="appr_export">تصدير</span></button></div>
+      <div class="edit-only"><button class="btn btn-acc" id="apprAddBtn">➕ <span data-i="appr_add">إضافة موظف</span></button></div>
     </div>
     <div class="tbl-holder" style="margin-top:14px;">
       <table>
         <thead><tr>
-          <th data-i="c_emp" style="width:22%;">الموظف</th><th data-i="c_num" style="width:12%;">الرقم الوظيفي</th>
-          <th data-i="appr_rot" style="width:10%;">مجموعة الدوام</th><th data-i="appr_stat" style="width:17%;">حالة الابروفل</th>
-          <th data-i="c_phone" style="width:13%;">الهاتف</th><th data-i="appr_aramco" style="width:12%;">ارامكو</th>
-          <th data-i="appr_area" style="width:10%;">المنطقة</th><th style="width:4%;"></th>
+          <th data-i="c_emp" style="width:21%;">الموظف</th><th data-i="c_num" style="width:10%;">الرقم الوظيفي</th>
+          <th data-i="appr_pos" style="width:11%;">المسمى الوظيفي</th><th data-i="appr_co" style="width:11%;">الشركة</th>
+          <th data-i="appr_stat" style="width:14%;">حالة الابروفل</th><th data-i="appr_dates" style="width:14%;">الاعتماد / الانتهاء</th>
+          <th data-i="c_phone" style="width:10%;">الهاتف</th><th style="width:9%;"></th>
         </tr></thead>
         <tbody id="apprBody"></tbody>
       </table>
@@ -1014,6 +1043,12 @@ try{
     </div>
   </div>
   <div id="apprEditDlg" class="empdlg hide"><div class="empdlg-card"><button class="empdlg-x" id="apprEditX">✕</button><div id="apprEditBody"></div></div></div>
+  <div id="apprBellDlg" class="empdlg hide"><div class="empdlg-card" style="max-width:540px;">
+    <button class="empdlg-x" id="apprBellX">✕</button>
+    <h3 style="margin:0 0 2px;">🔔 <span data-i="appr_bell">التنبيهات اليومية</span></h3>
+    <div class="empdlg-sub" id="apprBellSub" style="font-size:12.5px;"></div>
+    <div id="apprBellList" style="margin-top:10px;"></div>
+  </div></div>
   </div><!-- /viewAppr -->
 
   <div id="viewGrp" class="hide">
@@ -1186,7 +1221,7 @@ async function loadAll() {
   D.ts = tsl || [];
   D.dep = (dep || []).map(mapDep);
   D.veh = (veh || []).map(mapVeh);
-  D.appr = (appr && appr.length) ? appr.map(mapAppr) : SEED_APPR.slice();
+  D.appr = (appr && appr.length) ? appr.map(mapAppr) : SEED_APPR.map(mapAppr);
 }
 
 async function saveUser(u) { 
@@ -1278,6 +1313,28 @@ const I18N={
         lists_export:'تصدير قوائم A/B Excel', lists_search:'بحث...', lists_count:'عدد الموظفين',
     list_export_a_done:'✅ تم تصدير قائمة A',
     list_export_b_done:'✅ تم تصدير قائمة B',
+    appr_st_all:'كل الحالات', appr_st_green:'مقبول — هلمت أخضر', appr_st_pending:'اجتاز — بانتظار الترانزميتال',
+    appr_st_under:'خاضع للاختبار والتثبيت', appr_st_failed:'لم يجتاز / غير مطابق', appr_co_all:'كل الشركات',
+    appr_pill_green:'هلمت أخضر', appr_pill_pending:'بانتظار المعاملة', appr_pill_under:'خاضع للاختبار', appr_pill_failed:'لم يجتاز',
+    appr_kpi_total:'كوادر السلامة (الإجمالي)', appr_kpi_green:'معتمدو الهلمت الأخضر',
+    appr_kpi_pending:'بانتظار الترانزميتال', appr_kpi_alerts:'تنبيهات فورية',
+    appr_pos:'المسمى الوظيفي', appr_co:'الشركة', appr_dates:'الاعتماد / الانتهاء',
+    appr_search:'🔍 بحث بالاسم أو الرقم...', appr_add:'إضافة موظف',
+    appr_add_t:'إضافة موظف سلامة جديد', appr_edit_t:'تعديل بيانات الابروفل',
+    appr_add_sub:'اختر موظفاً مسجلاً أو أدخل بياناته يدوياً', appr_ch:'اختر',
+    appr_lab_emp:'الربط بموظف', appr_new_emp:'— موظف جديد (إدخال يدوي) —',
+    appr_lab_num:'الرقم الوظيفي', appr_lab_name:'الاسم الكامل', appr_lab_status:'حالة الابروفل',
+    appr_lab_ad:'تاريخ الاعتماد', appr_lab_xp:'تاريخ الانتهاء', appr_lab_ed:'تاريخ الاختبار',
+    appr_lab_ex:'نتيجة الاختبار', appr_lab_note:'ملاحظة المعاملة',
+    appr_del:'حذف / أرشفة', ask_del_appr:'حذف سجل هذا الموظف من الاعتمادات؟',
+    appr_saved:'تم حفظ الحالة ✅', appr_deleted:'تم حذف السجل ✅',
+    appr_err_new:'أدخل الرقم الوظيفي أو الاسم أولاً', appr_exists:'هذا الموظف مسجل في الاعتمادات مسبقاً',
+    appr_bell:'التنبيهات اليومية', appr_bell_sub:'اضغط على التنبيه لفتح السجل ومعالجته',
+    appr_bell_empty:'لا توجد تنبيهات — الوضع مطابق ✅',
+    appr_al_failed:'لم يجتاز الاختبار', appr_al_overdue:'تجاوز فترة التجربة (90/180 يوم) دون اجتياز',
+    appr_al_expired:'انتهت صلاحية الاعتماد — يلزم تجديد', appr_al_stale:'تأخرت أوراق الترانزميتال عن موعدها',
+    appr_al_nogreen:'في مجموعة ميدانية بدون هلمت أخضر',
+    appr_days_left:'يوم متبقٍ', appr_days_over:'يوم تأخير', s_safety:'سيفتي معتمد (أخضر)',
   },
   en:{
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
@@ -1339,6 +1396,28 @@ const I18N={
     ts_export:'Export Timesheet Excel', ts_day:'Day', ts_saved:'Timesheet saved ✅', ts_noemp:'Add an employee first', c_phone:'Phone', set_new_pass:'New password', pwd_changed:'Password changed ✅', tab_lists:'Lists (A / B)', lists_title:'Lists (A / B) — Employees by List', lists_desc:'All employees grouped by deployment list: A, B, or no list', lists_col_area:'Area', lists_col_list:'List', lists_col_emp:'Employee', lists_col_num:'Job No.', lists_col_dept:'Department / Job', lists_col_rot:'Rotation Group', lists_col_status:'Status', lists_empty:'No deployments yet — start from the Deployment tab ⬆️', lists_export:'Export A/B Lists Excel', lists_search:'Search...', lists_count:'Employee count',
     list_export_a_done:'✅ List A exported',
     list_export_b_done:'✅ List B exported',
+    appr_st_all:'All statuses', appr_st_green:'Approved - Green Helmet', appr_st_pending:'Passed - Pending Transmittal',
+    appr_st_under:'Under Evaluation / Probation', appr_st_failed:'Failed / Non-Compliant', appr_co_all:'All companies',
+    appr_pill_green:'Green Helmet', appr_pill_pending:'Pending Transmittal', appr_pill_under:'Under Evaluation', appr_pill_failed:'Failed',
+    appr_kpi_total:'Safety Cadre (Total)', appr_kpi_green:'Approved - Green Helmet',
+    appr_kpi_pending:'Pending Transmittal', appr_kpi_alerts:'Immediate Alerts',
+    appr_pos:'Position', appr_co:'Company', appr_dates:'Approval / Expiry',
+    appr_search:'🔍 Search name or number...', appr_add:'Add Employee',
+    appr_add_t:'Add Safety Employee', appr_edit_t:'Edit Approval Data',
+    appr_add_sub:'Pick a registered employee or enter data manually', appr_ch:'Choose',
+    appr_lab_emp:'Link employee', appr_new_emp:'— New employee (manual entry) —',
+    appr_lab_num:'Employee No.', appr_lab_name:'Full Name', appr_lab_status:'Approval Status',
+    appr_lab_ad:'Approval Date', appr_lab_xp:'Expiry Date', appr_lab_ed:'Exam Date',
+    appr_lab_ex:'Exam Result', appr_lab_note:'Transaction Note',
+    appr_del:'Delete / Archive', ask_del_appr:'Delete this employee approval record?',
+    appr_saved:'Status saved ✅', appr_deleted:'Record deleted ✅',
+    appr_err_new:'Enter the employee number or name first', appr_exists:'This employee already has an approval record',
+    appr_bell:'Daily Alerts', appr_bell_sub:'Tap an alert to open the record and fix it',
+    appr_bell_empty:'No alerts — all clear ✅',
+    appr_al_failed:'Failed exam', appr_al_overdue:'Probation period (90/180 days) exceeded',
+    appr_al_expired:'Approval expired — renewal required', appr_al_stale:'Transmittal papers overdue',
+    appr_al_nogreen:'In a field team without a green helmet',
+    appr_days_left:'days left', appr_days_over:'days overdue', s_safety:'Approved Safety (Green)',
   }
 };
 const T=()=>I18N[LANG];
@@ -2168,9 +2247,15 @@ function renderStaff(){
     const src=s.u||(s.f?('employees/'+STAFF_GROUP+'/'+s.f):null);
     const photo=src?'<div class="staff-init">'+esc(staffInitials(s.n))+'</div><img src="'+src+'" alt="'+esc(s.n)+'" loading="lazy" onload="this.classList.add(\'ld\')" onerror="this.remove()">'
                    :'<div class="staff-init">'+esc(staffInitials(s.n))+'</div>';
+    const ap=apprByNum(s.i);
+    let apSt='';
+    if(ap){
+      apSt='<div class="staff-st"><span class="tag st '+apprTagCls(ap.s)+'" title="'+esc(apprFullText(ap.s))+'">'
+        +esc(apprPillText(ap.s))+'</span>'+apprBadge(ap,['failed','overdue','expired'])+'</div>';
+    }
     div.innerHTML='<div class="staff-photo">'+photo+'</div>'+
       '<div class="staff-info"><div class="staff-name">'+esc(s.n)+'</div>'+
-      '<div class="staff-pos">'+esc(s.p)+'</div>'+
+      '<div class="staff-pos">'+esc(s.p)+'</div>'+apSt+
       '<span class="staff-id">'+esc(s.i)+'</span></div>';
     grid.appendChild(div);
   });
@@ -2405,7 +2490,7 @@ function renderDep(){
     +'<th data-i="c_emp">'+esc(T().c_emp||'Employee')+'</th><th data-i="c_num">'+esc(T().c_num||'Job No.')+'</th>'
     +'<th data-i="l_dept">'+esc(T().l_dept||'Department')+'</th><th></th></tr></thead><tbody>';
   noLoc.forEach((e,i)=>{
-    nlh+='<tr><td>'+(i+1)+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(e.dept||'')+'</td>'
+    nlh+='<tr><td>'+(i+1)+'</td><td>'+esc(empName(e))+apprBadge(apprByNum(e.num),['failed','overdue','expired'])+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(e.dept||'')+'</td>'
       +((isAdmin()&&e.id)?'<td><button class="btn btn-sm btn-acc edit-only" data-assign="'+esc(e.id)+'">➕ '+esc(T().dep_assign||'Assign')+'</button></td>':'<td></td>')+'</tr>';
   });
   nlh+='</tbody></table></div>';
@@ -2422,7 +2507,7 @@ function renderDep(){
       const lr=l.rows.filter(match); if(!lr.length) return;
       h+='<tr><td colspan="8" style="background:#f0f9ff;font-weight:800;">'+esc(l.list)+' — '+lr.length+'</td></tr>';
       lr.forEach(d=>{ n++; const e=empById(d.empId);
-        h+='<tr><td>'+n+'</td><td>'+esc(empName(e))+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(e.dept||'')+'</td><td>'+esc(d.list)+'</td><td>'+esc(d.rot)+'</td><td>'+esc(d.status)+'</td><td>'+(isAdmin()?'<button class="del" data-depdel="'+d.id+'">🗑</button>':'')+'</td></tr>'; });
+        h+='<tr><td>'+n+'</td><td>'+esc(empName(e))+apprBadge(apprByNum(e.num),['failed','overdue','expired'])+'</td><td style="direction:ltr;">'+esc(e.num||'')+'</td><td>'+esc(e.dept||'')+'</td><td>'+esc(d.list)+'</td><td>'+esc(d.rot)+'</td><td>'+esc(d.status)+'</td><td>'+(isAdmin()?'<button class="del" data-depdel="'+d.id+'">🗑</button>':'')+'</td></tr>'; });
     });
     h+='</tbody></table></div>';
     det.innerHTML=h;
@@ -2675,75 +2760,201 @@ const SEED_APPR = [
   {i:"HECL-0211",r:"A",a:"Trainee for 180-day",p:"050-669-6313",ar:"",x:"GIS-02"},
   {i:"SASL-0605",r:"Daily",a:"PASS(Waiting for a transmittal)",p:"549393646",ar:"",x:""}
 ];
-function mapAppr(v){ return {i:v.emp_id||v.i, r:v.rotation||v.r, a:v.approval||v.a, p:v.phone||v.p, ar:v.aramco_id||v.ar, x:v.area||v.x}; }
-function apprClass(s){
-  s=(s||'').trim().toLowerCase();
-  if(!s) return 't-none';
-  if(s.includes('trainee')) return 't-wrn';
-  if(s.includes('ongoing')||s.includes('accept')) return 't-per';
-  if(s.includes('pass')||s.includes('wait')) return 't-abs';
-  if(s.includes('safety')) return 't-oth';
-  return 't-oth';
+/* ============================================================
+   ARAMCO APPROVALS — نموذج البيانات (Schema مرجعي)
+   ------------------------------------------------------------
+   صف واحد في جدول Supabase `approvals` لكل موظف:
+     emp_id    : الرقم الوظيفي (SASL-xxxx / HECL-xxxx) أو مفتاح اصطناعي HYU-xxxxx
+     rotation  : مجموعة الدوام (A / B / Daily) — تُبقي كما هي
+     approval  : الحالة والبيانات المهيكلة كنص JSON (أو قيمة قديمة نصية)
+     phone     : الهاتف      aramco_id : رقم الترانزميتال      area : المنطقة
+   محتوى JSON داخل approval:
+     { s: ApprStatus, c: الشركة, t: المسمى, n: الاسم, ad: تاريخ الاعتماد,
+       xp: تاريخ الانتهاء, ed: تاريخ الاختبار, ex: نتيجة الاختبار,
+       ws: الحالة الوظيفية, tr: رقم الترانزميتال, note: ملاحظة المعاملة }
+   ApprStatus = 'green_helmet_approved' | 'passed_pending_transmittal'
+              | 'under_evaluation' | 'failed_non_compliant'
+   ============================================================ */
+const APPR_ST=['green_helmet_approved','passed_pending_transmittal','under_evaluation','failed_non_compliant'];
+const APPR_ST_TAG={green_helmet_approved:'t-per',passed_pending_transmittal:'t-abs',under_evaluation:'t-wrn',failed_non_compliant:'t-vio'};
+const APPR_ST_PILL={green_helmet_approved:'appr_pill_green',passed_pending_transmittal:'appr_pill_pending',under_evaluation:'appr_pill_under',failed_non_compliant:'appr_pill_failed'};
+const APPR_ST_FULL={green_helmet_approved:'appr_st_green',passed_pending_transmittal:'appr_st_pending',under_evaluation:'appr_st_under',failed_non_compliant:'appr_st_failed'};
+function apprNorm(s){ return String(s==null?'':s).toUpperCase().replace(/\s+/g,''); }
+function empNumRec(id){ const k=apprNorm(id); if(!k) return null;
+  return D.emp.find(e=>apprNorm(e.num)===k||apprNorm(e.id)===k)||null; }
+function apprByNum(id){ const k=apprNorm(id); if(!k) return null;
+  return (D.appr||[]).find(v=>apprNorm(v.i)===k)||null; }
+function apprName(x){ const e=empNumRec(x.i); if(e) return empName(e)||x.n||x.i;
+  return x.n||x.i||'—'; }
+function apprCompany(x){ if(x.c) return x.c; const e=empNumRec(x.i); return e?empGroup(e):''; }
+function apprFullText(s){ return T()[APPR_ST_FULL[s]]||String(s==null?'':s); }
+function apprPillText(s){ return T()[APPR_ST_PILL[s]]||String(s==null?'':s); }
+function apprTagCls(s){ return APPR_ST_TAG[s]||'t-none'; }
+/* --- ترحيل القيم القديمة إلى أحد التصنيفات الأربعة (قراءة فقط) --- */
+function legacyApprStatus(raw){
+  const s=String(raw||'').trim().toLowerCase();
+  if(!s) return 'under_evaluation';
+  if(/fail|no\s*show|retake|withdraw|non[-\s]*compliant/.test(s)) return 'failed_non_compliant';
+  if(/waiting for.*transmittal|pass\s*\(/.test(s)) return 'passed_pending_transmittal';
+  if(/accepted|approved/.test(s)) return 'green_helmet_approved';
+  return 'under_evaluation'; /* Trainee / ONGOING / Safety officer 90-180 / فارغ */
 }
-/* نص مختصر للحبّة — النص الكامل يظهر عند المرور بالمؤشر (title) */
-function apprLabel(s){
-  s=(s||'').trim();
-  if(!s) return '—';
-  const map=[[/trainee/i,'Trainee'],[/safety\s*sup/i,'Safety Supervisor'],[/180/i,'Safety · 180d'],
-    [/90/i,'Safety · 90d'],[/safety/i,'Safety'],[/pass/i,'PASS'],[/wait/i,'WAITING'],
-    [/ongoing/i,'ONGOING'],[/accept/i,'ACCEPTED']];
-  for(const [re,l] of map) if(re.test(s)) return l;
-  return s;
+/* --- قراءة/كتابة حقل approval: JSON هيكل أو نص قديم --- */
+function apprParse(raw){
+  if(raw && typeof raw==='object') return raw.s?raw:Object.assign({},raw,{s:'under_evaluation'});
+  const s=String(raw==null?'':raw).trim();
+  if(s.charAt(0)==='{'){ try{ const j=JSON.parse(s); if(j&&j.s) return j; }catch(e){} }
+  return {s:legacyApprStatus(s)};
+}
+function apprEncode(rec){
+  const o={s:rec.s};
+  ['c','t','n','ad','xp','ed','ex','ws','tr','note'].forEach(k=>{ if(rec[k]) o[k]=rec[k]; });
+  return JSON.stringify(o);
+}
+function mapAppr(v){
+  const raw=(v.approval!==undefined&&v.approval!==null)?v.approval:(v.a!==undefined?v.a:'');
+  const o=apprParse(raw);
+  return {i:v.emp_id||v.i||'', r:v.rotation||v.r||'', a:raw,
+    s:APPR_ST.indexOf(o.s)>=0?o.s:'under_evaluation',
+    n:o.n||'', c:o.c||'', t:o.t||'', ad:o.ad||'', xp:o.xp||'', ed:o.ed||'',
+    ex:o.ex||'', ws:o.ws||'', tr:o.tr||'', note:o.note||'',
+    p:v.phone||v.p||'', ar:v.aramco_id||v.ar||'', x:v.area||v.x||''};
+}
+/* --- التواريخ والتنبيهات --- */
+function apprToday(){ const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function apprDays(from,to){ const a=Date.parse(from+'T00:00:00Z'), b=Date.parse(to+'T00:00:00Z');
+  if(isNaN(a)||isNaN(b)) return null; return Math.round((b-a)/86400000); }
+function apprInFireGroup(id){
+  try{ const g=grpData(), k=apprNorm(id);
+    return ['FD','FN'].some(gk=>(g[gk]||[]).some(r=>apprNorm(r[0])===k));
+  }catch(e){ return false; }
+}
+const APPR_ALERT_STALE_DAYS=30;
+/* شروط التنبيه (المواضيع 2.د): فشل / تجاوز التجربة / انتهاء صلاحية / تأخر المعاملة / تواجد ميداني بلا هلمت أخضر */
+function apprAlerts(x){
+  const out=[], today=apprToday();
+  if(x.s==='failed_non_compliant') out.push({k:'failed',t:T().appr_al_failed});
+  if(x.s==='under_evaluation'&&x.xp&&x.xp<today) out.push({k:'overdue',t:T().appr_al_overdue});
+  if(x.s==='green_helmet_approved'&&x.xp&&x.xp<today) out.push({k:'expired',t:T().appr_al_expired});
+  if(x.s==='passed_pending_transmittal'){
+    const base=x.ed||x.ad, d=base?apprDays(base,today):null;
+    if(d!==null&&d>APPR_ALERT_STALE_DAYS) out.push({k:'stale',t:T().appr_al_stale});
+  }
+  if(x.s!=='green_helmet_approved'&&apprInFireGroup(x.i)) out.push({k:'nogreen',t:T().appr_al_nogreen});
+  return out;
+}
+function apprRed(x){ const ks=['failed','overdue','expired'];
+  return apprAlerts(x).filter(a=>ks.indexOf(a.k)>=0); }
+/* شارة حمراء اختيارية (تُحقن داخل خلية الاسم) — kinds: أي أنواع التنبيه تظهر */
+function apprBadge(x,kinds){
+  if(!x) return '';
+  const al=apprAlerts(x).filter(a=>kinds.indexOf(a.k)>=0);
+  if(!al.length) return '';
+  return ' <span class="tag st t-vio appr-warn" title="'+esc(al.map(a=>a.t).join(' / '))+'">⚠️</span>';
 }
 function renderAppr(){
   if(!document.getElementById('apprBody')) return;
-  const rows=D.appr||[];
-  document.getElementById('apprSearch').placeholder=(LANG==='ar'?'🔍 بحث بالاسم أو المنطقة...':'🔍 Search name or area...');
-  const st=document.getElementById('apprStats');
-  let html='';
-  [['A'],['B'],['Daily']].forEach(([k])=>{
-    const n=rows.filter(x=>x.r===k).length;
-    html+='<div class="stat"><div class="k">Group '+k+'</div><div class="v" style="color:var(--blue)">'+n+'</div></div>';
-  });
-  html+='<div class="stat"><div class="k">'+esc(T().veh_total)+'</div><div class="v" style="color:var(--green)">'+rows.length+'</div></div>';
-  st.innerHTML=html;
+  const rows=D.appr||[], today=apprToday();
+  /* — قائمة الشركات تُبنى من البيانات مع الحفاظ على الاختيار — */
+  const coSel=document.getElementById('apprCo');
+  const coCur=coSel?coSel.value:'';
+  const cos=[...new Set(rows.map(x=>apprCompany(x)).filter(Boolean))].sort();
+  if(coSel){
+    coSel.innerHTML='<option value="" data-i="appr_co_all">'+esc(T().appr_co_all)+'</option>'
+      +cos.map(c=>'<option value="'+esc(c)+'"'+(c===coCur?' selected':'')+'>'+esc(c)+'</option>').join('');
+  }
+  /* — بطاقات المؤشرات — */
+  let nG=0,nP=0,nAlert=0;
+  rows.forEach(x=>{ if(x.s==='green_helmet_approved') nG++;
+    else if(x.s==='passed_pending_transmittal') nP++;
+    if(apprAlerts(x).length) nAlert++; });
+  const kpi=document.getElementById('apprKpi');
+  if(kpi) kpi.innerHTML=
+    '<div class="stat"><div class="k">'+esc(T().appr_kpi_total)+'</div><div class="v" style="color:var(--acc)">'+rows.length+'</div></div>'
+   +'<div class="stat"><div class="k">'+esc(T().appr_kpi_green)+'</div><div class="v" style="color:var(--green)">'+nG+'</div></div>'
+   +'<div class="stat"><div class="k">'+esc(T().appr_kpi_pending)+'</div><div class="v" style="color:var(--blue)">'+nP+'</div></div>'
+   +'<div class="stat"><div class="k">'+esc(T().appr_kpi_alerts)+'</div><div class="v" style="color:var(--red)">'+nAlert+'</div></div>';
+  /* — الفلاتر: الحالة + الشركة + بحث — */
+  const st=document.getElementById('apprStatus').value||'';
+  const co=coSel?coSel.value:'';
   const q=(document.getElementById('apprSearch').value||'').toLowerCase();
-  const rot=document.getElementById('apprRot').value;
   const body=document.getElementById('apprBody'); body.innerHTML='';
   let shown=0;
   rows.forEach(x=>{
-    const e=empById(x.i);
-    if(rot && x.r!==rot) return;
+    const e=empNumRec(x.i);
+    if(st&&x.s!==st) return;
+    const xc=apprCompany(x);
+    if(co&&xc!==co) return;
     if(q){
-      const c1=(e?(e.en||e.ar||''):'')+' '+(e?(e.num||''):'')+' '+(x.x||'')+' '+(x.a||'');
-      if(!c1.toLowerCase().includes(q)) return;
+      const hay=(apprName(x)+' '+(e?(e.num||''):'')+' '+x.i+' '+(x.t||'')+' '+(x.x||'')+' '+(x.p||'')+' '+(x.ar||'')+' '+xc).toLowerCase();
+      if(hay.indexOf(q)<0) return;
     }
     shown++;
+    /* أيام متبقية على الاعتماد أو تأخير */
+    let dsub='', dcls='';
+    if(x.xp){ const d=apprDays(today,x.xp);
+      if(d===null) dsub=x.xp;
+      else if(d<0){ dsub='⏰ +'+(-d)+' '+T().appr_days_over; dcls=' over'; }
+      else { dsub=x.xp+' · '+d+' '+T().appr_days_left; if(d<=7) dcls=' soon'; }
+    }
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc((e&&e.id)?empName(e):(x.i||'—'))+'</td><td style="direction:ltr;">'+esc(e?(e.num||''):x.i)+'</td>'
-      +'<td>'+esc(x.r)+'</td><td><span class="tag st '+apprClass(x.a)+'" title="'+esc(x.a||'')+'">'+esc(apprLabel(x.a))+'</span></td>'
-      +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td><td style="direction:ltr;">'+esc(x.ar||'—')+'</td>'
-      +'<td>'+esc(x.x||'—')+'</td>'
-    +'<td><button class="btn btn-sm edit-only" data-appredit="'+esc(x.i)+'">✏️</button></td>';
+    tr.innerHTML='<td>'+apprBadge(x,['failed','overdue','expired','stale','nogreen'])+esc(apprName(x))+'</td>'
+      +'<td style="direction:ltr;">'+esc((e&&e.num)||x.i||'—')+'</td>'
+      +'<td>'+esc(x.t||(e&&e.dept)||'—')+'</td>'
+      +'<td>'+esc(xc||'—')+'</td>'
+      +'<td><span class="tag st '+apprTagCls(x.s)+'" title="'+esc(apprFullText(x.s))+'">'+esc(apprPillText(x.s))+'</span></td>'
+      +'<td style="direction:ltr;">'+esc(x.ad||'—')+(dsub?'<div class="appr-days'+dcls+'">'+esc(dsub)+'</div>':'')+'</td>'
+      +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td>'
+      +'<td><button class="btn btn-sm edit-only" data-appredit="'+esc(x.i)+'" title="'+esc(T().edit)+'">✏️</button>'
+      +'<button class="btn btn-sm del edit-only" data-apprdel="'+esc(x.i)+'" title="'+esc(T().appr_del)+'" style="margin-inline-start:4px;">🗑</button></td>';
     body.appendChild(tr);
   });
   const ed=document.getElementById('apprEmpty');
   if(!shown){ ed.classList.remove('hide'); ed.textContent=T().empty; } else ed.classList.add('hide');
   document.getElementById('apprCount').textContent=shown+' / '+rows.length;
+  renderBell();
 }
 document.getElementById('apprSearch').oninput=renderAppr;
-document.getElementById('apprRot').onchange=renderAppr;
+document.getElementById('apprStatus').onchange=renderAppr;
+document.getElementById('apprCo').onchange=renderAppr;
+document.getElementById('apprAddBtn').onclick=()=>openApprEdit(null);
 document.getElementById('apprExportBtn').onclick=async()=>{
   if(typeof XLSX==='undefined'){ toast('Excel lib'); return; }
   const a=[]; a.push([T().appr_title]); a.push([]);
-  a.push([T().c_emp,T().c_num,T().appr_rot,T().appr_stat,T().c_phone,T().appr_aramco,T().appr_area]);
-  (D.appr||[]).forEach(x=>{ const e=empById(x.i);
-    a.push([empName(e),e?(e.num||''):'',x.r,x.a,x.p,x.ar,x.x]); });
+  a.push([T().c_emp,T().c_num,T().appr_pos,T().appr_co,T().appr_stat,T().appr_dates,T().c_phone,T().appr_aramco,T().appr_area,T().appr_rot]);
+  (D.appr||[]).forEach(x=>{ const e=empNumRec(x.i);
+    a.push([apprName(x),(e&&e.num)||x.i,x.t,x.c||apprCompany(x),apprFullText(x.s),x.ad||'',x.p,x.ar,x.x,x.r]); });
   const ws=XLSX.utils.aoa_to_sheet(a);
-  ws['!cols']=[{wch:26},{wch:14},{wch:10},{wch:30},{wch:14},{wch:12},{wch:16}];
+  ws['!cols']=[{wch:26},{wch:13},{wch:18},{wch:18},{wch:30},{wch:14},{wch:13},{wch:22},{wch:14},{wch:10}];
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Approval');
   XLSX.writeFile(wb,'Aramco_Approval.xlsx'); toast(T().toast_xlsx);
 };
+/* — مزامنة الاعتمادات مع كل التبويبات المرتبطة (المجموعات/التوزيع/القائمة/اللوحة) — */
+function syncApprovalChange(){
+  try{ renderAppr(); }catch(e){}
+  try{ renderStaff(); }catch(e){}
+  try{ renderGrp(); }catch(e){}
+  try{ renderDep(); }catch(e){}
+  try{ renderBrandStats(); }catch(e){}
+  try{ renderBell(); }catch(e){}
+}
+/* — جرس التنبيهات اليومية في الشريط العلوي — */
+function renderBell(){
+  const b=document.getElementById('apprBellBtn'); if(!b) return;
+  const items=[];
+  (D.appr||[]).forEach(x=>{ apprAlerts(x).forEach(a=>items.push({x:x,a:a})); });
+  const n=document.getElementById('apprBellN');
+  if(n){ n.textContent=items.length>99?'99+':String(items.length); n.classList.toggle('hide',!items.length); }
+  b.title=T().appr_bell+(items.length?' ('+items.length+')':'');
+  const list=document.getElementById('apprBellList'); if(!list) return;
+  const sub=document.getElementById('apprBellSub');
+  if(sub) sub.textContent=items.length?T().appr_bell_sub:'';
+  list.innerHTML=items.length
+    ? items.map(o=>'<button type="button" class="appr-alert-item" data-goto="'+esc(o.x.i)+'">'
+        +'<span class="ai-ic">⚠️</span><span class="ai-txt"><b>'+esc(apprName(o.x))+'</b><i>'+esc(o.a.t)+'</i></span></button>').join('')
+    : '<div class="empty" style="padding:14px;">'+esc(T().appr_bell_empty)+'</div>';
+}
 /* ==== ATTENDANCE TEMPLATE EXPORT (raw OOXML — preserves the template 100%) ==== */
 const ATT_SHEET_B='TTENDANCE SHEET GROUP B';
 const ATT_SHEET_N={A:'TTENDANCE SHEET GROUP A', B:ATT_SHEET_B, D:'TTENDANCE SHEET DAILY', FD:'TTENDANCE SHEET FIRE DAY', FN:'TTENDANCE SHEET FIRE NIGHT'};
@@ -2906,7 +3117,7 @@ function renderGrp(){
     const tr=document.createElement('tr');
     tr.innerHTML='<td style="text-align:center; color:var(--mut);">'+shown+'</td>'
       +'<td><span class="tag st '+GRP_CLS[r.g]+'">'+esc(grpShort(r.g))+'</span></td>'
-      +'<td>'+esc(r.name)+'</td>'
+      +'<td>'+esc(r.name)+apprBadge(apprByNum(r.id),['failed','nogreen'])+'</td>'
       +'<td style="direction:ltr;">'+esc(r.id)+'</td>'
       +'<td>'+esc(e?(e.ar||'—'):'—')+'</td>'
       +'<td>'+esc(e?(e.dept||'—'):'—')+'</td>'
@@ -2945,45 +3156,126 @@ let apprEditId=null;
 (function(){
   const ab=document.getElementById('apprBody'); if(!ab) return;
   ab.addEventListener('click',e=>{
-    const b=e.target.closest('[data-appredit]'); if(!b) return;
-    openApprEdit(b.dataset.appredit);
+    const b1=e.target.closest('[data-appredit]'); if(b1){ openApprEdit(b1.dataset.appredit); return; }
+    const b2=e.target.closest('[data-apprdel]'); if(b2){ apprDelete(b2.dataset.apprdel); }
   });
 })();
 document.getElementById('apprEditX').onclick=()=>document.getElementById('apprEditDlg').classList.add('hide');
 document.getElementById('apprEditDlg').addEventListener('click',e=>{ if(e.target.id==='apprEditDlg') document.getElementById('apprEditDlg').classList.add('hide'); });
+/* — درج التنبيهات اليومية — */
+document.getElementById('apprBellX').onclick=()=>document.getElementById('apprBellDlg').classList.add('hide');
+document.getElementById('apprBellDlg').addEventListener('click',e=>{ if(e.target.id==='apprBellDlg') document.getElementById('apprBellDlg').classList.add('hide'); });
+document.getElementById('apprBellBtn').onclick=()=>{ renderBell(); document.getElementById('apprBellDlg').classList.remove('hide'); };
+document.getElementById('apprBellList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-goto]'); if(!b) return;
+  document.getElementById('apprBellDlg').classList.add('hide');
+  switchView('appr');
+  openApprEdit(b.dataset.goto);
+});
+/* مفتاح اصطناعي ثابت لكل اسم غير مرتبط بموظف (لا يتغير مع إعادة الاستيراد) */
+function apprSynthId(name){
+  let h=5381; const s=String(name||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))>>>0;
+  return 'HYU-'+h.toString(36).toUpperCase();
+}
 function openApprEdit(id){
-  const x=(D.appr||[]).find(v=>v.i===id); if(!x) return;
+  const isNew=(id===null||id===undefined);
+  const x=isNew?null:(D.appr||[]).find(v=>v.i===id);
+  if(!isNew&&!x) return;
   apprEditId=id;
-  const e=empById(id);
-  const stats=[...new Set((D.appr||[]).map(v=>(v.a||'').trim()).filter(Boolean))].sort();
-  const areas=[...new Set((D.appr||[]).map(v=>(v.x||'').trim()).filter(Boolean))].sort();
-  const LBL=LANG==='ar'?{t:'تعديل بيانات الابروفل',r:'مجموعة الدوام',s:'حالة الابروفل',p:'الهاتف',ar:'ارامكو',x:'المنطقة',sv:'💾 حفظ',ch:'— اختر —'}
-    :{t:'Edit Approval',r:'Rotation',s:'Approval',p:'Phone',ar:'Aramco',x:'Area',sv:'💾 Save',ch:'— Choose —'};
-  const opt=(v,lbl)=>'<option value="'+esc(v)+'"'+(v===lbl?' selected':'')+'>'+esc(v||LBL.ch)+'</option>';
-  document.getElementById('apprEditBody').innerHTML=
-    '<h3 style="margin:0 0 4px;">'+LBL.t+'</h3>'
-    +'<div class="empdlg-sub">'+esc(e?empName(e):id)+' — <span style="direction:ltr;">'+esc(id)+'</span></div>'
-    +'<div class="field" style="margin-top:10px;"><label>'+LBL.r+'</label><select id="aeRot">'+['A','B','Daily'].map(v=>opt(v,x.r)).join('')+'</select></div>'
-    +'<div class="field" style="margin-top:10px;"><label>'+LBL.s+'</label><select id="aeStat"><option value="">'+LBL.ch+'</option>'+stats.map(v=>opt(v,x.a)).join('')+'</select></div>'
-    +'<div class="field" style="margin-top:10px;"><label>'+LBL.x+'</label><select id="aeArea"><option value="">'+LBL.ch+'</option>'+areas.map(v=>opt(v,x.x)).join('')+'</select></div>'
-    +'<div class="field" style="margin-top:10px;"><label>'+LBL.p+'</label><input id="aePhone" style="direction:ltr;" value="'+esc(x.p||'')+'"></div>'
-    +'<div class="field" style="margin-top:10px;"><label>'+LBL.ar+'</label><input id="aeAramco" style="direction:ltr;" value="'+esc(x.ar||'')+'"></div>'
-    +'<button class="btn btn-acc" id="aeSave" style="margin-top:14px;width:100%;">'+LBL.sv+'</button>';
+  const L=T(), ch='— '+L.appr_ch+' —';
+  const rec=x||{i:'',r:'',s:'under_evaluation',c:'',t:'',n:'',ad:'',xp:'',ed:'',ex:'',ws:'',tr:'',note:'',p:'',ar:'',x:''};
+  const used=new Set((D.appr||[]).map(v=>apprNorm(v.i)));
+  const empOpts=sortedEmp().filter(em=>!used.has(apprNorm(em.num)))
+    .map(em=>'<option value="'+esc(em.num)+'">'+esc((em.num||'')+' — '+empName(em))+'</option>').join('');
+  const cos=[...new Set((D.appr||[]).map(v=>v.c).filter(Boolean))].sort();
+  const tis=[...new Set(['SAFETY OFFICER','SAFETY TRAINEE','SAFETY SUPERVISOR','SAFETY MANAGER']
+    .concat((D.appr||[]).map(v=>v.t).filter(Boolean)))];
+  const fld=(lab,inner)=>'<div class="field" style="margin-top:10px;"><label>'+lab+'</label>'+inner+'</div>';
+  const inp=(k,v,ltr)=>'<input id="'+k+'" value="'+esc(v||'')+'"'+(ltr?' style="direction:ltr;"':'')+'>';
+  const dat=(k,v)=>'<input type="date" id="'+k+'" value="'+esc(v||'')+'" style="direction:ltr;">';
+  let h='<h3 style="margin:0 0 4px;">'+(isNew?L.appr_add_t:L.appr_edit_t)+'</h3>';
+  h+='<div class="empdlg-sub">'+esc(isNew?L.appr_add_sub:apprName(rec))+(rec.i?' — <span style="direction:ltr;">'+esc(rec.i)+'</span>':'')+'</div>';
+  if(isNew){
+    h+=fld(L.appr_lab_emp,'<select id="aeEmp"><option value="">'+esc(ch)+'</option>'+empOpts
+      +'<option value="__new__">'+esc(L.appr_new_emp)+'</option></select>');
+    h+='<div id="aeManual" class="hide">'+fld(L.appr_lab_num,inp('aeNum','',''))
+      +fld(L.appr_lab_name,inp('aeName',''))+'</div>';
+  }
+  h+=fld(L.appr_pos,'<input id="aePos" list="aePosList" value="'+esc(rec.t)+'">')
+    +'<datalist id="aePosList">'+tis.map(v=>'<option value="'+esc(v)+'">').join('')+'</datalist>';
+  h+=fld(L.appr_co,'<input id="aeCo" list="aeCoList" value="'+esc(rec.c)+'">')
+    +'<datalist id="aeCoList">'+cos.map(v=>'<option value="'+esc(v)+'">').join('')+'</datalist>';
+  h+=fld(L.appr_lab_status,'<select id="aeStat">'+APPR_ST.map(s=>'<option value="'+s+'"'+(s===rec.s?' selected':'')+'>'
+    +esc(apprFullText(s))+'</option>').join('')+'</select>');
+  h+='<div style="display:flex; gap:10px;"><div class="field" style="margin-top:10px; flex:1;"><label>'+L.appr_lab_ad
+    +'</label>'+dat('aeAd',rec.ad)+'</div><div class="field" style="margin-top:10px; flex:1;"><label>'+L.appr_lab_xp
+    +'</label>'+dat('aeXp',rec.xp)+'</div></div>';
+  h+='<div style="display:flex; gap:10px;"><div class="field" style="margin-top:10px; flex:1;"><label>'+L.appr_lab_ed
+    +'</label>'+dat('aeEd',rec.ed)+'</div><div class="field" style="margin-top:10px; flex:1;"><label>'+L.appr_lab_ex
+    +'</label><select id="aeEx">'+['','PASSED','FAILED','NO SHOW'].map(v=>'<option value="'+esc(v)+'"'+(v===rec.ex?' selected':'')
+    +'>'+esc(v||ch)+'</option>').join('')+'</select></div></div>';
+  h+=fld(L.appr_rot,'<select id="aeRot"><option value="">'+esc(ch)+'</option>'
+    +['A','B','Daily'].map(v=>'<option value="'+v+'"'+(v===rec.r?' selected':'')+'>'+v+'</option>').join('')+'</select>');
+  h+=fld(L.c_phone,'<input id="aePhone" value="'+esc(rec.p||'')+'" style="direction:ltr;">');
+  h+=fld(L.appr_aramco,inp('aeAramco',rec.ar,true));
+  h+=fld(L.appr_area,inp('aeArea',rec.x));
+  h+=fld(L.appr_lab_note,inp('aeNote',rec.note));
+  h+='<div style="display:flex; gap:8px; margin-top:16px;">'
+    +'<button class="btn btn-acc" id="aeSave" style="flex:1;">💾 '+esc(L.save_edit)+'</button>'
+    +(isNew?'':'<button class="btn btn-red" id="aeDel" title="'+esc(L.appr_del)+'">🗑</button>')+'</div>';
+  document.getElementById('apprEditBody').innerHTML=h;
   document.getElementById('aeSave').onclick=saveApprEdit;
+  const del=document.getElementById('aeDel'); if(del) del.onclick=()=>apprDelete(rec.i);
+  if(isNew){
+    const sel=document.getElementById('aeEmp'), man=document.getElementById('aeManual');
+    sel.onchange=()=>{ man.classList.toggle('hide', sel.value!=='__new__');
+      if(sel.value&&sel.value!=='__new__'){ const em=empNumRec(sel.value);
+        const ph=document.getElementById('aePhone'); if(em&&ph) ph.value=em.phone||''; } };
+  }
   document.getElementById('apprEditDlg').classList.remove('hide');
 }
 async function saveApprEdit(){
-  const x=(D.appr||[]).find(v=>v.i===apprEditId); if(!x) return;
-  x.r=document.getElementById('aeRot').value;
-  x.a=document.getElementById('aeStat').value;
-  x.x=document.getElementById('aeArea').value;
-  x.p=document.getElementById('aePhone').value.trim();
-  x.ar=document.getElementById('aeAramco').value.trim();
-  const payload={emp_id:x.i, rotation:x.r, approval:x.a, phone:x.p, aramco_id:x.ar, area:x.x};
-  try{ const r=await sb('approvals','PATCH',payload,'?emp_id=eq.'+encodeURIComponent(x.i)); if(!r||!r.length) await sb('approvals','POST',payload); }
-  catch(e){ /* table may not exist yet — kept locally */ }
+  const L=T();
+  const isNew=(apprEditId===null||apprEditId===undefined);
+  let x=isNew?null:(D.appr||[]).find(v=>v.i===apprEditId);
+  const val=id=>{ const el=document.getElementById(id); return el?el.value:''; };
+  if(isNew){
+    const pick=val('aeEmp'); let id='', n='';
+    if(pick==='__new__'){
+      n=val('aeName').trim(); id=(val('aeNum').trim()||apprSynthId(n)).toUpperCase();
+      if(!n&&!val('aeNum').trim()){ toast(L.appr_err_new); return; }
+    } else if(pick){
+      id=pick; const em=empNumRec(pick); n=em?empName(em):'';
+    } else { toast(L.appr_err_new); return; }
+    if(apprByNum(id)){ toast(L.appr_exists); return; }
+    x={i:id,r:'',s:'under_evaluation',c:'',t:'',n:n,ad:'',xp:'',ed:'',ex:'',ws:'',tr:'',note:'',p:'',ar:'',x:''};
+    D.appr.push(x);
+  }
+  x.r=val('aeRot'); x.s=val('aeStat'); x.c=val('aeCo').trim(); x.t=val('aePos').trim();
+  x.ad=val('aeAd'); x.xp=val('aeXp'); x.ed=val('aeEd'); x.ex=val('aeEx');
+  x.p=val('aePhone').trim(); x.ar=val('aeAramco').trim(); x.x=val('aeArea').trim();
+  x.note=val('aeNote').trim();
+  const payload={emp_id:x.i, rotation:x.r, approval:apprEncode(x), phone:x.p, aramco_id:x.ar, area:x.x};
+  if(isNew){
+    await sb('approvals','POST',payload);
+  } else {
+    const r=await sb('approvals','PATCH',payload,'?emp_id=eq.'+encodeURIComponent(x.i));
+    if(!r||!r.length) await sb('approvals','POST',payload);
+  }
   document.getElementById('apprEditDlg').classList.add('hide');
-  renderAppr(); toast(T().veh_saved);
+  syncApprovalChange();
+  toast(isNew?L.appr_saved:L.emp_updated);
+}
+/* — حذف/أرشفة سجل بتأكيد مسبق — */
+async function apprDelete(id){
+  const L=T();
+  if(!confirm(L.ask_del_appr)) return;
+  D.appr=D.appr.filter(v=>v.i!==id);
+  await sb('approvals','DELETE',null,'?emp_id=eq.'+encodeURIComponent(id));
+  document.getElementById('apprEditDlg').classList.add('hide');
+  syncApprovalChange();
+  toast(L.appr_deleted);
 }
 /* ============ VEHICLES ============ */
 const VEH_MAKES=['Toyota','Hyundai','Nissan','Kia','Chevrolet','Ford','GMC','Honda','Mazda','Mitsubishi','Isuzu','Lexus','MG','Changan','Jetour','Geely','Chery','Suzuki','NO VEHICLE'];
@@ -3283,6 +3575,7 @@ function renderBrandStats(){
       <div class="stat-card"><div class="stat-value" style="color:#b45309">${cnt('warning')}</div><div class="stat-label" data-i="s_wrn_m">إنذارات (الشهر)</div></div>
       <div class="stat-card"><div class="stat-value" style="color:var(--acc)">${cnt('sick')}</div><div class="stat-label" data-i="s_sick_m">سكليف (الشهر)</div></div>
       <div class="stat-card"><div class="stat-value" style="color:var(--purple)">${(D.users||[]).length}</div><div class="stat-label" data-i="s_users">المستخدمون</div></div>
+      <div class="stat-card"><div class="stat-value" style="color:var(--green)">${(D.appr||[]).filter(x=>x.s==='green_helmet_approved').length}</div><div class="stat-label" data-i="s_safety">سيفتي معتمد (أخضر)</div></div>
   `;
   applyI18nDom(el);
   return true;
