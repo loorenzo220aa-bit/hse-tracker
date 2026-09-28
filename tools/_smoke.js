@@ -107,6 +107,17 @@ setTimeout(() => {
         && d.getElementById('apprBellList').textContent.trim().length > 0);
       d.getElementById('apprBellX').click();
       t('bell drawer closes', d.getElementById('apprBellDlg').classList.contains('hide'));
+      // شريط التنقل السفلي (ثيم الهوية) يتبع أي تبديل برمجي للعرض
+      const th0 = d.documentElement.getAttribute('data-theme');
+      d.documentElement.setAttribute('data-theme', 'brand');
+      window.switchView('appr');
+      t('brand bottom-nav follows programmatic switch',
+        (d.querySelector('.bottom-nav .nav-item.active') || { dataset: {} }).dataset.view === 'viewAppr',
+        'active=' + (d.querySelector('.bottom-nav .nav-item.active') || { dataset: {} }).dataset.view);
+      window.switchView('vio');
+      t('brand bottom-nav returns to violations',
+        (d.querySelector('.bottom-nav .nav-item.active') || { dataset: {} }).dataset.view === 'viewVio');
+      d.documentElement.setAttribute('data-theme', th0);
     } catch (e) { bad.push('approvals model threw: ' + e.message); }
 
     // 5) dashboard / charts

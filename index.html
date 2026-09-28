@@ -2155,6 +2155,9 @@ function switchView(v){
   if(v==='veh') renderVeh();
   if(v==='appr') renderAppr();
   if(v==='grp') renderGrp();
+  /* مزامنة شريط التنقل السفلي (ثيم الهوية) مع أي تبديل برمجي (جرس التنبيهات…) */
+  if(typeof setBrandActive==='function' && typeof brandModeOn==='function' && brandModeOn())
+    setBrandActive('view'+v.charAt(0).toUpperCase()+v.slice(1));
 }
 function renderTs(){
   const sel=document.getElementById('tsEmp'); if(!sel) return;
@@ -2900,12 +2903,12 @@ function renderAppr(){
     }
     const tr=document.createElement('tr');
     tr.innerHTML='<td>'+apprBadge(x,['failed','overdue','expired','stale','nogreen'])+esc(apprName(x))+'</td>'
-      +'<td style="direction:ltr;">'+esc((e&&e.num)||x.i||'—')+'</td>'
+      +'<td style="direction:ltr; white-space:nowrap;">'+esc((e&&e.num)||x.i||'—')+'</td>'
       +'<td>'+esc(x.t||(e&&e.dept)||'—')+'</td>'
       +'<td>'+esc(xc||'—')+'</td>'
       +'<td><span class="tag st '+apprTagCls(x.s)+'" title="'+esc(apprFullText(x.s))+'">'+esc(apprPillText(x.s))+'</span></td>'
-      +'<td style="direction:ltr;">'+esc(x.ad||'—')+(dsub?'<div class="appr-days'+dcls+'">'+esc(dsub)+'</div>':'')+'</td>'
-      +'<td style="direction:ltr;">'+esc(x.p||'—')+'</td>'
+      +'<td style="direction:ltr; white-space:nowrap;">'+esc(x.ad||'—')+(dsub?'<div class="appr-days'+dcls+'">'+esc(dsub)+'</div>':'')+'</td>'
+      +'<td style="direction:ltr; white-space:nowrap;">'+esc(x.p||'—')+'</td>'
       +'<td><button class="btn btn-sm edit-only" data-appredit="'+esc(x.i)+'" title="'+esc(T().edit)+'">✏️</button>'
       +'<button class="btn btn-sm del edit-only" data-apprdel="'+esc(x.i)+'" title="'+esc(T().appr_del)+'" style="margin-inline-start:4px;">🗑</button></td>';
     body.appendChild(tr);
