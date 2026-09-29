@@ -8,6 +8,7 @@ const PRE = [
   'index.html',
   'manifest.webmanifest',
   'groups-data.js',
+  'leave-data.js',
   'icon-192.png',
   'icon-512.png',
   'icon-maskable-512.png',

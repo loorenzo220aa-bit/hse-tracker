@@ -31,6 +31,13 @@ const dom = new JSDOM(html, {
       const i = src.indexOf(marker);
       w.GRP_DATA = JSON.parse(src.slice(i + marker.length).trim().replace(/;\s*$/, ''));
     } catch (e) { w.GRP_DATA = {}; w.__grpErr = e.message; }
+    // بيانات الإجازات السنوية (leave-data.js) — نفس أسلوب حقن القروبات
+    try {
+      const lvs = fs.readFileSync(require('path').join(require('path').dirname(file), 'leave-data.js'), 'utf8');
+      const lvMark = 'window.LVSEED = ';
+      const li = lvs.indexOf(lvMark);
+      w.LVSEED = JSON.parse(lvs.slice(li + lvMark.length).trim().replace(/;\s*$/, ''));
+    } catch (e) { w.LVSEED = { roster: [], leaves: [] }; w.__lvErr = e.message; }
   },
 });
 
@@ -182,6 +189,141 @@ setTimeout(() => {
       d.documentElement.setAttribute('data-theme', th0);
     } catch (e) { bad.push('approvals model threw: ' + e.message); }
 
+    // 4c) الإجازات السنوية (annual leave tab)
+    try {
+      t('leave seed injected from leave-data.js',
+        !!window.LVSEED && (window.LVSEED.roster || []).length === 101 && (window.LVSEED.leaves || []).length === 192,
+        window.LVSEED ? (window.LVSEED.roster || []).length + '/' + (window.LVSEED.leaves || []).length : 'missing');
+      t('leave tab + view exist', !!d.getElementById('tabLv') && !!d.getElementById('viewLv'));
+      d.getElementById('tabLv').click();
+      t('leave view visible + tab active',
+        !d.getElementById('viewLv').classList.contains('hide') && d.getElementById('tabLv').classList.contains('active'));
+      t('leave KPI cards rendered (4)', d.querySelectorAll('#lvKpi .stat').length === 4,
+        d.querySelectorAll('#lvKpi .stat').length + ' cards');
+      t('conflict banner lists same-trade overlap clusters',
+        !d.getElementById('lvAlert').classList.contains('hide')
+        && d.getElementById('lvAlert').textContent.includes('SAFETY OFFICER'),
+        JSON.stringify(d.getElementById('lvAlert').textContent.slice(0, 90)));
+      t('table: 9 columns + all 101 employees',
+        d.querySelectorAll('#lvTable thead th').length === 9 && d.querySelectorAll('#lvBody tr').length === 101,
+        d.querySelectorAll('#lvTable thead th').length + ' cols / ' + d.querySelectorAll('#lvBody tr').length + ' rows');
+      t('status pills use house tag colors',
+        d.querySelectorAll('#lvBody .tag').length === 101
+        && [...d.querySelectorAll('#lvBody .tag')].every(p => p.classList.contains('t-per') || p.classList.contains('t-abs') || p.classList.contains('t-wrn')));
+      t('dept filter: 7 trades + all', d.getElementById('lvDept').options.length === 8,
+        d.getElementById('lvDept').options.length + ' options');
+      t('status filter: all + 3 states', d.getElementById('lvStatus').options.length === 4);
+      t('dept filter narrows rows', (() => {
+        const sel = d.getElementById('lvDept');
+        const pick = [...sel.options].find(o => o.value);
+        sel.value = pick.value; sel.dispatchEvent(new window.Event('change'));
+        const n = d.querySelectorAll('#lvBody tr').length;
+        sel.value = ''; sel.dispatchEvent(new window.Event('change'));
+        return n > 0 && n < 101;
+      })());
+      t('search box filters rows', (() => {
+        const se = d.getElementById('lvSearch');
+        se.value = 'ZZQQXX'; se.dispatchEvent(new window.Event('input'));
+        const z = d.querySelectorAll('#lvBody tr').length;
+        se.value = window.LVSEED.roster[0].n; se.dispatchEvent(new window.Event('input'));
+        const m = d.querySelectorAll('#lvBody tr').length;
+        se.value = ''; se.dispatchEvent(new window.Event('input'));
+        return z === 0 && m > 0;
+      })(), 'z/m');
+      // منطق الحسابات — دالة نقية بتواريخ محسومة
+      const lc = JSON.parse(window.eval(`(function(){
+        const rec={i:'T1',e:21};
+        const c1=lvCalc(rec,[{k:'a',i:'T1',s:'2026-01-05',d:10},{k:'b',i:'T1',s:'2026-10-01',d:5}],'2026-09-29');
+        const c2=lvCalc(rec,[{k:'c',i:'T1',s:'2026-09-20',d:20}],'2026-09-29');
+        const c3=lvCalc(rec,[],'2026-09-29');
+        const c4=lvCalc(rec,[{k:'w',i:'T1',s:'2026-11-01',d:21,w:'2026-12-05'}],'2026-09-29');
+        return JSON.stringify({used:c1.used,left:c1.left,st1:c1.status,next1:c1.next&&c1.next.s,
+          st2:c2.status,ent3:c3.ent,st3:c3.status,st4:c4.status});
+      })()`));
+      t('lvCalc: consumed/remaining from past leaves', lc.used === 10 && lc.left === 11, JSON.stringify(lc));
+      t('lvCalc: future leave → scheduled + next date', lc.st1 === 'scheduled' && lc.next1 === '2026-10-01');
+      t('lvCalc: ongoing → on_leave, empty → at_work, ent=21', lc.st2 === 'on_leave' && lc.st3 === 'at_work' && lc.ent3 === 21);
+      t('lvCalc: planning window → scheduled', lc.st4 === 'scheduled');
+      // تعارضات الكوادر داخل التخصص نفسه
+      const cf = JSON.parse(window.eval(`(function(){
+        const roster=[{i:'X1',t:'SAFETY OFFICER',n:'A'},{i:'X2',t:'SAFETY OFFICER',n:'B'},{i:'X3',t:'RIGGER III',n:'C'}];
+        const leaves=[{k:'l1',i:'X2',s:'2026-10-05',d:10}];
+        const hit=lvConflicts({i:'X1',s:'2026-10-08',d:5},roster,leaves,'2026-09-29');
+        const other=lvConflicts({i:'X3',s:'2026-10-08',d:5},roster,leaves,'2026-09-29');
+        const apart=lvConflicts({i:'X1',s:'2026-11-20',d:5},roster,leaves,'2026-09-29');
+        const exp=lvConflicts({i:'X1',s:'2026-09-29',d:5},roster,[{k:'l0',i:'X2',s:'2026-08-01',d:3}],'2026-09-29');
+        return JSON.stringify({hit:hit.length,other:other.length,apart:apart.length,exp:exp.length});
+      })()`));
+      t('overlap: same trade + intersecting dates flagged', cf.hit === 1, JSON.stringify(cf));
+      t('overlap: different trade ignored', cf.other === 0);
+      t('overlap: non-intersecting ignored', cf.apart === 0);
+      t('overlap: expired leaves ignored', cf.exp === 0);
+      // الجدول الزمني (مخطط جانت)
+      const gseg = [...d.querySelectorAll('#lvSeg .gseg')];
+      t('table/timeline switch segments', gseg.length === 2
+        && gseg.some(b => b.dataset.m === 'gantt') && gseg.some(b => b.dataset.m === 'table'));
+      gseg.find(b => b.dataset.m === 'gantt').click();
+      t('timeline renders bars (90-day horizon)', d.querySelectorAll('#lvGantt .lv-g-bar').length > 0,
+        d.querySelectorAll('#lvGantt .lv-g-bar').length + ' bars');
+      t('timeline groups rows by trade', d.querySelectorAll('#lvGantt .lv-g-trade').length >= 2,
+        d.querySelectorAll('#lvGantt .lv-g-trade').length + ' groups');
+      t('timeline: today marker + legend', !!d.querySelector('#lvGantt .lv-g-today') && !!d.querySelector('#lvGantt .lv-legend'));
+      t('table hidden in timeline mode', d.getElementById('lvTableWrap').classList.contains('hide'));
+      gseg.find(b => b.dataset.m === 'table').click();
+      t('table restored', !d.getElementById('lvTableWrap').classList.contains('hide'));
+      // النموذج: إضافة طلب إجازة (بدون حفظ — بدون confirm في الاختبار)
+      t('add button present and edit-only', !!d.getElementById('lvAddBtn')
+        && d.getElementById('lvAddBtn').closest('.edit-only') !== null);
+      d.getElementById('lvAddBtn').click();
+      t('leave dialog opens: employee select + start/dur/end',
+        !d.getElementById('lvDlg').classList.contains('hide')
+        && !!d.getElementById('lvfEmp') && d.getElementById('lvfEmp').options.length > 100
+        && !!d.getElementById('lvfStart') && !!d.getElementById('lvfDur') && !!d.getElementById('lvfEnd'));
+      t('duration auto-fills end date', (() => {
+        const s = d.getElementById('lvfStart'), du = d.getElementById('lvfDur'), e = d.getElementById('lvfEnd');
+        s.value = '2026-12-01'; s.dispatchEvent(new window.Event('input'));
+        du.value = '10'; du.dispatchEvent(new window.Event('input'));
+        return e.value === '2026-12-10';
+      })(), 'end=' + d.getElementById('lvfEnd').value);
+      d.getElementById('lvDlgX').click();
+      t('leave dialog closes', d.getElementById('lvDlg').classList.contains('hide'));
+      // التصدير: صف 11 عموداً + القالب مُثبّت + الزران متصلان
+      t('export row: 11 columns mapped', (() => {
+        const r = window.lvExportRow({ r: { i: 'SASL-9999', n: 'TEST EMP', t: 'SAFETY OFFICER', e: 21 },
+          ent: 21, used: 5, left: 16, status: 'scheduled', next: { s: '2026-12-01', d: 19 } }, 0);
+        return r.length === 11 && r[1] === 'TEST EMP' && r[4] === 21 && r[6] === 16
+          && String(r[7]).indexOf('2026-12-01') === 0 && r[8] === 19;
+      })());
+      t('Leaves_Template.xlsx committed', fs.existsSync(require('path').join(require('path').dirname(file), 'Leaves_Template.xlsx')));
+      t('Excel export wired + degrades without JSZip', (() => {
+        try { d.getElementById('lvExportBtn').click();
+          return typeof d.getElementById('lvExportBtn').onclick === 'function' && !d.getElementById('lvExportBtn').disabled; }
+        catch (e) { return false; }
+      })());
+      t('PDF export button registered', typeof d.getElementById('lvPdfBtn').onclick === 'function');
+      t('lvPdfBuild renders page (head + 4 KPIs + 101 rows + foot)', (() => {
+        const el = window.lvPdfBuild(window.lvFilterRows());
+        const ok = el.classList.contains('appr-pdf')
+          && el.querySelectorAll('.appr-pdf-table tbody tr').length === 101
+          && el.querySelectorAll('.appr-pdf-kpi .stat').length === 4
+          && !!el.querySelector('.appr-pdf-head') && !!el.querySelector('.appr-pdf-foot');
+        el.remove();
+        return ok;
+      })());
+      // مزامنة التخزين بين النوافذ (overlay يغلب البذرة ثم يعود)
+      t('storage overlay sync (apply + restore seed)', (() => {
+        const n0 = window.eval('LV.leaves.length');
+        window.localStorage.setItem('hse-leaves-v1',
+          JSON.stringify({ roster: window.eval('LV.roster'), leaves: [], defEnt: 21 }));
+        window.dispatchEvent(Object.assign(new window.Event('storage'), { key: 'hse-leaves-v1' }));
+        const cleared = window.eval('LV.leaves.length') === 0;
+        window.localStorage.removeItem('hse-leaves-v1');
+        window.dispatchEvent(Object.assign(new window.Event('storage'), { key: 'hse-leaves-v1' }));
+        return cleared && window.eval('LV.leaves.length') === n0;
+      })());
+      d.getElementById('tabVio').click();
+    } catch (e) { bad.push('annual leave threw: ' + e.message); }
+
     // 5) dashboard / charts
     const dd = d.getElementById('dashDaily');
     t('dashboard card exists', !!d.getElementById('dashCard'));
@@ -257,7 +399,7 @@ setTimeout(() => {
 
     function finish() {
       // 7) switch tabs (this exercises renderVeh / renderDep / renderTs / renderStaff)
-      ['tabVeh', 'tabAppr', 'tabDep', 'tabEmp', 'tabTs', 'tabVio'].forEach(id => {
+      ['tabVeh', 'tabAppr', 'tabLv', 'tabDep', 'tabEmp', 'tabTs', 'tabVio'].forEach(id => {
         try { d.getElementById(id).click(); } catch (e) { bad.push('tab ' + id + ' click threw: ' + e.message); }
       });
       t('viewVio active at end', !d.getElementById('viewVio').classList.contains('hide'));

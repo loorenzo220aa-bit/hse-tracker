@@ -18,6 +18,7 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" integrity="sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
 <script src="groups-data.js"></script>
+<script src="leave-data.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap');
   :root{
@@ -232,6 +233,54 @@
   .gseg.active{background:var(--acc); color:#fff; box-shadow:0 4px 12px rgba(14,165,233,.35);}
   #viewGrp table{min-width:860px;}
   #grpTable td:nth-child(3){direction:ltr; text-align:left; font-weight:700;}
+  /* ============ الإجازات السنوية ============ */
+  #viewLv{--lv-name:215px;}
+  #viewLv table{min-width:1050px;}
+  .lv-alert{margin-top:12px; background:#fff7ed; border:1px solid #fdba74; border-inline-start:5px solid #f97316;
+      border-radius:12px; padding:10px 14px; font-size:13px; color:#9a3412; display:flex; flex-direction:column; gap:5px;}
+  .lv-alert.hide{display:none;}
+  html[data-theme="dark"] .lv-alert{background:rgba(154,52,18,.18); border-color:#c2410c; color:#fdba74;}
+  .lv-left-bad{color:var(--red) !important;}
+  .lv-next-sub{display:block; font-size:11px; color:var(--mut); font-weight:600; margin-top:2px;}
+  /* — الجدول الزمني (مخطط جانت): الأفق 90 يوماً، أسماء الموظفين يسار، الزمن يزيد لليمين — */
+  .lv-gantt{direction:ltr; margin-top:14px; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card2);}
+  .lv-g-head,.lv-g-row{display:flex; align-items:stretch;}
+  .lv-g-name{flex:0 0 var(--lv-name); width:var(--lv-name); padding:5px 10px; font-size:12px; font-weight:700;
+      border-inline-end:1px solid var(--line); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      background:var(--card2); direction:rtl; display:flex; align-items:center;}
+  .lv-g-name .mut{font-weight:600; font-size:10.5px; margin-inline-start:5px;}
+  .lv-g-name-h{background:#e0f2fe; color:#0369a1; font-size:12px; font-weight:800;}
+  .lv-g-track{position:relative; flex:1; min-height:28px; border-bottom:1px solid var(--line);}
+  .lv-g-axis{height:30px; min-height:30px; background:#f0f9ff; font-size:11px; border-bottom:1px solid var(--line);}
+  .lv-g-axis span{position:absolute; top:7px; transform:translateX(-50%); color:#0369a1; font-weight:800; white-space:nowrap;}
+  .lv-g-month{position:absolute; top:0; bottom:0; width:1px; background:rgba(148,163,184,.45);}
+  .lv-g-trade{background:#f1f5f9; color:#0f172a; padding:6px 12px; font-size:12.5px; font-weight:900;
+      border-block:1px solid var(--line); direction:rtl; text-align:start;}
+  .lv-g-trade .mut{font-weight:700; font-size:11px;}
+  .lv-g-body{position:relative;}
+  .lv-g-bar{position:absolute; top:5px; height:18px; border-radius:9px; font-size:10.5px; font-weight:800; color:#fff;
+      display:flex; align-items:center; justify-content:center; padding:0 5px; overflow:hidden; white-space:nowrap;
+      box-shadow:0 2px 6px rgba(15,23,42,.25); direction:ltr;}
+  .lv-g-bar.g-sc{background:linear-gradient(135deg,#0ea5e9,#2563eb);}
+  .lv-g-bar.g-on{background:linear-gradient(135deg,#f59e0b,#f97316);}
+  .lv-g-bar.g-w{background:repeating-linear-gradient(45deg,#94a3b8,#94a3b8 6px,#cbd5e1 6px,#cbd5e1 12px);
+      color:#0f172a; border:1px dashed #64748b;}
+  .lv-g-today{position:absolute; top:0; bottom:0; width:0; border-inline-start:2px dashed #ef4444; z-index:4;
+      left:var(--lv-name); pointer-events:none;}
+  .lv-legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--mut); padding:10px 12px;
+      direction:rtl; border-top:1px solid var(--line); background:var(--card2);}
+  .lv-legend i{width:14px; height:14px; border-radius:4px; display:inline-block; vertical-align:-2px; margin-inline-end:5px;}
+  .lv-legend .lg-sc{background:linear-gradient(135deg,#0ea5e9,#2563eb);}
+  .lv-legend .lg-on{background:linear-gradient(135deg,#f59e0b,#f97316);}
+  .lv-legend .lg-w{background:repeating-linear-gradient(45deg,#94a3b8,#94a3b8 4px,#cbd5e1 4px,#cbd5e1 8px);}
+  .lv-legend .lg-t{background:#fff; border:2px solid #ef4444; border-radius:2px;}
+  html[data-theme="dark"] .lv-g-axis{background:#0c1929;}
+  html[data-theme="dark"] .lv-g-axis span{color:#38bdf8;}
+  html[data-theme="dark"] .lv-g-month{background:rgba(148,163,184,.25);}
+  html[data-theme="dark"] .lv-g-trade{background:#12233a; color:#dbeafe;}
+  html[data-theme="dark"] .lv-g-name-h{background:#0c2c4a; color:#7dd3fc;}
+  html[data-theme="dark"] .lv-legend .lg-t{background:#0b1220;}
+  @media(max-width:700px){ #viewLv{--lv-name:132px;} .lv-g-name{font-size:11px;} .lv-g-axis span{font-size:10px;} }
   .empdlg{position:fixed; inset:0; background:rgba(15,23,42,.55); backdrop-filter:blur(3px); z-index:999; display:flex; align-items:center; justify-content:center; padding:16px;}
   .empdlg-card{background:#fff; border-radius:20px; max-width:420px; width:100%; max-height:88vh; overflow:auto; padding:26px 22px; position:relative; box-shadow:0 25px 60px rgba(0,0,0,.3); animation:fadeUp .3s ease both;}
   .empdlg-x{position:absolute; top:12px; inset-inline-end:12px; border:none; background:#f1f5f9; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:15px; color:#475569;}
@@ -582,6 +631,7 @@ html[data-theme="brand"] .actions-grid .action-card:nth-child(4){animation-delay
 html[data-theme="brand"] .actions-grid .action-card:nth-child(5){animation-delay:.25s;}
 html[data-theme="brand"] .actions-grid .action-card:nth-child(6){animation-delay:.30s;}
 html[data-theme="brand"] .actions-grid .action-card:nth-child(7){animation-delay:.35s;}
+html[data-theme="brand"] .actions-grid .action-card:nth-child(8){animation-delay:.40s;}
 html[data-theme="brand"] .action-card .ac-icon{
   width:54px; height:54px; border-radius:16px; display:grid; place-items:center;
   font-size:26px; background:var(--brand-grad);
@@ -793,6 +843,7 @@ try{
     <button class="btn tab active" id="tabVio">🦺 <span data-i="tab_vio">المخالفات والغيابات</span></button>
     <button class="btn tab" id="tabVeh">🚗 <span data-i="tab_veh">السيارات</span></button>
     <button class="btn tab" id="tabAppr">🛡️ <span data-i="tab_appr">ابروفل ارامكو</span></button>
+    <button class="btn tab" id="tabLv">🪴 <span data-i="tab_lv">الإجازات السنوية</span></button>
     <button class="btn tab" id="tabGrp">🗂️ <span data-i="tab_grp">القروبات</span></button>
     <button class="btn tab" id="tabDep">🗺️ <span data-i="tab_dep">التوزيع</span></button>
     <button class="btn tab" id="tabEmp">👥 <span data-i="tab_emp">الموظفين</span></button>
@@ -1101,6 +1152,48 @@ try{
   </div></div>
   </div><!-- /viewAppr -->
 
+  <div id="viewLv" class="hide">
+  <div class="card">
+    <h2><span class="ic">🪴</span><span data-i="lv_title">إدارة الإجازات السنوية</span> <span class="mut" id="lvCount" style="color:var(--mut);font-size:13px;"></span></h2>
+    <div class="grid" id="lvKpi" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;"></div>
+    <div id="lvAlert" class="lv-alert hide"></div>
+    <div class="frow" style="margin-top:14px; align-items:flex-end;">
+      <div class="field" style="max-width:280px;"><select id="lvDept"><option value="" data-i="f_all">الكل</option></select></div>
+      <div class="field" style="max-width:230px;"><select id="lvStatus">
+        <option value="" data-i="f_all">الكل</option>
+        <option value="at_work" data-i="lv_st_atwork">على رأس العمل</option>
+        <option value="on_leave" data-i="lv_st_onleave">في إجازة</option>
+        <option value="scheduled" data-i="lv_st_sched">مجدولة</option>
+      </select></div>
+      <div class="field" style="max-width:320px;"><input id="lvSearch" data-i-ph="lv_search" placeholder="🔍 بحث بالاسم أو الرقم..."></div>
+      <div class="grp-seg" id="lvSeg">
+        <button type="button" class="gseg active" data-m="table" data-i="lv_mode_table">👥 جدول</button>
+        <button type="button" class="gseg" data-m="gantt" data-i="lv_mode_gantt">📅 الجدول الزمني</button>
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn btn-green" id="lvExportBtn">📥 <span data-i="lv_export">تصدير Excel</span></button>
+        <button class="btn btn-acc" id="lvPdfBtn">🧾 <span data-i="lv_export_pdf">تصدير PDF</span></button>
+        <div class="edit-only"><button class="btn btn-acc" id="lvAddBtn">➕ <span data-i="lv_add">إضافة طلب إجازة</span></button></div>
+      </div>
+    </div>
+    <div class="tbl-holder" id="lvTableWrap" style="margin-top:14px;">
+      <table id="lvTable">
+        <thead><tr>
+          <th data-i="c_emp" style="width:22%;">الموظف</th><th data-i="c_num" style="width:10%;">الرقم الوظيفي</th>
+          <th data-i="l_dept" style="width:15%;">القسم</th><th data-i="lv_col_ent" style="width:9%;">الاستحقاق السنوي</th>
+          <th data-i="lv_col_used" style="width:8%;">المستهلك</th><th data-i="lv_col_left" style="width:8%;">المتبقي</th>
+          <th data-i="lv_col_next" style="width:14%;">موعد الإجازة القادمة</th><th data-i="lv_col_status" style="width:9%;">الحالة</th>
+          <th style="width:9%;"></th>
+        </tr></thead>
+        <tbody id="lvBody"></tbody>
+      </table>
+      <div class="empty hide" id="lvEmpty"></div>
+    </div>
+    <div id="lvGantt" class="hide"></div>
+  </div>
+  <div id="lvDlg" class="empdlg hide"><div class="empdlg-card" style="max-width:580px;"><button class="empdlg-x" id="lvDlgX">✕</button><div id="lvDlgBody"></div></div></div>
+  </div><!-- /viewLv -->
+
   <div id="viewGrp" class="hide">
   <div class="card">
     <h2><span class="ic">🗂️</span><span data-i="grp_title">قروبات الدوام (A / B / Daily / فاير)</span> <span class="mut" id="grpCount" style="color:var(--mut);font-size:13px;"></span></h2>
@@ -1391,6 +1484,26 @@ const I18N={
     appr_al_expired:'انتهت صلاحية الاعتماد — يلزم تجديد', appr_al_stale:'تأخرت أوراق الترانزميتال عن موعدها',
     appr_al_nogreen:'في مجموعة ميدانية بدون هلمت أخضر',
     appr_days_left:'يوم متبقٍ', appr_days_over:'يوم تأخير', s_safety:'سيفتي معتمد (أخضر)',
+    tab_lv:'الإجازات السنوية', lv_title:'إدارة الإجازات السنوية',
+    lv_kpi_on:'في إجازة الآن', lv_kpi_30:'مجدولة خلال 30 يوماً', lv_kpi_bal:'المستهلك من المستحق (يوم)', lv_kpi_conf:'تعارضات (نفس التخصص)',
+    lv_col_ent:'الاستحقاق السنوي', lv_col_used:'المستهلك', lv_col_left:'المتبقي', lv_col_next:'موعد الإجازة القادمة',
+    lv_col_status:'الحالة', lv_col_dur:'المدة (يوم)', lv_col_notes:'ملاحظات',
+    lv_st_atwork:'على رأس العمل', lv_st_onleave:'في إجازة', lv_st_sched:'مجدولة',
+    lv_search:'🔍 بحث بالاسم أو الرقم...',
+    lv_add:'➕ إضافة طلب إجازة', lv_add_t:'إضافة طلب إجازة جديد', lv_edit_t:'تعديل طلب الإجازة', lv_view_t:'ملف إجازات الموظف',
+    lv_lab_emp:'الموظف', lv_lab_trade:'القسم / التخصص', lv_lab_ent:'الاستحقاق السنوي (يوم)', lv_lab_type:'نوع الإجازة',
+    lv_lab_start:'تاريخ بداية الإجازة', lv_lab_dur:'مدة الإجازة (يوم)', lv_lab_end:'تاريخ الانتهاء (تلقائي)',
+    lv_lab_win:'نافذة تخطيط (بدون تواريخ نهائية)', lv_lab_win_s:'بداية النافذة', lv_lab_win_e:'نهاية النافذة', lv_lab_note:'ملاحظة',
+    lv_ty_reg:'اعتيادية', lv_ty_emg:'طارئة', lv_ty_dth:'وفاة', lv_ty_mrg:'زواج',
+    lv_mode_table:'👥 جدول', lv_mode_gantt:'📅 الجدول الزمني',
+    lv_export:'تصدير Excel', lv_export_pdf:'تصدير PDF', lv_exporting:'جارٍ التصدير…',
+    lv_xlsx:'تم تصدير ملف الإجازات ✅', lv_pdf_building:'جارٍ بناء PDF…', lv_pdf_done:'تم بناء ملف PDF ✅',
+    lv_saved:'تم حفظ طلب الإجازة ✅', lv_deleted:'تم حذف الإجازة ✅', ask_del_lv:'حذف هذا الطلب؟',
+    lv_err_emp:'اختر موظفاً أولاً', lv_err_dur:'أدخل مدة صحيحة (يوم واحد فأكثر)',
+    lv_warn_overlap:'⚠️ تعارض في التخصص مع:', lv_warn_more:'… وأخرى', lv_warn_budget:'⚠️ المدة تتجاوز الرصيد المتاح (',
+    lv_no_leaves:'لا توجد إجازات مسجلة لهذا الموظف', lv_gantt_empty:'لا توجد إجازات خلال الـ90 يوماً القادمة',
+    lv_leg_sc:'مجدولة', lv_leg_on:'في إجازة الآن', lv_leg_w:'نافذة تخطيط', lv_today:'اليوم', lv_win:'نافذة',
+    nav_lv:'الإجازات', ac_desc_lv:'الاستحقاق والرصيد وجدول الإجازات',
   },
   en:{
     login_title:'Sign In', login_sub:'HSE Tracker — Hyundai Engineering & Construction',
@@ -1480,6 +1593,26 @@ const I18N={
     appr_al_expired:'Approval expired — renewal required', appr_al_stale:'Transmittal papers overdue',
     appr_al_nogreen:'In a field team without a green helmet',
     appr_days_left:'days left', appr_days_over:'days overdue', s_safety:'Approved Safety (Green)',
+    tab_lv:'Annual Leave', lv_title:'Annual Leave Management',
+    lv_kpi_on:'On leave now', lv_kpi_30:'Scheduled in 30 days', lv_kpi_bal:'Used of entitled (days)', lv_kpi_conf:'Conflicts (same trade)',
+    lv_col_ent:'Annual Entitlement', lv_col_used:'Used', lv_col_left:'Remaining', lv_col_next:'Next Leave',
+    lv_col_status:'Status', lv_col_dur:'Duration (days)', lv_col_notes:'Notes',
+    lv_st_atwork:'At work', lv_st_onleave:'On leave', lv_st_sched:'Scheduled',
+    lv_search:'🔍 Search name or job no...',
+    lv_add:'+ New leave request', lv_add_t:'New leave request', lv_edit_t:'Edit leave request', lv_view_t:'Employee leave file',
+    lv_lab_emp:'Employee', lv_lab_trade:'Department / Trade', lv_lab_ent:'Annual entitlement (days)', lv_lab_type:'Leave type',
+    lv_lab_start:'Leave start date', lv_lab_dur:'Leave duration (days)', lv_lab_end:'End date (auto)',
+    lv_lab_win:'Planning window (no fixed dates)', lv_lab_win_s:'Window start', lv_lab_win_e:'Window end', lv_lab_note:'Note',
+    lv_ty_reg:'Regular', lv_ty_emg:'Emergency', lv_ty_dth:'Bereavement', lv_ty_mrg:'Marriage',
+    lv_mode_table:'👥 Table', lv_mode_gantt:'📅 Timeline',
+    lv_export:'Export Excel', lv_export_pdf:'Export PDF', lv_exporting:'Exporting…',
+    lv_xlsx:'Leave file exported ✅', lv_pdf_building:'Building PDF…', lv_pdf_done:'PDF file ready ✅',
+    lv_saved:'Leave request saved ✅', lv_deleted:'Leave deleted ✅', ask_del_lv:'Delete this request?',
+    lv_err_emp:'Pick an employee first', lv_err_dur:'Enter a valid duration (1+ day)',
+    lv_warn_overlap:'⚠️ Overlaps in the same trade with:', lv_warn_more:'… and more', lv_warn_budget:'⚠️ Duration exceeds the remaining balance (',
+    lv_no_leaves:'No leaves recorded for this employee', lv_gantt_empty:'No leaves in the next 90 days',
+    lv_leg_sc:'Scheduled', lv_leg_on:'On leave now', lv_leg_w:'Planning window', lv_today:'Today', lv_win:'Window',
+    nav_lv:'Leave', ac_desc_lv:'Entitlement, balance & leave plan',
   }
 };
 const T=()=>I18N[LANG];
@@ -1506,7 +1639,7 @@ function renderAuthUI(){
   who.textContent=(u.role==='admin')? (LANG==='ar'? (u.name+' — مدير') : u.name+' — Admin') : u.name;
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', !isAdminUser));
   renderUsers();
-  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh(); renderAppr();
+  fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); renderTs(); renderDep(); renderVeh(); renderAppr(); renderLv();
 }
 
 function applyI18nDom(root){
@@ -2204,6 +2337,7 @@ function switchView(v){
   document.getElementById('viewVeh').classList.toggle('hide', v!=='veh');
   document.getElementById('viewAppr').classList.toggle('hide', v!=='appr');
   document.getElementById('viewGrp').classList.toggle('hide', v!=='grp');
+  document.getElementById('viewLv').classList.toggle('hide', v!=='lv');
   document.getElementById('tabVio').classList.toggle('active', v==='vio');
   document.getElementById('tabTs').classList.toggle('active', v==='ts');
   document.getElementById('tabEmp').classList.toggle('active', v==='emp');
@@ -2211,12 +2345,14 @@ function switchView(v){
   document.getElementById('tabVeh').classList.toggle('active', v==='veh');
   document.getElementById('tabAppr').classList.toggle('active', v==='appr');
   document.getElementById('tabGrp').classList.toggle('active', v==='grp');
+  document.getElementById('tabLv').classList.toggle('active', v==='lv');
   if(v==='ts') renderTs();
   if(v==='emp') renderStaff();
   if(v==='dep') renderDep();
   if(v==='veh') renderVeh();
   if(v==='appr') renderAppr();
   if(v==='grp') renderGrp();
+  if(v==='lv') renderLv();
   /* مزامنة شريط التنقل السفلي (ثيم الهوية) مع أي تبديل برمجي (جرس التنبيهات…) */
   if(typeof setBrandActive==='function' && typeof brandModeOn==='function' && brandModeOn())
     setBrandActive('view'+v.charAt(0).toUpperCase()+v.slice(1));
@@ -2277,6 +2413,7 @@ document.getElementById('tabDep').onclick=()=>switchView('dep');
 document.getElementById('tabVeh').onclick=()=>switchView('veh');
 document.getElementById('tabAppr').onclick=()=>switchView('appr');
 document.getElementById('tabGrp').onclick=()=>switchView('grp');
+document.getElementById('tabLv').onclick=()=>switchView('lv');
 document.getElementById('tsEmp').onchange=loadTsForm;
 
 /* ============ STAFF DIRECTORY UI ============ */
@@ -3169,72 +3306,75 @@ function apprPdfBuild(rows){
   el.innerHTML=h;
   return el;
 }
-/* — تصدير PDF: الصفوف مقسّمة على صفحات A4 عرضية (ترويسة تتكرر) + رقم صفحة — */
+/* — تصدير PDF — يعرض دائماً ما يظهره الفلتر الحالي */
 async function apprPdfExport(){
   const L=T(), btn=document.getElementById('apprPdfBtn');
-  const rows=apprFilterRows(); /* PDF يعرض دائماً ما يظهره الفلتر الحالي */
+  const rows=apprFilterRows();
   if(!rows.length){ toast(L.empty); return; }
   const old=btn.innerHTML;
   try{
     btn.disabled=true; btn.innerHTML='⏳ '+esc(L.appr_pdf_building);
-    if(typeof window.jspdf==='undefined') await apprLoadLib('jspdf.umd.min.js');
-    if(typeof window.html2canvas==='undefined') await apprLoadLib('html2canvas.min.js');
-    const J=window.jspdf&&window.jspdf.jsPDF;
-    if(!J||!window.html2canvas) throw new Error('PDF lib');
-    /* حاوية قياس خارج الشاشة: العنوان + ترويسة الجدول + كل الصفوف */
-    const host=apprPdfBuild(rows);
-    document.body.appendChild(host);
-    const head=host.querySelector('.appr-pdf-head');
-    const tbl=host.querySelector('.appr-pdf-table');
-    const thead=tbl.tHead, tbody=tbl.tBodies[0];
-    const foot=host.querySelector('.appr-pdf-foot');
-    const all=Array.prototype.slice.call(tbody.rows);
-    /* ميزانية الارتفاع: A4 عرضي 297×210 بهامش 8مم — عرض 1100px يقابل 281مم */
-    const PW=1100, PWmm=281, PHmm=194;
-    const cs=getComputedStyle(host);
-    const padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
-    const pagePx=Math.floor(PHmm/PWmm*PW);
-    const fixed=padY+head.offsetHeight+thead.offsetHeight+(foot?foot.offsetHeight:0);
-    const budget=pagePx-fixed;
-    const pages=[]; let cur=[], h=0;
-    all.forEach(r=>{ const rh=r.offsetHeight;
-      if(cur.length&&h+rh>budget){ pages.push(cur); cur=[]; h=0; }
-      cur.push(r); h+=rh; });
-    if(cur.length) pages.push(cur);
-    host.remove();
-    if(!pages.length) throw new Error('no rows');
-    const pdf=new J({unit:'mm',format:'a4',orientation:'landscape',compress:true});
-    for(let pi=0;pi<pages.length;pi++){
-      const pg=document.createElement('div');
-      pg.className='appr-pdf';
-      pg.appendChild(head.cloneNode(true));
-      const t=document.createElement('table');
-      t.className='appr-pdf-table';
-      t.appendChild(thead.cloneNode(true));
-      const tb=document.createElement('tbody');
-      pages[pi].forEach(r=>tb.appendChild(r.cloneNode(true)));
-      t.appendChild(tb);
-      pg.appendChild(t);
-      if(foot) pg.appendChild(foot.cloneNode(true));
-      document.body.appendChild(pg);
-      const cv=await window.html2canvas(pg,{scale:2,backgroundColor:'#ffffff',logging:false,windowWidth:PW});
-      pg.remove();
-      const img=cv.toDataURL('image/jpeg',0.93);
-      const w=PWmm, hh=Math.min(PHmm,PWmm*cv.height/cv.width);
-      if(pi>0) pdf.addPage('a4','landscape');
-      pdf.addImage(img,'JPEG',8,8,w,hh);
-      /* رقم الصفحة بالأرقام فقط (خط jsPDF المدمج لا يحوي محارف عربية) */
-      pdf.setFontSize(9); pdf.setTextColor(140);
-      pdf.text((pi+1)+' / '+pages.length,289,205,{align:'right'});
-    }
-    const blob=pdf.output('blob');
-    const a=document.createElement('a'), url=URL.createObjectURL(blob);
-    a.href=url; a.download='Aramco_Approvals_'+apprToday()+'.pdf';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },2000);
-    toast(L.appr_pdf_done);
+    await hsePdfRender(apprPdfBuild(rows), 'Aramco_Approvals_'+apprToday()+'.pdf', L.appr_pdf_done);
   }catch(e){ toast('⚠ '+L.appr_pdf_fail+(e&&e.message?' ('+e.message+')':'')); }
   finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+/* — مشترك (ابروفل ارامكو + الإجازات السنوية): تحميل المكتبات + تقسيم الصفحة على صفحات A4 عرضية مع ترويسة متكررة ورقم صفحة — */
+async function hsePdfRender(host, filename, doneMsg){
+  if(typeof window.jspdf==='undefined') await apprLoadLib('jspdf.umd.min.js');
+  if(typeof window.html2canvas==='undefined') await apprLoadLib('html2canvas.min.js');
+  const J=window.jspdf&&window.jspdf.jsPDF;
+  if(!J||!window.html2canvas) throw new Error('PDF lib');
+  /* حاوية قياس خارج الشاشة: العنوان + ترويسة الجدول + كل الصفوف */
+  document.body.appendChild(host);
+  const head=host.querySelector('.appr-pdf-head');
+  const tbl=host.querySelector('.appr-pdf-table');
+  const thead=tbl.tHead, tbody=tbl.tBodies[0];
+  const foot=host.querySelector('.appr-pdf-foot');
+  const all=Array.prototype.slice.call(tbody.rows);
+  /* ميزانية الارتفاع: A4 عرضي 297×210 بهامش 8مم — عرض 1100px يقابل 281مم */
+  const PW=1100, PWmm=281, PHmm=194;
+  const cs=getComputedStyle(host);
+  const padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+  const pagePx=Math.floor(PHmm/PWmm*PW);
+  const fixed=padY+head.offsetHeight+thead.offsetHeight+(foot?foot.offsetHeight:0);
+  const budget=pagePx-fixed;
+  const pages=[]; let cur=[], h=0;
+  all.forEach(r=>{ const rh=r.offsetHeight;
+    if(cur.length&&h+rh>budget){ pages.push(cur); cur=[]; h=0; }
+    cur.push(r); h+=rh; });
+  if(cur.length) pages.push(cur);
+  host.remove();
+  if(!pages.length) throw new Error('no rows');
+  const pdf=new J({unit:'mm',format:'a4',orientation:'landscape',compress:true});
+  for(let pi=0;pi<pages.length;pi++){
+    const pg=document.createElement('div');
+    pg.className='appr-pdf';
+    pg.appendChild(head.cloneNode(true));
+    const t=document.createElement('table');
+    t.className='appr-pdf-table';
+    t.appendChild(thead.cloneNode(true));
+    const tb=document.createElement('tbody');
+    pages[pi].forEach(r=>tb.appendChild(r.cloneNode(true)));
+    t.appendChild(tb);
+    pg.appendChild(t);
+    if(foot) pg.appendChild(foot.cloneNode(true));
+    document.body.appendChild(pg);
+    const cv=await window.html2canvas(pg,{scale:2,backgroundColor:'#ffffff',logging:false,windowWidth:PW});
+    pg.remove();
+    const img=cv.toDataURL('image/jpeg',0.93);
+    const w=PWmm, hh=Math.min(PHmm,PWmm*cv.height/cv.width);
+    if(pi>0) pdf.addPage('a4','landscape');
+    pdf.addImage(img,'JPEG',8,8,w,hh);
+    /* رقم الصفحة بالأرقام فقط (خط jsPDF المدمج لا يحوي محارف عربية) */
+    pdf.setFontSize(9); pdf.setTextColor(140);
+    pdf.text((pi+1)+' / '+pages.length,289,205,{align:'right'});
+  }
+  const blob=pdf.output('blob');
+  const a=document.createElement('a'), url=URL.createObjectURL(blob);
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },2000);
+  toast(doneMsg);
 }
 document.getElementById('apprPdfBtn').onclick=apprPdfExport;
 /* — مزامنة الاعتمادات مع كل التبويبات المرتبطة (المجموعات/التوزيع/القائمة/اللوحة) — */
@@ -3584,6 +3724,567 @@ async function apprDelete(id){
   syncApprovalChange();
   toast(L.appr_deleted);
 }
+/* ============ ANNUAL LEAVE — إدارة الإجازات السنوية ============
+   البيانات: leave-data.js (بذرة من ملف HR-F-5) + طبقة تعديلات محلية في localStorage
+   (hse-leaves-v1 تغلب على البذرة). لا أرقام وطنية ولا هواتف في أي طبقة.       */
+const LV_STORE='hse-leaves-v1';
+const LV_DAYS=90;                 /* أفق الجدول الزمني: 90 يوماً قادمة من اليوم */
+let LV={roster:[],leaves:[],defEnt:21,gen:''};
+let LV_MODE='table';
+let LV_EDIT_K=null;               /* مفتاح الإجازة المفتوحة في النموذج (null = إضافة) */
+const lvClone=o=>JSON.parse(JSON.stringify(o));
+function lvLoad(){
+  const seed=window.LVSEED||{roster:[],leaves:[],defEnt:21,gen:''};
+  let st=null;
+  try{ st=JSON.parse(localStorage.getItem(LV_STORE)||'null'); }catch(e){}
+  if(st&&Array.isArray(st.roster)&&Array.isArray(st.leaves)){
+    LV={roster:st.roster, leaves:st.leaves, defEnt:Number(st.defEnt)||Number(seed.defEnt)||21, gen:st.gen||seed.gen||''};
+  } else {
+    LV={roster:lvClone(seed.roster||[]), leaves:lvClone(seed.leaves||[]), defEnt:Number(seed.defEnt)||21, gen:seed.gen||''};
+  }
+  /* معرّف ثابت لكل إجازة (للتعديل/الحذف) — مشتق من الحقول فيبقى مستقراً بين عمليات التحميل */
+  const seen={};
+  LV.leaves.forEach(l=>{
+    if(l.k){ seen[l.k]=1; return; }
+    const base='lv-'+l.i+'-'+String(l.s||'').replace(/-/g,'')+'-'+(l.d||0)+(l.w?('-'+String(l.w).replace(/-/g,'')):'');
+    let k=base, n=2; while(seen[k]) k=base+'-'+(n++);
+    l.k=k; seen[k]=1;
+  });
+}
+function lvPersist(){ try{ localStorage.setItem(LV_STORE,JSON.stringify(LV)); }catch(e){} }
+/* — أدوات تواريخ (ISO UTC — ثابتة عبر المناطق الزمنية) — */
+function lvEndOf(s,d){ const t=Date.parse(String(s)+'T00:00:00Z'); if(isNaN(t)) return String(s||'');
+  return new Date(t+((Math.max(1,Number(d)||1)-1)*864e5)).toISOString().slice(0,10); }
+function lvAddDays(s,n){ const t=Date.parse(String(s)+'T00:00:00Z'); if(isNaN(t)) return String(s||'');
+  return new Date(t+(Number(n)*864e5)).toISOString().slice(0,10); }
+function lvSpanDays(a,b){ return Math.round((Date.parse(String(b)+'T00:00:00Z')-Date.parse(String(a)+'T00:00:00Z'))/864e5)+1; }
+/* الامتداد للتحقق من التعارض: النافذة تُحسب بطولها الكامل (conservative) */
+function lvSpan(l){ return {s:l.s, e:(l.w||lvEndOf(l.s,l.d))}; }
+/* حساب الموظف — دالة نقية قابلة للاختبار:
+   المستهلك = مدة الإجازات المبدأية (غير النوافذ) التي بدأت خلال سنة التقرير الجارية */
+function lvCalc(rec, leaves, today){
+  const ent=(rec&&Number(rec.e))||LV.defEnt||21;
+  const id=rec&&rec.i, y=String(today).slice(0,4);
+  let used=0, cur=null, next=null, winNow=null;
+  (leaves||[]).forEach(l=>{
+    if(!l||l.i!==id) return;
+    const e=l.w||lvEndOf(l.s,l.d);
+    if(!l.w && l.s<=today && today<=e) cur=l;
+    if(l.w && l.s<=today && today<=l.w) winNow=l;
+    if(l.s>today && (!next||l.s<next.s)) next=l;
+    if(!l.w && l.s<=today && String(l.s).slice(0,4)===y) used+=Math.max(1,Number(l.d)||1);
+  });
+  const st=cur?'on_leave':((next||winNow)?'scheduled':'at_work');
+  return {ent:ent, used:used, left:ent-used, status:st, next:(cur||next||winNow||null), onLeave:!!cur};
+}
+function lvStatusText(st){ const L=T(); return st==='on_leave'?L.lv_st_onleave:(st==='scheduled'?L.lv_st_sched:L.lv_st_atwork); }
+function lvStatusCls(st){ return st==='on_leave'?'t-abs':(st==='scheduled'?'t-wrn':'t-per'); }
+/* تعارضات الكوادر: إجازتان متداخلتان زمنياً داخل التخصص نفسه (الجارٍ + المستقبلي فقط) */
+function lvConflicts(cand, roster, leaves, today){
+  const out=[];
+  if(!cand||!cand.i||!cand.s) return out;
+  const rmap={}; (roster||[]).forEach(r=>{ rmap[r.i]=r; });
+  const me=rmap[cand.i]; if(!me) return out;
+  const cs=lvSpan(cand); if(cs.e<today) return out;
+  (leaves||[]).forEach(l=>{
+    if(!l||l.i===cand.i) return;
+    if(cand.k&&l.k===cand.k) return;                    /* نفس الطلب عند التعديل لا يعد تعارضاً */
+    const r=rmap[l.i]; if(!r||r.t!==me.t) return;       /* القسم هنا = التخصص الوظيفي */
+    const sp=lvSpan(l); if(sp.e<today) return;
+    if(cs.s<=sp.e && sp.s<=cs.e) out.push({i:l.i,n:r.n,t:r.t,s:sp.s,e:sp.e,w:!!l.w});
+  });
+  return out;
+}
+/* أزواج التعارضات المستقبلية داخل التخصص (رقمبطاقة المؤشرات) */
+function lvFuturePairs(){
+  const t0=today(), rmap={}, fut=[];
+  LV.roster.forEach(r=>{ rmap[r.i]=r; });
+  LV.leaves.forEach(l=>{ if(lvSpan(l).e>=t0) fut.push(l); });
+  let n=0;
+  for(let a=0;a<fut.length;a++) for(let b=a+1;b<fut.length;b++){
+    const A=fut[a], B=fut[b];
+    if(A.i===B.i) continue;
+    const ra=rmap[A.i], rb=rmap[B.i];
+    if(!ra||!rb||ra.t!==rb.t) continue;
+    const sa=lvSpan(A), sb=lvSpan(B);
+    if(sa.s<=sb.e && sb.s<=sa.e) n++;
+  }
+  return n;
+}
+/* سلاسل التعارضات المتصلة (لشريط التنبيه): تخصص + عدد إجازات متداخلة + نطاق */
+function lvClusters(){
+  const t0=today(), rmap={}, byT={};
+  LV.roster.forEach(r=>{ rmap[r.i]=r; });
+  LV.leaves.forEach(l=>{
+    const sp=lvSpan(l); if(sp.e<t0) return;
+    const r=rmap[l.i]; if(!r) return;
+    (byT[r.t]=byT[r.t]||[]).push({s:sp.s, e:sp.e});
+  });
+  const out=[];
+  Object.keys(byT).forEach(t=>{
+    const arr=byT[t].sort((a,b)=>String(a.s).localeCompare(String(b.s)));
+    let cur=null;
+    arr.forEach(x=>{
+      if(cur&&x.s<=cur.e){ if(x.e>cur.e) cur.e=x.e; cur.n++; }
+      else { if(cur&&cur.n>1) out.push({t:t,n:cur.n,s:cur.s,e:cur.e}); cur={s:x.s,e:x.e,n:1}; }
+    });
+    if(cur&&cur.n>1) out.push({t:t,n:cur.n,s:cur.s,e:cur.e});
+  });
+  return out.sort((a,b)=>(b.n-a.n)||String(a.s).localeCompare(String(b.s)));
+}
+/* بطاقات المؤشرات الأربعة */
+function lvKpis(){
+  const t0=today(), t30=lvAddDays(t0,30);
+  let onLeave=0, used=0, ent=0; const soon={};
+  LV.roster.forEach(r=>{
+    const c=lvCalc(r,LV.leaves,t0);
+    if(c.status==='on_leave') onLeave++;
+    used+=c.used; ent+=c.ent;
+    LV.leaves.forEach(l=>{ if(l.i===r.i && l.s>t0 && l.s<=t30) soon[r.i]=1; });
+  });
+  return {onLeave:onLeave, soon30:Object.keys(soon).length, used:used, ent:ent, conflicts:lvFuturePairs()};
+}
+/* — الفلتر الحالي: قسم (تخصص) + حالة + بحث — نفس الدالة للعرض وللتصدير — */
+function lvFilterRows(){
+  const de=document.getElementById('lvDept'), st=document.getElementById('lvStatus'), se=document.getElementById('lvSearch');
+  const dv=de?(de.value||''):'', sv=st?(st.value||''):'', q=se?String(se.value||'').toLowerCase().trim():'';
+  const t0=today();
+  const rows=LV.roster.map(r=>{ const c=lvCalc(r,LV.leaves,t0);
+    return {r:r, ent:c.ent, used:c.used, left:c.left, status:c.status, next:c.next}; });
+  return rows.filter(x=>{
+    if(dv && x.r.t!==dv) return false;
+    if(sv && x.status!==sv) return false;
+    if(q){ const hay=(String(x.r.n||'')+' '+String(x.r.i||'')+' '+String(x.r.t||'')).toLowerCase();
+      if(hay.indexOf(q)<0) return false; }
+    return true;
+  }).sort((a,b)=>String(a.r.t).localeCompare(String(b.r.t))||String(a.r.n).localeCompare(String(b.r.n)));
+}
+function renderLv(){
+  if(!document.getElementById('lvBody')) return;
+  const L=T(), t0=today();
+  /* خيارات القسم (التخصص) من البيانات مع الحفاظ على الاختيار */
+  const de=document.getElementById('lvDept'), deCur=de?de.value:'';
+  const trades=[...new Set(LV.roster.map(r=>r.t).filter(Boolean))].sort();
+  if(de) de.innerHTML='<option value="">'+esc(L.f_all)+'</option>'
+    +trades.map(t=>'<option value="'+esc(t)+'"'+(t===deCur?' selected':'')+'>'+esc(t)+'</option>').join('');
+  /* بطاقات المؤشرات */
+  const k=lvKpis();
+  const kp=document.getElementById('lvKpi');
+  if(kp) kp.innerHTML=
+    '<div class="stat"><div class="k">'+esc(L.lv_kpi_on)+'</div><div class="v" style="color:var(--blue)">'+k.onLeave+'</div></div>'
+   +'<div class="stat"><div class="k">'+esc(L.lv_kpi_30)+'</div><div class="v" style="color:var(--acc)">'+k.soon30+'</div></div>'
+   +'<div class="stat"><div class="k">'+esc(L.lv_kpi_bal)+'</div><div class="v" style="color:var(--green)">'+k.used+' / '+k.ent+'</div></div>'
+   +'<div class="stat"><div class="k">'+esc(L.lv_kpi_conf)+'</div><div class="v" style="color:var(--red)">'+k.conflicts+'</div></div>';
+  /* شريط التنبيه: أكبر سلاسل التداخل داخل التخصص */
+  const al=document.getElementById('lvAlert');
+  if(al){
+    const cl=lvClusters().slice(0,4);
+    if(cl.length){
+      al.classList.remove('hide');
+      al.innerHTML='<b>⚠️ '+esc(L.lv_kpi_conf)+': '+k.conflicts+'</b>'
+        +cl.map(c=>'<div>🔴 <b>'+esc(c.t)+'</b> — '+c.n+(LANG==='ar'?' إجازة متداخلة (':' overlapping leaves (')+c.s+' → '+c.e+')</div>').join('');
+    } else al.classList.add('hide');
+  }
+  /* الجدول */
+  const rows=lvFilterRows();
+  const body=document.getElementById('lvBody'); body.innerHTML='';
+  rows.forEach(x=>{
+    const tr=document.createElement('tr');
+    const nx=x.next;
+    const nxCmp=nx?(nx.s+(nx.w?'':' → '+lvEndOf(nx.s,nx.d))):'—';
+    let nsub='';
+    if(nx){
+      nsub=Math.max(1,Number(nx.d)||1)+(LANG==='ar'?' يوم':' day');
+      if(nx.w) nsub='⏱ '+L.lv_win+' '+nx.s+' → '+nx.w+' · '+nsub;
+      else if(nx.y&&nx.y!=='reg') nsub+=' · '+({emg:L.lv_ty_emg,dth:L.lv_ty_dth,mrg:L.lv_ty_mrg}[nx.y]||'');
+    }
+    tr.innerHTML='<td>'+esc(x.r.n||'—')+'</td>'
+      +'<td style="direction:ltr; white-space:nowrap;">'+esc(x.r.i||'—')+'</td>'
+      +'<td>'+esc(x.r.t||'—')+'</td>'
+      +'<td style="text-align:center;">'+x.ent+'</td>'
+      +'<td style="text-align:center;">'+x.used+'</td>'
+      +'<td style="text-align:center;" class="'+(x.left<=0?'lv-left-bad':'')+'"><b>'+x.left+'</b></td>'
+      +'<td style="direction:ltr; white-space:nowrap; text-align:center;">'+esc(nxCmp)
+        +(nsub?'<span class="lv-next-sub" style="direction:rtl;">'+esc(nsub)+'</span>':'')+'</td>'
+      +'<td><span class="tag '+lvStatusCls(x.status)+'">'+esc(lvStatusText(x.status))+'</span></td>'
+      +'<td style="white-space:nowrap;">'
+        +'<button class="btn btn-sm edit-only" data-lvedit="'+esc(x.r.i)+'" title="'+esc(L.edit)+'">✏️</button> '
+        +'<button class="btn btn-sm" data-lvview="'+esc(x.r.i)+'" title="'+esc(L.lv_view_t)+'">👁</button></td>';
+    body.appendChild(tr);
+  });
+  const ed=document.getElementById('lvEmpty');
+  if(!rows.length){ ed.classList.remove('hide'); ed.textContent=L.empty; } else ed.classList.add('hide');
+  document.getElementById('lvCount').textContent=rows.length+' / '+LV.roster.length;
+  /* وضع العرض: جدول أو جانت */
+  const tw=document.getElementById('lvTableWrap'), gg=document.getElementById('lvGantt');
+  if(tw) tw.classList.toggle('hide', LV_MODE!=='table');
+  if(gg){ gg.classList.toggle('hide', LV_MODE!=='gantt'); if(LV_MODE==='gantt') renderLvGantt(); }
+}
+/* — الجدول الزمني (مخطط جانت): صف لكل موظف مجمّع حسب التخصص، أفق 90 يوماً — */
+function renderLvGantt(){
+  const host=document.getElementById('lvGantt'); if(!host) return;
+  const L=T(), t0=today(), tEnd=lvAddDays(t0,LV_DAYS-1), total=LV_DAYS;
+  const rmap={}; LV.roster.forEach(r=>{ rmap[r.i]=r; });
+  const byT={};
+  LV.leaves.forEach(l=>{
+    const sp=lvSpan(l); if(sp.e<t0||sp.s>tEnd) return;
+    const r=rmap[l.i]; if(!r) return;
+    (byT[r.t]=byT[r.t]||[]).push({l:l, sp:sp, r:r});
+  });
+  const trades=Object.keys(byT).sort();
+  if(!trades.length){ host.innerHTML='<div class="empty">'+esc(L.lv_gantt_empty)+'</div>'; return; }
+  /* محور الشهور: علامات عند أول يوم من كل شهر داخل الأفق */
+  const MN=LANG==='ar'?['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+                      :['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let axis='';
+  { const d0=new Date(t0+'T00:00:00Z'); let y=d0.getUTCFullYear(), mo=d0.getUTCMonth();
+    for(let i=0;i<14;i++){
+      const first=y+'-'+String(mo+1).padStart(2,'0')+'-01';
+      if(first<=tEnd){
+        let p=(lvSpanDays(t0,first)-1)/total*100;
+        p=Math.max(0,Math.min(100,p));
+        axis+='<div class="lv-g-month" style="left:'+p.toFixed(3)+'%"></div>'
+          +'<span style="left:'+p.toFixed(3)+'%">'+MN[mo]+' '+y+'</span>';
+      }
+      mo++; if(mo>11){ mo=0; y++; }
+    } }
+  let h='<div class="lv-gantt">'
+    +'<div class="lv-g-head"><div class="lv-g-name lv-g-name-h">'+esc(L.l_dept)+'</div>'
+    +'<div class="lv-g-track lv-g-axis">'+axis+'</div></div>'
+    +'<div class="lv-g-body">';
+  trades.forEach(t=>{
+    const items=byT[t];
+    const emps=[...new Set(items.map(x=>x.r.i))];
+    h+='<div class="lv-g-trade">'+esc(t)
+      +(LANG==='ar'?' · '+items.length+' إجازة · '+emps.length+' موظف':' · '+items.length+' leaves · '+emps.length+' staff')+'</div>';
+    emps.forEach(ei=>{
+      const r=rmap[ei];
+      let bars='';
+      items.filter(x=>x.r.i===ei).forEach(x=>{
+        const s=(x.sp.s<t0)?t0:x.sp.s;
+        const e=(x.sp.e>tEnd)?tEnd:x.sp.e;
+        const left=(lvSpanDays(t0,s)-1)/total*100;
+        const wdt=lvSpanDays(s,e)/total*100;
+        const cls=x.l.w?'g-w':((x.sp.s<=t0&&t0<=x.sp.e)?'g-on':'g-sc');
+        const title=r.n+' — '+x.sp.s+' → '+x.sp.e+' ('+Math.max(1,Number(x.l.d)||1)+(LANG==='ar'?' يوم)':' d)');
+        bars+='<div class="lv-g-bar '+cls+'" style="left:'+left.toFixed(3)+'%; width:'+Math.max(0.7,wdt).toFixed(3)+'%;" title="'+esc(title)+'">'
+          +(wdt>4?Math.max(1,Number(x.l.d)||1):'')+'</div>';
+      });
+      h+='<div class="lv-g-row"><div class="lv-g-name" title="'+esc(r.n+' ('+r.i+')')+'">'+esc(r.n)
+        +' <span class="mut">'+esc(r.i)+'</span></div>'
+        +'<div class="lv-g-track">'+bars+'</div></div>';
+    });
+  });
+  h+='<div class="lv-g-today" title="'+esc(L.lv_today)+'"></div></div>'
+    +'<div class="lv-legend">'
+    +'<span><i class="lg-sc"></i>'+esc(L.lv_leg_sc)+'</span>'
+    +'<span><i class="lg-on"></i>'+esc(L.lv_leg_on)+'</span>'
+    +'<span><i class="lg-w"></i>'+esc(L.lv_leg_w)+'</span>'
+    +'<span><i class="lg-t"></i>'+esc(L.lv_today)+' '+t0+'</span>'
+    +' · '+t0+' → '+tEnd+'</div></div>';
+  host.innerHTML=h;
+}
+/* — النوافذ: النموذج (إضافة/تعديل) والعرض التفصيلي — */
+function lvOpenDlg(html){ document.getElementById('lvDlgBody').innerHTML=html; document.getElementById('lvDlg').classList.remove('hide'); }
+function lvCloseDlg(){ document.getElementById('lvDlg').classList.add('hide'); LV_EDIT_K=null; }
+function lvOpenLeave(k, presetEmp){
+  const L=T();
+  LV_EDIT_K=k||null;
+  const l=k?LV.leaves.find(x=>x.k===k):null;
+  const empI=l?l.i:(presetEmp||'');
+  const rec=LV.roster.find(r=>r.i===empI)||null;
+  const empOpts=LV.roster.slice().sort((a,b)=>String(a.n).localeCompare(String(b.n)))
+    .map(r=>'<option value="'+esc(r.i)+'"'+(r.i===empI?' selected':'')+'>'+esc(r.n)+' — '+esc(r.i)+'</option>').join('');
+  const fld=(lab,inner)=>'<div class="field" style="margin-top:10px;"><label>'+lab+'</label>'+inner+'</div>';
+  const TY=['reg','emg','dth','mrg'];
+  let h='<h3 style="margin:0 0 4px;">'+(l?L.lv_edit_t:L.lv_add_t)+'</h3>'
+   +'<div class="empdlg-sub">'+(rec?esc(rec.n)+' — <span style="direction:ltr;">'+esc(rec.i)+'</span>':esc(L.lv_lab_emp))+'</div>'
+   +fld(L.lv_lab_emp,'<select id="lvfEmp"><option value="">— '+esc(L.emp_placeholder)+' —</option>'+empOpts+'</select>')
+   +fld(L.lv_lab_trade,'<input id="lvfTrade" list="lvfTradeList" value="'+esc(rec?rec.t:'')+'">'
+      +'<datalist id="lvfTradeList">'+tradesDatalist()+'</datalist>')
+   +fld(L.lv_lab_ent,'<input type="number" id="lvfEnt" min="0" max="60" value="'+(rec?rec.e:(LV.defEnt||21))+'" style="direction:ltr;">')
+   +fld(L.lv_lab_type,'<select id="lvfType">'+TY.map(v=>'<option value="'+v+'"'+((l?l.y:'reg')===v?' selected':'')+'>'+esc(L['lv_ty_'+v])+'</option>').join('')+'</select>')
+   +'<div style="display:flex; gap:10px;">'
+     +'<div class="field" style="margin-top:10px; flex:1;"><label>'+L.lv_lab_start+'</label><input type="date" id="lvfStart" value="'+esc(l&&!l.w?l.s:'')+'" style="direction:ltr;"></div>'
+     +'<div class="field" style="margin-top:10px; flex:1;"><label>'+L.lv_lab_dur+'</label><input type="number" id="lvfDur" min="1" max="90" value="'+(l?Math.max(1,Number(l.d)||1):14)+'" style="direction:ltr;"></div>'
+   +'</div>'
+   +'<div class="field" style="margin-top:10px;"><label>'+L.lv_lab_end+'</label><input id="lvfEnd" readonly value="" style="direction:ltr; background:var(--card2);"></div>'
+   +'<label style="display:flex; gap:8px; align-items:center; margin-top:10px; font-size:13px;"><input type="checkbox" id="lvfWinChk"'
+     +(l&&l.w?' checked':'')+'> '+esc(L.lv_lab_win)+'</label>'
+   +'<div id="lvfWinBox" class="'+((l&&l.w)?'':'hide')+'" style="display:flex; gap:10px;">'
+     +'<div class="field" style="margin-top:10px; flex:1;"><label>'+L.lv_lab_win_s+'</label><input type="date" id="lvfWinS" value="'+esc(l&&l.w?l.s:'')+'" style="direction:ltr;"></div>'
+     +'<div class="field" style="margin-top:10px; flex:1;"><label>'+L.lv_lab_win_e+'</label><input type="date" id="lvfWinE" value="'+esc(l&&l.w?l.w:'')+'" style="direction:ltr;"></div>'
+   +'</div>'
+   +fld(L.lv_lab_note,'<input id="lvfNote" value="'+esc((l&&l.x)||'')+'">')
+   +'<div style="display:flex; gap:8px; margin-top:16px;">'
+     +'<button class="btn btn-acc" id="lvfSave" style="flex:1;">💾 '+esc(L.save_edit)+'</button>'
+     +(l?'<button class="btn btn-red" id="lvfDel" title="'+esc(L.ask_del_lv)+'">🗑</button>':'')+'</div>';
+  lvOpenDlg(h);
+  const g=id=>document.getElementById(id);
+  const recalcEnd=()=>{ const s=g('lvfStart').value, d=Math.max(1,Number(g('lvfDur').value)||0);
+    g('lvfEnd').value=(s&&d)?lvEndOf(s,d):''; };
+  g('lvfStart').oninput=recalcEnd; g('lvfDur').oninput=recalcEnd; recalcEnd();
+  g('lvfEmp').onchange=()=>{ const r=LV.roster.find(x=>x.i===g('lvfEmp').value);
+    if(r){ g('lvfTrade').value=r.t; g('lvfEnt').value=r.e; } };
+  g('lvfWinChk').onchange=()=>{ g('lvfWinBox').classList.toggle('hide',!g('lvfWinChk').checked); };
+  g('lvfSave').onclick=lvSaveLeave;
+  const del=g('lvfDel'); if(del) del.onclick=()=>lvDeleteLeave(l?l.k:null);
+}
+function tradesDatalist(){
+  return [...new Set(LV.roster.map(r=>r.t).filter(Boolean))].sort()
+    .map(t=>'<option value="'+esc(t)+'">').join('');
+}
+function lvSaveLeave(){
+  const L=T(), t0=today();
+  const g=id=>document.getElementById(id);
+  const empI=g('lvfEmp').value;
+  if(!empI){ toast(L.lv_err_emp); return; }
+  const winMode=g('lvfWinChk').checked;
+  let s=winMode?g('lvfWinS').value:g('lvfStart').value;
+  const d=Math.max(1,Number(g('lvfDur').value)||0);
+  if(!s||!d||(winMode&&!g('lvfWinE').value)){ toast(L.lv_err_dur); return; }
+  let w=winMode?g('lvfWinE').value:'';
+  if(w&&w<s){ const t=s; s=w; w=t; }
+  const cand={k:LV_EDIT_K||('lv-'+empI+'-'+s.replace(/-/g,'')+'-'+d+'-'+Date.now().toString(36)),
+    i:empI, s:s, d:d, y:g('lvfType').value||'reg', x:g('lvfNote').value.trim()};
+  if(w) cand.w=w;
+  /* 1) الرصيد: المستهلك بعد هذا الطلب مقابل الاستحقاق السنوي */
+  const rec=LV.roster.find(r=>r.i===empI)||{i:empI, e:LV.defEnt||21};
+  const before=lvCalc(rec,LV.leaves,t0);
+  let usedAfter=before.used;
+  if(!cand.w && cand.s<=t0 && cand.s.slice(0,4)===t0.slice(0,4)){
+    const old=LV_EDIT_K?LV.leaves.find(x=>x.k===LV_EDIT_K):null;
+    const counted=old&&old.i===empI&&!old.w&&old.s<=t0&&String(old.s).slice(0,4)===t0.slice(0,4);
+    usedAfter=before.used-(counted?Math.max(1,Number(old.d)||1):0)+Math.max(1,Number(cand.d)||1);
+  }
+  const ent=Math.max(0,Number(g('lvfEnt').value)||rec.e||LV.defEnt||21);
+  if(usedAfter>ent){
+    const budget=L.lv_warn_budget+ent+' − '+before.used+' = '+(ent-before.used)+(LANG==='ar'?' يوم)':' days)');
+    if(!confirm(budget)) return;
+  }
+  /* 2) تعارضات التوظيف داخل نفس التخصص */
+  const conf=lvConflicts(cand, LV.roster, LV.leaves, t0);
+  if(conf.length){
+    const lines=conf.slice(0,5).map(c=>'• '+c.n+' ('+c.i+'): '+c.s+' → '+c.e).join('\n');
+    const msg=L.lv_warn_overlap+'\n'+lines+(conf.length>5?'\n'+L.lv_warn_more:'');
+    if(!confirm(msg)) return;
+  }
+  /* حفظ في الطبقة المحلية + إعادة العرض */
+  const old=LV_EDIT_K?LV.leaves.find(x=>x.k===LV_EDIT_K):null;
+  if(old){ old.i=cand.i; old.s=cand.s; old.d=cand.d; old.y=cand.y; old.x=cand.x;
+    if(cand.w) old.w=cand.w; else delete old.w; }
+  else LV.leaves.push(cand);
+  const r=LV.roster.find(x=>x.i===empI);
+  if(r){ const e=Number(g('lvfEnt').value); if(Number.isFinite(e)&&e>=0) r.e=e;
+    const tt=g('lvfTrade').value.trim(); if(tt) r.t=tt; }
+  lvPersist(); lvCloseDlg(); renderLv(); toast(L.lv_saved);
+}
+function lvDeleteLeave(k){
+  if(!k) return;
+  const L=T();
+  if(!confirm(L.ask_del_lv)) return;
+  LV.leaves=LV.leaves.filter(x=>x.k!==k);
+  lvPersist(); lvCloseDlg(); renderLv(); toast(L.lv_deleted);
+}
+function lvOpenView(empI){
+  const L=T(), t0=today();
+  const r=LV.roster.find(x=>x.i===empI); if(!r) return;
+  const c=lvCalc(r,LV.leaves,t0);
+  const mine=LV.leaves.filter(l=>l.i===empI).sort((a,b)=>String(b.s).localeCompare(String(a.s)));
+  const TYm={reg:L.lv_ty_reg, emg:L.lv_ty_emg, dth:L.lv_ty_dth, mrg:L.lv_ty_mrg};
+  let h='<h3 style="margin:0 0 4px;">🗂️ '+esc(L.lv_view_t)+'</h3>'
+   +'<div class="empdlg-sub">'+esc(r.n)+' — <span style="direction:ltr;">'+esc(r.i)+'</span> · '+esc(r.t)+'</div>'
+   +'<div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">'
+     +'<div class="stat" style="flex:1; min-width:110px; padding:10px;"><div class="k">'+esc(L.lv_col_ent)+'</div><div class="v">'+c.ent+'</div></div>'
+     +'<div class="stat" style="flex:1; min-width:110px; padding:10px;"><div class="k">'+esc(L.lv_col_used)+'</div><div class="v" style="color:var(--blue)">'+c.used+'</div></div>'
+     +'<div class="stat" style="flex:1; min-width:110px; padding:10px;"><div class="k">'+esc(L.lv_col_left)+'</div><div class="v" style="color:'
+       +(c.left<=0?'var(--red)':'var(--green)')+'">'+c.left+'</div></div>'
+   +'</div>';
+  if(!mine.length) h+='<div class="empty">'+esc(L.lv_no_leaves)+'</div>';
+  else{
+    h+='<div style="margin-top:12px; display:flex; flex-direction:column; gap:6px;">';
+    mine.forEach(l=>{
+      const sp=lvSpan(l);
+      const onNow=!l.w&&l.s<=t0&&t0<=sp.e;
+      const fut=l.s>t0;
+      h+='<div style="display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:10px; padding:7px 10px; font-size:13px; flex-wrap:wrap;">'
+        +'<span class="tag '+(onNow?'t-abs':(fut?'t-wrn':'t-per'))+'">'
+          +esc(onNow?L.lv_st_onleave:(fut?L.lv_st_sched:L.lv_st_atwork))+'</span>'
+        +'<span style="direction:ltr;">'+esc(l.s)+' → '+esc(sp.e)+'</span>'
+        +'<span class="mut">'+Math.max(1,Number(l.d)||1)+(LANG==='ar'?' يوم':' d')
+          +(l.w?' · ⏱ '+esc(L.lv_win):'')+'</span>'
+        +'<span class="mut">'+esc(TYm[l.y]||L.lv_ty_reg)+'</span>'
+        +(l.x?'<span class="mut">— '+esc(l.x)+'</span>':'')
+        +'<span style="margin-inline-start:auto; display:flex; gap:4px;">'
+          +'<button class="btn btn-sm edit-only" data-lvedit="'+esc(l.k)+'" title="'+esc(L.edit)+'">✏️</button>'
+          +'<button class="btn btn-sm edit-only" data-lvdel="'+esc(l.k)+'" title="'+esc(L.ask_del_lv)+'">🗑</button></span>'
+        +'</div>';
+    });
+    h+='</div>';
+  }
+  h+='<div style="margin-top:14px;"><button class="btn btn-acc" id="lvvAdd">➕ '+esc(L.lv_add)+'</button></div>';
+  lvOpenDlg(h);
+  const add=document.getElementById('lvvAdd');
+  if(add) add.onclick=()=>lvOpenLeave(null, empI);
+}
+/* ✏️ في صف الجدول: عدّل الجارٍ أو القادم من إجازات الموظف — إن لم توجد فُتح للإضافة */
+function lvRowEdit(empI){
+  const t0=today();
+  const future=LV.leaves.filter(l=>l.i===empI&&lvSpan(l).e>=t0)
+    .sort((a,b)=>String(a.s).localeCompare(String(b.s)));
+  const ongoing=future.find(l=>!l.w&&l.s<=t0);
+  const target=ongoing||future[0]||null;
+  lvOpenLeave(target?target.k:null, empI);
+}
+(function(){
+  const vb=document.getElementById('lvBody');
+  if(vb) vb.addEventListener('click',e=>{
+    const b1=e.target.closest('[data-lvedit]'); if(b1){ lvRowEdit(b1.dataset.lvedit); return; }
+    const b2=e.target.closest('[data-lvview]'); if(b2) lvOpenView(b2.dataset.lvview);
+  });
+  const db=document.getElementById('lvDlgBody');
+  if(db) db.addEventListener('click',e=>{
+    const b1=e.target.closest('[data-lvedit]'); if(b1){ lvOpenLeave(b1.dataset.lvedit); return; }
+    const b2=e.target.closest('[data-lvdel]'); if(b2) lvDeleteLeave(b2.dataset.lvdel);
+  });
+})();
+document.getElementById('lvSearch').oninput=renderLv;
+document.getElementById('lvDept').onchange=renderLv;
+document.getElementById('lvStatus').onchange=renderLv;
+document.getElementById('lvSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.gseg'); if(!b) return;
+  LV_MODE=(b.dataset.m==='gantt')?'gantt':'table';
+  [...b.parentNode.children].forEach(c=>c.classList.toggle('active',c===b));
+  renderLv();
+});
+document.getElementById('lvAddBtn').onclick=()=>lvOpenLeave(null,null);
+document.getElementById('lvDlgX').onclick=lvCloseDlg;
+document.getElementById('lvDlg').addEventListener('click',e=>{ if(e.target.id==='lvDlg') lvCloseDlg(); });
+/* — تصدير Excel عبر Leaves_Template.xlsx (11 عموداً A..K، خلايا منسّقة تُحفظ) — */
+const LV_EXPORT_COLS=11;
+function lvHeadRow(){ const L=T();
+  return ['#', L.c_emp, L.c_num, L.l_dept, L.lv_col_ent, L.lv_col_used, L.lv_col_left,
+    L.lv_col_next, L.lv_col_dur, L.lv_col_status, L.lv_col_notes]; }
+function lvLastNote(empI){  /* آخر إجازة منتهية — عمود الملاحظات */
+  const t0=today();
+  const past=LV.leaves.filter(l=>l.i===empI&&!l.w&&lvEndOf(l.s,l.d)<t0)
+    .sort((a,b)=>String(b.s).localeCompare(String(a.s)));
+  if(!past.length) return '';
+  const l=past[0], end=lvEndOf(l.s,l.d);
+  return (LANG==='ar'?'آخر إجازة: ':'Last leave: ')+l.s+' → '+end
+    +' ('+Math.max(1,Number(l.d)||1)+(LANG==='ar'?' يوم)':' days)');
+}
+function lvExportRow(x,i){
+  const r=(x&&x.r)||{}, nx=x&&x.next;
+  return [ i+1, r.n||'', r.i||'', r.t||'', Number(x.ent)||0, Number(x.used)||0, Number(x.left)||0,
+    nx?(nx.s+(nx.w?'':' → '+lvEndOf(nx.s,nx.d))):'', nx?Math.max(1,Number(nx.d)||1):'',
+    lvStatusText(x.status), lvLastNote(r.i) ];
+}
+async function lvExportRows(rows){
+  const btn=document.getElementById('lvExportBtn');
+  if(!rows.length){ toast(T().empty); return; }
+  if(typeof JSZip==='undefined'){ toast('JSZip lib'); return; }
+  const old=btn.innerHTML;
+  try{
+    btn.disabled=true; btn.innerHTML='⏳ '+esc(T().lv_exporting);
+    const resp=await fetch('Leaves_Template.xlsx');
+    if(!resp.ok) throw new Error('template HTTP '+resp.status);
+    const zip=await JSZip.loadAsync(await resp.arrayBuffer());
+    const sheetPath=Object.keys(zip.files).find(p=>/^xl\/worksheets\/sheet\d+\.xml$/.test(p));
+    if(!sheetPath) throw new Error('sheet xml missing');
+    let xml=await zip.file(sheetPath).async('string');
+    const first=2, last=first+rows.length-1;
+    /* ترويسة الصف 1 بلغة الواجهة الحالية (التنسيق s= يبقى كما هو) */
+    lvHeadRow().forEach((hh,ci)=>{
+      xml=attSetCell(xml, apprCol(ci+1)+'1', 'inlineStr', '<is><t xml:space="preserve">'+attXmlEsc(hh)+'</t></is>'); });
+    let tplLast=0;
+    (xml.match(/<row\b[^>]*\br="(\d+)"/g)||[]).forEach(m=>{ const n=+m.match(/r="(\d+)"/)[1]; if(n>tplLast) tplLast=n; });
+    const patM=xml.match(/<row\b[^>]*\br="2"[^>]*>[\s\S]*?<\/row>/), pat=patM?patM[0]:null;
+    rows.forEach((x,i)=>{
+      const rn=first+i;
+      if(rn>tplLast&&pat) xml=xml.replace('</sheetData>',apprCloneRow(pat,rn)+'</sheetData>');
+      xml=apprSetVals(xml,rn,lvExportRow(x,i));
+    });
+    /* نطاق الفلتر داخل الورقة + منطقة الطباعة ← حتى آخر صف بيانات */
+    xml=xml.replace(/ref="A1:K\d+"/g,'ref="A1:K'+last+'"');
+    zip.file(sheetPath,xml);
+    const wbP='xl/workbook.xml';
+    if(zip.file(wbP)){ let wb=await zip.file(wbP).async('string');
+      wb=wb.replace(/\$A\$?\d+:\$K\$?\d+/g,'$A$1:$K$'+last);
+      zip.file(wbP,wb); }
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    attDownload(blob,'Annual_Leave_'+today()+'.xlsx');
+    toast(T().lv_xlsx);
+  }catch(e){ toast('⚠ '+(e&&e.message?e.message:e)); }
+  finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+document.getElementById('lvExportBtn').onclick=()=>lvExportRows(lvFilterRows());
+/* — PDF بتصميم الموقع (نفس محرك الصفحات المشترك hsePdfRender) — */
+function lvPdfBuild(rows){
+  const L=T(), t0=today(), k=lvKpis();
+  const de=document.getElementById('lvDept'), st=document.getElementById('lvStatus'), se=document.getElementById('lvSearch');
+  const scope=[];
+  if(de&&de.value) scope.push(de.value);
+  if(st&&st.value) scope.push(lvStatusText(st.value));
+  if(se&&se.value) scope.push('«'+se.value+'»');
+  const el=document.createElement('div');
+  el.className='appr-pdf';
+  let h='<div class="appr-pdf-head">'
+    +'<div class="appt"><span class="appt-ic">🪴</span>'+esc(L.lv_title)
+    +'<span style="font-size:14px;color:#94a3b8;font-weight:700;">· HSE Tracker</span></div>'
+    +'<div class="appr-pdf-meta">'
+      +esc(L.appr_pdf_date)+': <b>'+t0+'</b> · '
+      +esc(L.appr_pdf_scope)+': <b>'+esc(scope.length?scope.join(' · '):L.appr_pdf_scope_all)+'</b> · '
+      +esc(L.appr_pdf_rows)+': <b>'+rows.length+'</b></div>'
+    +'<div class="appr-pdf-kpi">'
+      +'<div class="stat"><div class="k">'+esc(L.lv_kpi_on)+'</div><div class="v" style="color:#0ea5e9;">'+k.onLeave+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.lv_kpi_30)+'</div><div class="v" style="color:#10b981;">'+k.soon30+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.lv_kpi_bal)+'</div><div class="v" style="color:#3b82f6;">'+k.used+' / '+k.ent+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.lv_kpi_conf)+'</div><div class="v" style="color:#f43f5e;">'+k.conflicts+'</div></div>'
+    +'</div></div>';
+  h+='<table class="appr-pdf-table"><thead><tr>'
+    +'<th>#</th><th>'+esc(L.c_emp)+'</th><th>'+esc(L.c_num)+'</th><th>'+esc(L.l_dept)+'</th>'
+    +'<th>'+esc(L.lv_col_ent)+'</th><th>'+esc(L.lv_col_used)+'</th><th>'+esc(L.lv_col_left)+'</th>'
+    +'<th>'+esc(L.lv_col_next)+'</th><th>'+esc(L.lv_col_dur)+'</th><th>'+esc(L.lv_col_status)+'</th>'
+    +'</tr></thead><tbody>';
+  rows.forEach((x,i)=>{
+    const nx=x.next;
+    h+='<tr><td class="idx">'+(i+1)+'</td>'
+      +'<td>'+esc(x.r.n||'—')+'</td>'
+      +'<td class="ltr">'+esc(x.r.i||'—')+'</td>'
+      +'<td>'+esc(x.r.t||'—')+'</td>'
+      +'<td class="idx">'+x.ent+'</td>'
+      +'<td class="idx">'+x.used+'</td>'
+      +'<td class="idx"><b>'+x.left+'</b></td>'
+      +'<td class="ltr">'+esc(nx?(nx.s+(nx.w?'':' → '+lvEndOf(nx.s,nx.d))):'—')+'</td>'
+      +'<td class="idx">'+(nx?Math.max(1,Number(nx.d)||1):'')+'</td>'
+      +'<td><span class="tag '+lvStatusCls(x.status)+'">'+esc(lvStatusText(x.status))+'</span></td></tr>';
+  });
+  h+='</tbody></table>'
+    +'<div class="appr-pdf-foot"><span>HSE Tracker · '+esc(L.lv_title)+'</span>'
+    +'<span>'+esc(L.appr_pdf_date)+': '+t0+'</span></div>';
+  el.innerHTML=h;
+  return el;
+}
+async function lvPdfExport(){
+  const L=T(), btn=document.getElementById('lvPdfBtn');
+  const rows=lvFilterRows();   /* PDF يعرض دائماً ما يظهره الفلتر الحالي */
+  if(!rows.length){ toast(L.empty); return; }
+  const old=btn.innerHTML;
+  try{
+    btn.disabled=true; btn.innerHTML='⏳ '+esc(L.lv_pdf_building);
+    await hsePdfRender(lvPdfBuild(rows), 'Annual_Leave_'+today()+'.pdf', L.lv_pdf_done);
+  }catch(e){ toast('⚠ '+L.appr_pdf_fail+(e&&e.message?' ('+e.message+')':'')); }
+  finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+document.getElementById('lvPdfBtn').onclick=lvPdfExport;
+/* مزامنة بين نوافذ المتصفح: تعديل في نافذة أخرى يُعيد تحميل الحالة ويعيد العرض */
+window.addEventListener('storage',e=>{
+  if(!e||e.key!==LV_STORE) return;
+  lvLoad();
+  const v=document.getElementById('viewLv');
+  if(v&&!v.classList.contains('hide')) renderLv();
+});
 /* ============ VEHICLES ============ */
 const VEH_MAKES=['Toyota','Hyundai','Nissan','Kia','Chevrolet','Ford','GMC','Honda','Mazda','Mitsubishi','Isuzu','Lexus','MG','Changan','Jetour','Geely','Chery','Suzuki','NO VEHICLE'];
 const VEH_COLOURS=['White','Black','Silver','Grey','Blue','Red','Green','Beige','Gold','Brown','Yellow','Orange','Maroon','Dark gray'];
@@ -3803,6 +4504,7 @@ if(mp.type!=='month'){ /* Safari / Firefox لا يدعمون month: نستخدم
 }
 document.getElementById('recDate').value=today();
 document.getElementById('listMonthLabel').textContent=curMonth();
+lvLoad();          /* بيانات الإجازات: البذرة + التعديلات المحلية (قبل أول رسم) */
 applyLang();
 renderAuthUI();
 
@@ -3837,6 +4539,7 @@ if('serviceWorker' in navigator && (location.protocol==='http:'||location.protoc
     <button class="nav-item active" data-view="viewVio"><span class="nav-icon">🦺</span><span data-i="nav_vio">المخالفات</span></button>
     <button class="nav-item" data-view="viewVeh"><span class="nav-icon">🚗</span><span data-i="nav_veh">السيارات</span></button>
     <button class="nav-item" data-view="viewAppr"><span class="nav-icon">🛡️</span><span data-i="nav_appr">الاعتمادات</span></button>
+    <button class="nav-item" data-view="viewLv"><span class="nav-icon">🪴</span><span data-i="nav_lv">الإجازات</span></button>
     <button class="nav-item" data-view="viewGrp"><span class="nav-icon">🗂️</span><span data-i="nav_grp">القروبات</span></button>
     <button class="nav-item" data-view="viewDep"><span class="nav-icon">🗺️</span><span data-i="nav_dep">التوزيع</span></button>
     <button class="nav-item" data-view="viewEmp"><span class="nav-icon">👥</span><span data-i="nav_emp">الموظفين</span></button>
@@ -3897,6 +4600,7 @@ function buildBrandActions(){
       <div class="action-card" data-view="viewVio"><div class="ac-icon">🦺</div><div class="ac-title" data-i="tab_vio">المخالفات والغيابات</div><div class="ac-desc" data-i="ac_desc_vio">تسجيل ومتابعة المخالفات</div></div>
       <div class="action-card" data-view="viewVeh"><div class="ac-icon">🚗</div><div class="ac-title" data-i="tab_veh">السيارات</div><div class="ac-desc" data-i="ac_desc_veh">إدارة السيارات واللوحات</div></div>
       <div class="action-card" data-view="viewAppr"><div class="ac-icon">🛡️</div><div class="ac-title" data-i="tab_appr">اعتمادات ارامكو</div><div class="ac-desc" data-i="ac_desc_appr">حالة ابروفل الموظفين</div></div>
+      <div class="action-card" data-view="viewLv"><div class="ac-icon">🪴</div><div class="ac-title" data-i="tab_lv">الإجازات السنوية</div><div class="ac-desc" data-i="ac_desc_lv">الاستحقاق والرصيد وجدول الإجازات</div></div>
       <div class="action-card" data-view="viewGrp"><div class="ac-icon">🗂️</div><div class="ac-title" data-i="tab_grp">القروبات</div><div class="ac-desc" data-i="ac_desc_grp">قروبات الدوام A/B/Daily</div></div>
       <div class="action-card" data-view="viewDep"><div class="ac-icon">🗺️</div><div class="ac-title" data-i="tab_dep">التوزيع</div><div class="ac-desc" data-i="ac_desc_dep">توزيع الموظفين للمناطق</div></div>
       <div class="action-card" data-view="viewEmp"><div class="ac-icon">👥</div><div class="ac-title" data-i="tab_emp">الموظفين</div><div class="ac-desc" data-i="ac_desc_emp">إدارة بيانات الموظفين</div></div>
@@ -3974,7 +4678,7 @@ function initBrandTheme(){
 }
 
 function switchBrandView(viewId){
-  const map={viewVio:"vio",viewVeh:"veh",viewAppr:"appr",viewGrp:"grp",viewDep:"dep",viewEmp:"emp",viewTs:"ts"};
+  const map={viewVio:"vio",viewVeh:"veh",viewAppr:"appr",viewLv:"lv",viewGrp:"grp",viewDep:"dep",viewEmp:"emp",viewTs:"ts"};
   const v=map[viewId]||String(viewId||"").replace("view","");
   try{ if(typeof switchView==="function") switchView(v); }catch(e){}
   setBrandActive(viewId);
