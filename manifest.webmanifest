@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "HSE Tracker — نظام متابعة السلامة والبيئة",
-  "short_name": "HSE Tracker",
-  "description": "متابعة الموظفين والحضور والاعتمادات وقوائم القروبات — HSE personnel, attendance and approvals tracker.",
+  "name": "هيونداي للهندسة والإنشاءات (Hyundai E&C)",
+  "short_name": "Hyundai E&C",
+  "description": "هيونداي للهندسة والإنشاءات — متابعة الموظفين والحضور والاعتمادات وقوائم القروبات (HSE personnel, attendance and approvals tracker).",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./",

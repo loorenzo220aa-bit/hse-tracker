@@ -55,6 +55,11 @@ setTimeout(() => {
   t('employee card heading correct', d.querySelector('[data-i="t_emp"]').textContent.includes('إدارة الموظفين'),
     JSON.stringify(d.querySelector('[data-i="t_emp"]').textContent));
   t('no "XX" option labels left', !d.body.innerHTML.includes('>XX<'));
+  // الهوية الجديدة: عنوان الموقع + إزالة عناوين الصفحة الرئيسية القديمة + عناوين الأقسام
+  t('site title is Hyundai E&C', d.title === 'هيونداي للهندسة والإنشاءات (Hyundai E&C)', d.title);
+  t('old homepage headings removed', !d.querySelector('[data-i="title"]') && !d.querySelector('[data-i="subtitle"]'));
+  t('home sections titled (overview + quick access)',
+    !!d.querySelector('.bc-title[data-i="home_stats"]') && !!d.querySelector('.bc-title[data-i="home_actions"]'));
 
   // 3) login flow with the seeded default admin
   d.getElementById('lgUser').value = 'admin';
