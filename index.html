@@ -1348,6 +1348,31 @@ async function sb(table, method='GET', body=null, qs='') {
 }
 let SB_CONNECTED = false;
 
+/* POST صريح يُعيد {ok,status}: لتمييز الفشل الحقيقي (شبكة/مهلة/رفض) عن النجاح —
+   بدونه كان الموقع يعرض «تم حفظ الحركة ✅» رغم أن الصف لم يصل Supabase أبداً (ضياع مؤكد لحركات مرفوعة) */
+async function sbTry(table, payload){
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try{
+      const r = await fetch(SB_URL + '/rest/v1/' + table, { method:'POST',
+        headers: Object.assign({}, SB_H), body: JSON.stringify(payload), signal: controller.signal });
+      return { ok: r.ok, status: r.status };
+    } finally { clearTimeout(timeout); }
+  } catch(e){ console.error('SB post err:', e); return { ok:false, status:0 }; }
+}
+
+/* طابور رفع سجل الحركات: عند فشل الإدراج تُحفظ الحركة هنا (مفتاح localStorage)
+   وتُرفع تلقائياً عند تسجيل الدخول أو عودة الاتصال — أي حركة مرّرة لا تضيع أبداً */
+const REC_QUEUE_KEY='hse-rec-queue';
+function recQueueGet(){ try{ const q=JSON.parse(localStorage.getItem(REC_QUEUE_KEY)); return Array.isArray(q)?q:[]; }catch(e){ return []; } }
+function recQueueSet(q){ try{ localStorage.setItem(REC_QUEUE_KEY, JSON.stringify(q)); }catch(e){} }
+function recQueuePut(payload){
+  const q=recQueueGet();
+  if(!q.some(x=>x&&x.payload&&x.payload.id===payload.id)){ if(q.length>=50) q.shift(); q.push({payload:payload}); recQueueSet(q); }
+}
+function recQueueDrop(id){ recQueueSet(recQueueGet().filter(x=>!(x&&x.payload&&x.payload.id===id))); }
+
 /* ============ LOAD / SAVE ============ */
 function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate, grp:e.grp, photo:e.photo}; }
 function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
@@ -1361,6 +1386,9 @@ async function loadAll() {
   }
   D.emp = (emp || []).map(mapEmp);
   D.rec = (rec || []).map(mapRec);
+  /* الحركات المعلّقة في الطابور (لم تصل بعد) تبقى ظاهرة ولا تُستبدل بنسخة الخادم الناقصة */
+  recQueueGet().forEach(item => { const p = item && item.payload;
+    if(p && p.id && !D.rec.some(x => x.id === p.id)) D.rec.push(mapRec(p)); });
   D.ts = tsl || [];
   D.dep = (dep || []).map(mapDep);
   D.veh = (veh || []).map(mapVeh);
@@ -1385,9 +1413,28 @@ async function delEmp(id, num) {
 async function updateEmp(id, data) { const keep={}; ['ar','en','num','dept','phone','plate','grp','photo'].forEach(k=>{ if(data[k]!==undefined) keep[k]=data[k]; }); let r=await sb('employees', 'PATCH', keep, '?id=eq.'+id); if(!r){ const c={ar:data.ar,en:data.en,num:data.num,dept:data.dept,phone:data.phone}; r=await sb('employees', 'PATCH', c, '?id=eq.'+id); } return r; }
 async function saveRec(r) { 
   const payload = { id: r.id, emp_id: r.empId, type: r.type, date: r.date, note: r.note, by_user: r.by, ts: r.ts };
-  await sb('records', 'POST', payload); 
+  const res = await sbTry('records', payload);
+  if(res.ok || res.status===409){ recQueueDrop(r.id); return true; }  /* 409 = وصل سابقاً (إعادة محاولة بعد انقطاع) */
+  recQueuePut(payload); return false;
 }
-async function delRec(id) { await sb('records', 'DELETE', null, '?id=eq.'+id); }
+async function delRec(id) { recQueueDrop(id); await sb('records', 'DELETE', null, '?id=eq.'+id); }
+
+/* إعادة رفع الطابور — يُستدعى بعد تحميل البيانات وعند عودة الاتصال */
+async function flushRecQueue(){
+  const q = recQueueGet(); if(!q.length) return 0;
+  let done = 0;
+  for (const item of q) {
+    const id = item && item.payload && item.payload.id;
+    if(!id) continue;
+    if(!D.rec.some(x => x.id === id)){ recQueueDrop(id); continue; }   /* حُذف محلياً ← لا داعي لرفعه */
+    const res = await sbTry('records', item.payload);
+    if(res.ok || res.status === 409){ recQueueDrop(id); done++; }
+  }
+  return done;
+}
+function syncRecQueue(){
+  flushRecQueue().then(n => { if(n>0){ renderRecs(); renderStats(); toast(T().toast_recFlushed); } }).catch(()=>{});
+}
 
 /* ============ I18N ============ */
 let LANG='ar';
@@ -1411,6 +1458,7 @@ const I18N={
     t_sum:'ملخص شهري للموظفين', foot:'نظام متابعة HSE — هيونداي للهندسة والإنشاءات (Hyundai E&C)',
     home_stats:'📊 نظرة عامة', home_actions:'⚡ الوصول السريع',
     toast_addEmp:'تم تسجيل الموظف', toast_del:'تم الحذف', toast_addRec:'تم حفظ الحركة', toast_xlsx:'تم تصدير ملف Excel',
+    toast_recFail:'⚠️ تعذّر رفع الحركة — بقيت محفوظة عندك وستُعاد محاولة الرفع تلقائياً', toast_recFlushed:'تم رفع الحركات المعلّقة ✅',
     toast_addUser:'تمت إضافة الزميل', toast_delUser:'تم حذف الزميل', toast_cantSelf:'لا يمكن حذف نفسك',
     empty:'لا توجد سجلات مطابقة', emptyEmp:'لا يوجد موظفون بعد — أضف موظف أولاً', emptyUsers:'لا يوجد زملاء بعد',
     type_vio:'مخالفة', type_abs:'غياب', type_per:'استئذان', type_oth:'أخرى',
@@ -1524,6 +1572,7 @@ const I18N={
     t_sum:'Monthly Employee Summary', foot:'HSE Tracker — Hyundai Engineering & Construction',
     home_stats:'📊 Overview', home_actions:'⚡ Quick access',
     toast_addEmp:'Employee saved', toast_del:'Deleted', toast_addRec:'Entry saved', toast_xlsx:'Excel exported',
+    toast_recFail:'⚠️ Upload failed — kept on this device and will retry automatically', toast_recFlushed:'Pending entries uploaded ✅',
     toast_addUser:'Colleague added', toast_delUser:'Colleague removed', toast_cantSelf:'Cannot delete yourself',
     empty:'No matching records', emptyEmp:'No employees yet — add one first', emptyUsers:'No colleagues yet',
     type_vio:'Violation', type_abs:'Absence', type_per:'Permit', type_oth:'Other',
@@ -1807,8 +1856,12 @@ async function doLogin(){
         const [emp,rec]=await Promise.all([sb('employees'),sb('records')]);
         if(emp&&emp.length) D.emp=emp.map(mapEmp);
         if(rec&&rec.length) D.rec=rec.map(mapRec);
+        /* لا تُستبدل الحركات المحلية المعلّقة بما لم يصل من الخادم */
+        recQueueGet().forEach(item=>{ const p=item&&item.payload;
+          if(p&&p.id&&!D.rec.some(x=>x.id===p.id)) D.rec.push(mapRec(p)); });
         SB_CONNECTED=true;
         fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
+        syncRecQueue();
       }catch(e){}
     })();
     renderAuthUI(); applyLang();
@@ -2231,14 +2284,14 @@ document.getElementById('addRecBtn').onclick=async()=>{
   }
   const rec={id:uid(),empId,type,date,note:noteData,by:SESSION,ts:Date.now()};
   D.rec.push(rec);
-  await saveRec(rec);
+  const upOK = await saveRec(rec);   /* فشل الرفع ← تبقى محلياً في الطابور ونُخبر المستخدم بالحقيقة */
   renderStats(); renderRecs(); renderSum();
   document.getElementById('recNote').value='';
   document.getElementById('recDate').value=today();
   document.getElementById('recFile').value='';
   document.getElementById('filePreview').textContent='';
   pendingFile=null;
-  toast(T().toast_addRec);
+  toast(upOK ? T().toast_addRec : T().toast_recFail);
 };
 
 document.getElementById('recBody').addEventListener('click',async e=>{
@@ -4508,8 +4561,8 @@ lvLoad();          /* بيانات الإجازات: البذرة + التعدي
 applyLang();
 renderAuthUI();
 
-// مؤشر حالة الشبكة
-window.addEventListener('online',()=>toast(LANG==='ar'?'✅ متصل بقاعدة البيانات':'✅ Connected to the database'));
+// مؤشر حالة الشبكة + رفع أي حركات معلّقة فور عودة الاتصال
+window.addEventListener('online',()=>{ toast(LANG==='ar'?'✅ متصل بقاعدة البيانات':'✅ Connected to the database'); syncRecQueue(); });
 window.addEventListener('offline',()=>toast(LANG==='ar'?'⚠️ بدون اتصال — تعرض آخر بيانات':'⚠️ Offline — showing last saved data'));
 
 // BACKGROUND: try loading from Supabase (non-blocking)
@@ -4518,6 +4571,7 @@ window.addEventListener('offline',()=>toast(LANG==='ar'?'⚠️ بدون اتص�
     const _w=document.getElementById('appWrap'); if(_w)_w.classList.add('loading');
     await Promise.race([loadAll(), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))]);
     SB_CONNECTED=true;
+    syncRecQueue();   /* ارفع أي حركات بقيت في الطابور من زيارة سابقة */
     // Re-render with fresh data
     if(SESSION) renderAuthUI();
     if(typeof renderGrp==='function') renderGrp();

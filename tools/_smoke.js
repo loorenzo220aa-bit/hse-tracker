@@ -324,6 +324,97 @@ setTimeout(() => {
       d.getElementById('tabVio').click();
     } catch (e) { bad.push('annual leave threw: ' + e.message); }
 
+    // 4d) حماية سجل الحركات: فشل الرفع لا يُقدَّم كنجاح + طابور إعادة رفع تلقائي
+    t('rec-queue helpers defined', typeof window.sbTry === 'function'
+      && typeof window.recQueuePut === 'function' && typeof window.recQueueDrop === 'function'
+      && typeof window.flushRecQueue === 'function' && typeof window.syncRecQueue === 'function');
+    t('recQueuePut dedupes by id', (() => {
+      window.localStorage.removeItem('hse-rec-queue');
+      window.recQueuePut({ id: 'dup-1', type: 'violation' });
+      window.recQueuePut({ id: 'dup-1', type: 'violation' });
+      const n = JSON.parse(window.localStorage.getItem('hse-rec-queue') || '[]').length;
+      window.localStorage.removeItem('hse-rec-queue');
+      return n === 1;
+    })());
+    t('delRec drops the entry from the retry queue', (() => {
+      window.localStorage.removeItem('hse-rec-queue');
+      window.recQueuePut({ id: 'q-del-1', type: 'violation' });
+      window.delRec('q-del-1');                       /* الجزء المتزامن يحذف من الطابور قبل انتظار الشبكة */
+      const n = JSON.parse(window.localStorage.getItem('hse-rec-queue') || '[]').length;
+      return n === 0;
+    })());
+
+    /* السيناريو الكامل (غير متزامن): حفظ والشبكة مقطوعة ← تحذير صادق + بقاء محلي،
+       ثم عودة الاتصال ← رفع تلقائي وتفريغ الطابور. يُستدعى من finish(). */
+    function runRecQueueTest(done) {
+      try {
+        // العودة لجلسة المدير (الجلسة الحالية cryptotest العرضي)
+        window.doLogout();
+        d.getElementById('lgUser').value = 'admin';
+        d.getElementById('lgPass').value = 'admin200';
+        window.doLogin();
+        t('rec-queue: admin session restored', d.documentElement.getAttribute('data-perm') === 'edit',
+          'perm=' + d.documentElement.getAttribute('data-perm'));
+        window.eval("(function(){ D.emp.push({id:'REC-Q-EMP', ar:'موظف اختبار', en:'Rec Queue Emp', num:'RQ-001', dept:'HSE', phone:'', plate:'', grp:'', photo:''}); fillEmpSel(); })()");
+        const sel = d.getElementById('recEmp');
+        sel.value = 'REC-Q-EMP';
+        t('rec-queue: employee select populated', sel.value === 'REC-Q-EMP');
+
+        // بيئة الاختبار: fetch يرفض دائماً (قطع الاتصال)
+        window.localStorage.removeItem('hse-rec-queue');
+        d.getElementById('recType').value = 'violation';
+        d.getElementById('recDate').value = '2026-09-15';
+        d.getElementById('recNote').value = 'CHECK-QUEUE-OFFLINE';
+        const n0 = window.eval('D.rec.length');
+        d.getElementById('addRecBtn').click();
+        setTimeout(function () {
+          try {
+            const q = JSON.parse(window.localStorage.getItem('hse-rec-queue') || '[]');
+            t('offline save: payload queued for retry', q.length === 1
+              && String(q[0].payload.note) === 'CHECK-QUEUE-OFFLINE'
+              && String(q[0].payload.emp_id) === 'REC-Q-EMP', JSON.stringify(q[0] || null).slice(0, 120));
+            t('offline save: entry still visible locally (D.rec +1)', window.eval('D.rec.length') === n0 + 1);
+            const tt = d.getElementById('toast').textContent;
+            t('offline save: honest warning, no fake success',
+              tt.indexOf('تعذّر') >= 0 && tt.indexOf('تم حفظ الحركة') < 0, JSON.stringify(tt));
+            t('offline save: row listed in سجل الحركات',
+              !!d.querySelector('#recBody tr')
+              && d.getElementById('recBody').textContent.indexOf('CHECK-QUEUE-OFFLINE') >= 0);
+
+            // عودة الاتصال ← الإفراغ يرفع المعلّق ويصفّي الطابور
+            const origFetch = window.fetch;
+            window.fetch = function (url, init) {
+              window.__fetchCalls.push({ url: String(url), method: (init && init.method) || 'GET', body: (init && init.body) || '' });
+              return Promise.resolve({ ok: true, status: 201, text: function () { return Promise.resolve('[]'); } });
+            };
+            window.flushRecQueue().then(function () {
+              try {
+                const q2 = JSON.parse(window.localStorage.getItem('hse-rec-queue') || '[]');
+                t('flush: queue emptied after successful upload', q2.length === 0, JSON.stringify(q2).slice(0, 80));
+                const posts = window.__fetchCalls.filter(function (c) {
+                  return c.method === 'POST' && /rest\/v1\/records/.test(c.url)
+                    && String(c.body).indexOf('CHECK-QUEUE-OFFLINE') >= 0;
+                });
+                t('flush: payload POSTed to records', posts.length >= 1, posts.length + ' calls');
+              } catch (e) { bad.push('flush assertions threw: ' + e.message); }
+              // التنظيف واسترجاع جلسة cryptotest كما هي
+              try {
+                window.eval("(function(){ D.rec = D.rec.filter(function(r){ return r.note !== 'CHECK-QUEUE-OFFLINE'; }); renderStats(); renderRecs(); renderSum(); })()");
+                window.localStorage.removeItem('hse-rec-queue');
+                window.fetch = origFetch;
+                window.eval("(function(){ D.emp = D.emp.filter(function(e){ return e.id !== 'REC-Q-EMP'; }); fillEmpSel(); })()");
+                window.doLogout();
+                d.getElementById('lgUser').value = 'cryptotest';
+                d.getElementById('lgPass').value = 'MySecret123';
+                window.doLogin();
+              } catch (e) { bad.push('rec-queue cleanup threw: ' + e.message); }
+              done();
+            }).catch(function (e) { bad.push('flush threw: ' + e.message); done(); });
+          } catch (e) { bad.push('rec-queue async threw: ' + e.message); done(); }
+        }, 80);
+      } catch (e) { bad.push('rec-queue setup threw: ' + e.message); done(); }
+    }
+
     // 5) dashboard / charts
     const dd = d.getElementById('dashDaily');
     t('dashboard card exists', !!d.getElementById('dashCard'));
@@ -392,10 +483,10 @@ setTimeout(() => {
             !!d.getElementById('addEmpBtn').closest('.edit-only') && !!d.getElementById('addRecBtn').closest('.edit-only')
             && !!d.getElementById('tsSaveBtn').closest('.edit-only') && !!d.getElementById('depSaveBtn').closest('.edit-only')
             && !!d.getElementById('vehSaveBtn').closest('.edit-only') && !!d.getElementById('importBtn').closest('.edit-only'));
-          finish();
+          runRecQueueTest(finish);
         }, 300);
       }, 250);
-    } catch (e) { bad.push('password hashing threw: ' + e.message); finish(); }
+    } catch (e) { bad.push('password hashing threw: ' + e.message); runRecQueueTest(finish); }
 
     function finish() {
       // 7) switch tabs (this exercises renderVeh / renderDep / renderTs / renderStaff)
