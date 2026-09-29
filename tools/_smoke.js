@@ -424,6 +424,83 @@ setTimeout(() => {
       } catch (e) { bad.push('write-layer setup threw: ' + e.message); done(); }
     }
 
+    /* — صدق رفض الخادم + عدم فقدان أي سجل معلّق (4 فحوصات جديدة) — */
+    function runHonestRejectTests(done) {
+      try {
+        const okFetch = window.fetch;   // مُحاكي النجاح201 (الذي يسجّل في __fetchCalls)
+        const recs403 = function (url, init) {
+          if (String(url).indexOf('/rest/v1/records') >= 0 && init && init.method === 'POST')
+            return Promise.resolve({ ok: false, status: 403, text: function () { return Promise.resolve('{"message":"blocked by policy"}'); } });
+          return okFetch.apply(window, arguments);
+        };
+
+        // (1) رفض دائم (4xx) أثناء الإضافة: لا طابور + لا شبح محلي + تحذير صادق بلا وعود كاذبة
+        window.localStorage.removeItem('hse-rec-queue');
+        const n1 = window.eval('D.rec.length');
+        window.fetch = recs403;
+        d.getElementById('recNote').value = 'CHECK-REJECT-403';
+        d.getElementById('addRecBtn').click();
+        setTimeout(function () {
+          try {
+            const q1 = JSON.parse(window.localStorage.getItem('hse-rec-queue') || '[]');
+            t('reject: no queue on permanent 4xx', q1.length === 0, 'q=' + q1.length);
+            t('reject: no phantom row left locally (removed immediately)', window.eval('D.rec.length') === n1,
+              'n=' + window.eval('D.rec.length') + ' vs ' + n1);
+            const tt = d.getElementById('toast').textContent;
+            t('reject: honest toast — not saved, no false retry promise',
+              tt.indexOf('رفض') >= 0 && tt.indexOf('ستُعاد') < 0, JSON.stringify(tt));
+            t('reject: row absent from table', d.getElementById('recBody').textContent.indexOf('CHECK-REJECT-403') < 0, 'still visible!');
+          } catch (e) { bad.push('reject assertions threw: ' + e.message); }
+
+          // (2) الإفراغ: الرفض الدائم يُسقط من الطابور بلا إعادة محاولة عمياء + يزيل الشبح
+          try {
+            window.localStorage.removeItem('hse-rec-queue');
+            window.eval("(function(){ var r={id:'rej-flush-1',empId:'REC-Q-EMP',type:'violation',date:'2026-09-15',note:'CHECK-FLUSH-REJECT',by:'admin',ts:Date.now()}; D.rec.push(r); recQueuePut({id:r.id,emp_id:r.empId,type:r.type,date:r.date,note:r.note,by_user:r.by,ts:r.ts}); renderRecs(); })()");
+            window.fetch = recs403;
+          } catch (e) { bad.push('flush-reject setup threw: ' + e.message); done(); return; }
+          window.flushRecQueue().then(function () {
+            try {
+              const q2 = JSON.parse(window.localStorage.getItem('hse-rec-queue') || '[]');
+              t('flush: permanent reject dropped — no blind retry', q2.length === 0, JSON.stringify(q2).slice(0, 80));
+              t('flush: rejected phantom removed from D.rec',
+                window.eval("!D.rec.some(function(r){return r.id==='rej-flush-1';})"), 'still there');
+            } catch (e) { bad.push('flush-reject assertions threw: ' + e.message); }
+
+            // (3) حارس فقدان البيانات محذوف: الرفع يحدث حتى لو غاب السجل عن D.rec
+            try {
+              window.localStorage.removeItem('hse-rec-queue');
+              window.fetch = okFetch;
+              window.__fetchCalls = [];
+              window.recQueuePut({ id: 'absent-1', emp_id: 'REC-Q-EMP', type: 'violation', date: '2026-09-15', note: 'CHECK-ABSENT-UPLOAD', by_user: 'admin', ts: 1 });
+            } catch (e) { bad.push('absent-upload setup threw: ' + e.message); done(); return; }
+            window.flushRecQueue().then(function () {
+              try {
+                const q3 = JSON.parse(window.localStorage.getItem('hse-rec-queue') || '[]');
+                const posts = window.__fetchCalls.filter(function (c) {
+                  return c.method === 'POST' && /rest\/v1\/records/.test(c.url) && String(c.body).indexOf('CHECK-ABSENT-UPLOAD') >= 0;
+                });
+                t('flush: uploads entry even when missing from D.rec (no-drop guard)', q3.length === 0 && posts.length >= 1,
+                  'q=' + q3.length + ' posts=' + posts.length);
+              } catch (e) { bad.push('absent-upload assertions threw: ' + e.message); }
+
+              // (4) شارة «قيد الرفع» على الصف المعلّق
+              try {
+                window.localStorage.removeItem('hse-rec-queue');
+                window.eval("(function(){ var r={id:'badge-1',empId:'REC-Q-EMP',type:'violation',date:'2026-09-15',note:'CHECK-BADGE',by:'admin',ts:Date.now()}; D.rec.push(r); recQueuePut({id:r.id,emp_id:r.empId,type:r.type,date:r.date,note:r.note,by_user:r.by,ts:r.ts}); renderRecs(); })()");
+                const btxt = d.getElementById('recBody').textContent;
+                t('pending badge shows «قيد الرفع» on queued row',
+                  btxt.indexOf('قيد الرفع') >= 0 && btxt.indexOf('CHECK-BADGE') >= 0, btxt.slice(0, 80));
+                window.eval("D.rec = D.rec.filter(function(r){ return ['CHECK-REJECT-403','CHECK-FLUSH-REJECT','CHECK-ABSENT-UPLOAD','CHECK-BADGE'].indexOf(String(r.note))<0; }); renderRecs(); renderStats(); renderSum();");
+                window.localStorage.removeItem('hse-rec-queue');
+              } catch (e) { bad.push('badge assertions threw: ' + e.message); }
+              window.fetch = okFetch;
+              done();
+            }).catch(function (e) { bad.push('absent flush threw: ' + e.message); window.fetch = okFetch; done(); });
+          }).catch(function (e) { bad.push('flush-reject threw: ' + e.message); done(); });
+        }, 80);
+      } catch (e) { bad.push('reject setup threw: ' + e.message); done(); }
+    }
+
     function runRecQueueTest(done) {
       try {
         // العودة لجلسة المدير (الجلسة الحالية cryptotest العرضي)
@@ -475,7 +552,8 @@ setTimeout(() => {
                 });
                 t('flush: payload POSTed to records', posts.length >= 1, posts.length + ' calls');
               } catch (e) { bad.push('flush assertions threw: ' + e.message); }
-              // ثم اختبار الطبقة العامة للكتابة الموثوقة، ثم التنظيف
+              // ثم فحوصات صدق الرفض وعدم فقدان المعلّق، ثم الطبقة العامة، ثم التنظيف
+              runHonestRejectTests(function () {
               runWriteLayerTest(function () {
               // التنظيف واسترجاع جلسة cryptotest كما هي
               try {
@@ -490,6 +568,7 @@ setTimeout(() => {
               } catch (e) { bad.push('rec-queue cleanup threw: ' + e.message); }
               done();
               });
+              });   /* نهاية runHonestRejectTests */
             }).catch(function (e) { bad.push('flush threw: ' + e.message); done(); });
           } catch (e) { bad.push('rec-queue async threw: ' + e.message); done(); }
         }, 80);
@@ -703,14 +782,14 @@ setTimeout(() => {
       } catch (e) { bad.push('month change threw: ' + e.message); }
 
       // أخطاء الشبكة المتوقعة من المحاكي لا تُعدّ عيوباً
-      const expected = 'offline (test stub)';
-      const unexpected = errors.filter(e => !e.includes(expected));
+      const expected = ['offline (test stub)', 'blocked by policy'];   // الثاني: رفض 403 المتعمَّد في فحوصات «الرفض الصادق»
+      const unexpected = errors.filter(e => !expected.some(p => e.includes(p)));
 
       console.log('\n=== PASSED (' + ok.length + ') ===');
       ok.forEach(x => console.log('  ✔ ' + x));
       if (bad.length) { console.log('\n=== FAILED (' + bad.length + ') ==='); bad.forEach(x => console.log('  ✘ ' + x)); }
       if (errors.length) {
-        console.log('\n=== LOG (' + errors.length + ' expected offline-stub errors, ignored) ===');
+        console.log('\n=== LOG (' + errors.length + ' expected stub/reject errors, ignored) ===');
       }
       if (unexpected.length) {
         console.log('\n=== UNEXPECTED ERRORS (' + unexpected.length + ') ===');

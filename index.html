@@ -1458,6 +1458,7 @@ async function refreshFromServer(){
   if(now-__lastRefresh<10000) return false;
   __lastRefresh=now;
   try{ await loadAll(); }catch(e){ return false; }
+  syncAllQueues();   /* أي حركات معلّقة تُرفع مع كل تحديث — لا انتظار لحدث اتصال آخر */
   try{
     renderAuthUI(); renderUsers(); renderEmps(); renderStats(); renderDash();
     renderRecs(); renderSum(); renderTs(); renderStaff(); renderDep();
@@ -1503,23 +1504,29 @@ async function updateEmp(id, data) {
 async function saveRec(r) { 
   const payload = { id: r.id, emp_id: r.empId, type: r.type, date: r.date, note: r.note, by_user: r.by, ts: r.ts };
   const res = await sbTry('records', payload);
-  if(res.ok || res.status===409){ recQueueDrop(r.id); return true; }  /* 409 = وصل سابقاً (إعادة محاولة بعد انقطاع) */
-  if(res.queued) recQueuePut(payload);   /* فشل مؤقت ← طابور؛ رفض دائم (4xx) ← لا طابور ويظهر التحذير */
-  return false;
+  if(res.ok || res.status===409){ recQueueDrop(r.id); return 'ok'; }  /* 409 = وصل سابقاً (إعادة محاولة بعد انقطاع) */
+  if(res.queued){ recQueuePut(payload); return 'queued'; }   /* فشل مؤقت ← طابور محلي مضمون الوصول */
+  return 'rejected';   /* رفض دائم (4xx) ← لا طابور ولا وعود كاذبة: المعالج يزيل السجل ويُبلغ بالحقيقة */
 }
 async function delRec(id) { recQueueDrop(id); return await sbWrite('records', 'DELETE', null, '?id=eq.'+id); }
 
-/* إعادة رفع الطابور — يُستدعى بعد تحميل البيانات وعند عودة الاتصال */
+/* إعادة رفع الطابور — يُستدعى بعد تحميل البيانات وعند عودة الاتصال وكل تحديث بين الحسابات.
+   قاعدة أمان البيانات: الرافع لا يسقط شيئاً من الطابور إلا إذا نجح (أو 409 = وصل سابقاً) —
+   حارس «غائب عن D.rec ← احذفه» كان يدمّر السجلات المعلّقة لحظة رجوع خادم ناقص، فحُذف. */
 async function flushRecQueue(){
   const q = recQueueGet(); if(!q.length) return 0;
-  let done = 0;
+  let done = 0, rejected = 0;
   for (const item of q) {
     const id = item && item.payload && item.payload.id;
     if(!id) continue;
-    if(!D.rec.some(x => x.id === id)){ recQueueDrop(id); continue; }   /* حُذف محلياً ← لا داعي لرفعه */
     const res = await sbTry('records', item.payload);
     if(res.ok || res.status === 409){ recQueueDrop(id); done++; }
+    else if(!res.queued){   /* رفض دائم (4xx): لا إعادة محاولة عمياء + إزالة الشبح المحلي + إبلاغ صريح */
+      recQueueDrop(id); rejected++;
+      D.rec = D.rec.filter(x => x.id !== id);
+    }
   }
+  if(rejected){ renderRecs(); renderStats(); renderSum(); toast(T().toast_recReject); }
   return done;
 }
 function syncRecQueue(){
@@ -1549,6 +1556,7 @@ const I18N={
     home_stats:'📊 نظرة عامة', home_actions:'⚡ الوصول السريع',
     toast_addEmp:'تم تسجيل الموظف', toast_del:'تم الحذف', toast_addRec:'تم حفظ الحركة', toast_xlsx:'تم تصدير ملف Excel',
     toast_recFail:'⚠️ تعذّر رفع الحركة — بقيت محفوظة عندك وستُعاد محاولة الرفع تلقائياً', toast_recFlushed:'تم رفع الحركات المعلّقة ✅',
+toast_recReject:'⚠️ رفض الخادم حفظ الحركة — لم تُسجَّل، أعد المحاولة', badge_pending:'قيد الرفع',
     toast_wqFail:'⚠️ تعذّر الوصول للخادم — أُضيف إلى قائمة الإرسال وستُعاد تلقائياً', toast_wReject:'⚠️ رفض الخادم الحفظ — تحقق من البيانات والصلاحيات (لم يُحفظ)', toast_wqFlushed:'تم إرسال التعديلات المعلّقة ✅',
     toast_addUser:'تمت إضافة الزميل', toast_delUser:'تم حذف الزميل', toast_cantSelf:'لا يمكن حذف نفسك',
     empty:'لا توجد سجلات مطابقة', emptyEmp:'لا يوجد موظفون بعد — أضف موظف أولاً', emptyUsers:'لا يوجد زملاء بعد',
@@ -1664,6 +1672,7 @@ const I18N={
     home_stats:'📊 Overview', home_actions:'⚡ Quick access',
     toast_addEmp:'Employee saved', toast_del:'Deleted', toast_addRec:'Entry saved', toast_xlsx:'Excel exported',
     toast_recFail:'⚠️ Upload failed — kept on this device and will retry automatically', toast_recFlushed:'Pending entries uploaded ✅',
+toast_recReject:'⚠️ Server rejected the entry — not saved, please try again', badge_pending:'Pending upload',
     toast_wqFail:'⚠️ Server unreachable — queued and will retry automatically', toast_wReject:'⚠️ Server rejected the save — check data/permissions (not saved)', toast_wqFlushed:'Queued updates sent ✅',
     toast_addUser:'Colleague added', toast_delUser:'Colleague removed', toast_cantSelf:'Cannot delete yourself',
     empty:'No matching records', emptyEmp:'No employees yet — add one first', emptyUsers:'No colleagues yet',
@@ -2285,6 +2294,8 @@ function renderDash(){
 
 function renderRecs(){
   const m=curMonth(); const fe=document.getElementById('filtEmp').value; const ft=document.getElementById('filtType').value;
+  /* السجلات المعلّقة في الطابور تظهر بشارة صريحة — لا مزيد من الظهور كأنها عادية */
+  const PENDING=new Set(recQueueGet().map(x=>x&&x.payload&&x.payload.id).filter(Boolean));
   let recs=D.rec.filter(r=>monthKey(r.date)===m);
   if(fe) recs=recs.filter(r=>r.empId===fe);
   if(ft) recs=recs.filter(r=>r.type===ft);
@@ -2308,7 +2319,8 @@ function renderRecs(){
         }
       }
     } catch(ex){}
-    tr.innerHTML='<td>'+esc(r.date)+'</td><td>'+esc(empName(e))+'</td><td>'+esc(e.num||'')+'</td>      <td><span class="tag '+(TYPE_TAG[r.type]||'t-oth')+'">'+tn+'</span></td>      <td>'+esc(userNameBy(r.by))+'</td>      <td style="white-space:normal;min-width:200px;">'+noteDisplay+fileLink+'</td>      <td>'+(isAdmin()?'<button class="del" data-id="'+r.id+'" title="🗑">🗑</button>':'')+'</td>';
+    const pendBadge = PENDING.has(r.id) ? ' <span class="tag t-wrn" style="font-size:11px;" title="'+esc(T().badge_pending)+'">⏳ '+esc(T().badge_pending)+'</span>' : '';
+    tr.innerHTML='<td>'+esc(r.date)+'</td><td>'+esc(empName(e))+'</td><td>'+esc(e.num||'')+'</td>      <td><span class="tag '+(TYPE_TAG[r.type]||'t-oth')+'">'+tn+'</span></td>      <td>'+esc(userNameBy(r.by))+'</td>      <td style="white-space:normal;min-width:200px;">'+noteDisplay+fileLink+pendBadge+'</td>      <td>'+(isAdmin()?'<button class="del" data-id="'+r.id+'" title="🗑">🗑</button>':'')+'</td>';
     body.appendChild(tr);
   });
 }
@@ -2397,14 +2409,15 @@ document.getElementById('addRecBtn').onclick=async()=>{
   }
   const rec={id:uid(),empId,type,date,note:noteData,by:SESSION,ts:Date.now()};
   D.rec.push(rec);
-  const upOK = await saveRec(rec);   /* فشل الرفع ← تبقى محلياً في الطابور ونُخبر المستخدم بالحقيقة */
+  const st = await saveRec(rec);   /* ok | queued | rejected — نُخبر المستخدم بالحقيقة دائماً */
+  if(st==='rejected') D.rec = D.rec.filter(x => x.id !== rec.id);   /* رفض دائم ← إزالة فورية بدل شبح يختفي لاحقاً بصمت */
   renderStats(); renderRecs(); renderSum();
   document.getElementById('recNote').value='';
   document.getElementById('recDate').value=today();
   document.getElementById('recFile').value='';
   document.getElementById('filePreview').textContent='';
   pendingFile=null;
-  toast(upOK ? T().toast_addRec : T().toast_recFail);
+  toast(st==='ok' ? T().toast_addRec : st==='queued' ? T().toast_recFail : T().toast_recReject);
 };
 
 document.getElementById('recBody').addEventListener('click',async e=>{
