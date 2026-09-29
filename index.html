@@ -1357,9 +1357,12 @@ async function sbTry(table, payload){
     try{
       const r = await fetch(SB_URL + '/rest/v1/' + table, { method:'POST',
         headers: Object.assign({}, SB_H), body: JSON.stringify(payload), signal: controller.signal });
-      return { ok: r.ok, status: r.status };
+      if(r.ok) return { ok:true, status:r.status };
+      console.error('SB post', table, r.status, await r.text());
+      if(r.status>=500||r.status===408||r.status===429) return { ok:false, status:r.status, queued:true };
+      return { ok:false, status:r.status, queued:false };
     } finally { clearTimeout(timeout); }
-  } catch(e){ console.error('SB post err:', e); return { ok:false, status:0 }; }
+  } catch(e){ console.error('SB post err:', e); return { ok:false, status:0, queued:true }; }
 }
 
 /* طابور رفع سجل الحركات: عند فشل الإدراج تُحفظ الحركة هنا (مفتاح localStorage)
@@ -1373,6 +1376,54 @@ function recQueuePut(payload){
 }
 function recQueueDrop(id){ recQueueSet(recQueueGet().filter(x=>!(x&&x.payload&&x.payload.id===id))); }
 
+/* ============ كتابة عامة موثوقة (فحص الحفظ + طابور عام) ============
+   كل عمليات POST/PATCH/DELETE تمرّ من sbWrite: تُعيد {ok,status,queued,data}.
+   فشل مؤقت (شبكة/مهلة/5xx) ← يُضاف إلى hse-write-queue ويُعاد إرساله تلقائياً.
+   رفض دائم (4xx مثل 403/422) ← لا إعادة محاولة عمياء، بل إشعار المستخدم بالحقيقة. */
+const WQ_KEY='hse-write-queue';
+function wqGet(){ try{ const q=JSON.parse(localStorage.getItem(WQ_KEY)); return Array.isArray(q)?q:[]; }catch(e){ return []; } }
+function wqSet(q){ try{ localStorage.setItem(WQ_KEY, JSON.stringify(q)); }catch(e){} }
+function wqPut(op){ const q=wqGet(); if(q.length>=200) q.shift(); q.push(op); wqSet(q); }
+async function sbWrite(table, method, body, qs){
+  try{
+    const controller=new AbortController();
+    const to=setTimeout(()=>controller.abort(),8000);
+    let r;
+    try{
+      r=await fetch(SB_URL+'/rest/v1/'+table+(qs||''), { method:method,
+        headers:Object.assign({},SB_H), body:body?JSON.stringify(body):undefined, signal:controller.signal });
+    } finally { clearTimeout(to); }
+    if(r.ok || r.status===409){
+      let txt=''; try{ txt=await r.text(); }catch(_){}
+      let data=null;
+      if(txt){ try{ data=JSON.parse(txt); }catch(_){} }
+      return {ok:true,status:r.status,data:data};
+    }
+    let txt=''; try{ txt=await r.text(); }catch(_){}
+    console.error('SB write', method, table, r.status, txt);
+    if(r.status>=500||r.status===408||r.status===429){ wqPut({table:table,method:method,body:body,qs:qs}); return {ok:false,status:r.status,queued:true}; }
+    return {ok:false,status:r.status,queued:false};
+  } catch(e){ console.error('SB write net:', (e&&e.message)||e); wqPut({table:table,method:method,body:body,qs:qs}); return {ok:false,status:0,queued:true}; }
+}
+async function flushWriteQueue(){
+  const q=wqGet(); if(!q.length) return 0;
+  const keep=[]; let done=0;
+  for(const op of q){
+    const res=await sbWrite(op.table,op.method,op.body,op.qs);
+    if(res.ok){ done++; } else if(res.queued){ keep.push(op); }   /* رفض دائم ← نسقطه (مُسجَّل في الـ console) */
+  }
+  wqSet(keep);
+  return done;
+}
+function syncWriteQueue(){ flushWriteQueue().then(n=>{ if(n>0) toast(T().toast_wqFlushed); }).catch(()=>{}); }
+function syncAllQueues(){ syncRecQueue(); syncWriteQueue(); }
+/* إشعار واحد الصدق لكل عمليات الحفظ: نجاح ← رسالتك؛ فشل ← الحقيقة */
+function writeToast(res, okMsg){
+  if(res && res.ok){ toast(okMsg); return true; }
+  toast(res && res.queued ? T().toast_wqFail : T().toast_wReject);
+  return false;
+}
+
 /* ============ LOAD / SAVE ============ */
 function mapEmp(e){ return {id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone, plate:e.plate, grp:e.grp, photo:e.photo}; }
 function mapRec(r){ return {id:r.id, empId:r.emp_id||r.empId, type:r.type, date:r.date, note:r.note, by:r.by_user||r.by, ts:r.ts}; }
@@ -1384,40 +1435,79 @@ async function loadAll() {
       id: u.id, name: u.name, user: u.username || u.user, pass: u.password || u.pass, role: u.role
     }));
   }
-  D.emp = (emp || []).map(mapEmp);
-  D.rec = (rec || []).map(mapRec);
+  if(emp) D.emp = emp.map(mapEmp);                                  /* null = فشل الشبكة ← نبقي ما لدينا */
+  if(rec) D.rec = rec.map(mapRec); else D.rec = D.rec || [];
   /* الحركات المعلّقة في الطابور (لم تصل بعد) تبقى ظاهرة ولا تُستبدل بنسخة الخادم الناقصة */
   recQueueGet().forEach(item => { const p = item && item.payload;
     if(p && p.id && !D.rec.some(x => x.id === p.id)) D.rec.push(mapRec(p)); });
-  D.ts = tsl || [];
-  D.dep = (dep || []).map(mapDep);
-  D.veh = (veh || []).map(mapVeh);
-  D.appr = (appr && appr.length) ? appr.map(mapAppr) : SEED_APPR.map(mapAppr);
+  if(tsl) D.ts = tsl;
+  if(dep) D.dep = dep.map(mapDep);
+  if(veh) D.veh = veh.map(mapVeh);
+  D.appr = (appr && appr.length) ? appr.map(mapAppr) : (D.appr && D.appr.length ? D.appr : SEED_APPR.map(mapAppr));
+}
+/* — تحديث تلقائي بين الحسابات: يجلب الحقيقة من الخادم عند العودة للتبويب وكل دقيقة.
+     يتجاهل الدورات أثناء الكتابة أو وجود حوار مفتوح حتى لا يقطع عمل المستخدم.
+     فشل الشبكة لا يمحو شيء (loadAll يبقي البيانات الحالية عند فشل الجلب). */
+let __lastRefresh=0;
+async function refreshFromServer(){
+  if(!SESSION) return false;
+  if(document.querySelector('.empdlg:not(.hide)')) return false;
+  const ae=document.activeElement;
+  if(ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName||'')) return false;
+  const now=Date.now();
+  if(now-__lastRefresh<10000) return false;
+  __lastRefresh=now;
+  try{ await loadAll(); }catch(e){ return false; }
+  try{
+    renderAuthUI(); renderUsers(); renderEmps(); renderStats(); renderDash();
+    renderRecs(); renderSum(); renderTs(); renderStaff(); renderDep();
+    renderAppr(); renderBell(); renderGrp(); renderVeh();
+    if(typeof renderBrandStats==='function') renderBrandStats();
+  }catch(e){ console.error('refresh render:', e); }
+  return true;
 }
 
 async function saveUser(u) { 
   const payload = { id: u.id, name: u.name, username: u.user, password: isHashed(u.pass)?u.pass:hashPass(u.pass), role: u.role };
-  await sb('users', 'POST', payload); 
+  return await sbWrite('users', 'POST', payload); 
 }
-async function delUser(id) { await sb('users', 'DELETE', null, '?id=eq.'+id); }
-async function updateUser(id, data) { await sb('users', 'PATCH', data, '?id=eq.'+id); }
-async function saveEmp(e) { let r=await sb('employees', 'POST', e); if(!r){ const c={id:e.id,ar:e.ar,en:e.en,num:e.num,dept:e.dept,phone:e.phone}; r=await sb('employees', 'POST', c); } return r; }
+async function delUser(id) { return await sbWrite('users', 'DELETE', null, '?id=eq.'+id); }
+async function updateUser(id, data) { return await sbWrite('users', 'PATCH', data, '?id=eq.'+id); }
+async function saveEmp(e) {
+  let w = await sbWrite('employees', 'POST', e);
+  if(w.ok) return w;
+  const c = { id:e.id, ar:e.ar, en:e.en, num:e.num, dept:e.dept, phone:e.phone };
+  const w2 = await sbWrite('employees', 'POST', c);
+  if(w2.ok) return w2;
+  return (w.queued || w2.queued) ? { ok:false, status:0, queued:true } : (w2.status ? w2 : w);
+}
 async function delEmp(id, num) {
-  await sb('employees', 'DELETE', null, '?id=eq.'+id);
-  await sb('records', 'DELETE', null, '?emp_id=eq.'+id);
-  await sb('timesheets', 'DELETE', null, '?emp_id=eq.'+id);
-  await sb('deployment', 'DELETE', null, '?emp_id=eq.'+id);
-  await sb('vehicles', 'DELETE', null, '?emp_id=eq.'+id);
-  if(num) await sb('approvals', 'DELETE', null, '?emp_id=eq.'+encodeURIComponent(num));
+  const ops = [];
+  ops.push(await sbWrite('employees', 'DELETE', null, '?id=eq.'+id));
+  ops.push(await sbWrite('records', 'DELETE', null, '?emp_id=eq.'+id));
+  ops.push(await sbWrite('timesheets', 'DELETE', null, '?emp_id=eq.'+id));
+  ops.push(await sbWrite('deployment', 'DELETE', null, '?emp_id=eq.'+id));
+  ops.push(await sbWrite('vehicles', 'DELETE', null, '?emp_id=eq.'+id));
+  if(num) ops.push(await sbWrite('approvals', 'DELETE', null, '?emp_id=eq.'+encodeURIComponent(num)));
+  return { ok: ops.every(o=>o && o.ok), queued: ops.some(o=>o && o.queued) };
 }
-async function updateEmp(id, data) { const keep={}; ['ar','en','num','dept','phone','plate','grp','photo'].forEach(k=>{ if(data[k]!==undefined) keep[k]=data[k]; }); let r=await sb('employees', 'PATCH', keep, '?id=eq.'+id); if(!r){ const c={ar:data.ar,en:data.en,num:data.num,dept:data.dept,phone:data.phone}; r=await sb('employees', 'PATCH', c, '?id=eq.'+id); } return r; }
+async function updateEmp(id, data) {
+  const keep = {}; ['ar','en','num','dept','phone','plate','grp','photo'].forEach(k=>{ if(data[k]!==undefined) keep[k]=data[k]; });
+  let w = await sbWrite('employees', 'PATCH', keep, '?id=eq.'+id);
+  if(w.ok) return w;
+  const c = { ar:data.ar, en:data.en, num:data.num, dept:data.dept, phone:data.phone };
+  const w2 = await sbWrite('employees', 'PATCH', c, '?id=eq.'+id);
+  if(w2.ok) return w2;
+  return (w.queued || w2.queued) ? { ok:false, status:0, queued:true } : (w2.status ? w2 : w);
+}
 async function saveRec(r) { 
   const payload = { id: r.id, emp_id: r.empId, type: r.type, date: r.date, note: r.note, by_user: r.by, ts: r.ts };
   const res = await sbTry('records', payload);
   if(res.ok || res.status===409){ recQueueDrop(r.id); return true; }  /* 409 = وصل سابقاً (إعادة محاولة بعد انقطاع) */
-  recQueuePut(payload); return false;
+  if(res.queued) recQueuePut(payload);   /* فشل مؤقت ← طابور؛ رفض دائم (4xx) ← لا طابور ويظهر التحذير */
+  return false;
 }
-async function delRec(id) { recQueueDrop(id); await sb('records', 'DELETE', null, '?id=eq.'+id); }
+async function delRec(id) { recQueueDrop(id); return await sbWrite('records', 'DELETE', null, '?id=eq.'+id); }
 
 /* إعادة رفع الطابور — يُستدعى بعد تحميل البيانات وعند عودة الاتصال */
 async function flushRecQueue(){
@@ -1459,6 +1549,7 @@ const I18N={
     home_stats:'📊 نظرة عامة', home_actions:'⚡ الوصول السريع',
     toast_addEmp:'تم تسجيل الموظف', toast_del:'تم الحذف', toast_addRec:'تم حفظ الحركة', toast_xlsx:'تم تصدير ملف Excel',
     toast_recFail:'⚠️ تعذّر رفع الحركة — بقيت محفوظة عندك وستُعاد محاولة الرفع تلقائياً', toast_recFlushed:'تم رفع الحركات المعلّقة ✅',
+    toast_wqFail:'⚠️ تعذّر الوصول للخادم — أُضيف إلى قائمة الإرسال وستُعاد تلقائياً', toast_wReject:'⚠️ رفض الخادم الحفظ — تحقق من البيانات والصلاحيات (لم يُحفظ)', toast_wqFlushed:'تم إرسال التعديلات المعلّقة ✅',
     toast_addUser:'تمت إضافة الزميل', toast_delUser:'تم حذف الزميل', toast_cantSelf:'لا يمكن حذف نفسك',
     empty:'لا توجد سجلات مطابقة', emptyEmp:'لا يوجد موظفون بعد — أضف موظف أولاً', emptyUsers:'لا يوجد زملاء بعد',
     type_vio:'مخالفة', type_abs:'غياب', type_per:'استئذان', type_oth:'أخرى',
@@ -1573,6 +1664,7 @@ const I18N={
     home_stats:'📊 Overview', home_actions:'⚡ Quick access',
     toast_addEmp:'Employee saved', toast_del:'Deleted', toast_addRec:'Entry saved', toast_xlsx:'Excel exported',
     toast_recFail:'⚠️ Upload failed — kept on this device and will retry automatically', toast_recFlushed:'Pending entries uploaded ✅',
+    toast_wqFail:'⚠️ Server unreachable — queued and will retry automatically', toast_wReject:'⚠️ Server rejected the save — check data/permissions (not saved)', toast_wqFlushed:'Queued updates sent ✅',
     toast_addUser:'Colleague added', toast_delUser:'Colleague removed', toast_cantSelf:'Cannot delete yourself',
     empty:'No matching records', emptyEmp:'No employees yet — add one first', emptyUsers:'No colleagues yet',
     type_vio:'Violation', type_abs:'Absence', type_per:'Permit', type_oth:'Other',
@@ -1771,23 +1863,25 @@ document.getElementById('addUserBtn').onclick=async()=>{
   if(D.users.find(u=>u.user===user)){ toast(T().err_userExists); return; }
   const u={id:uid(),name,user,pass,role};
   D.users.push(u);
-  await saveUser(u);
+  const w = await saveUser(u);
   renderAuthUI();
   document.getElementById('uName').value='';document.getElementById('uUser').value='';document.getElementById('uPass').value='';
   document.getElementById('uPermFull').checked=false;
-  toast(T().toast_addUser);
+  writeToast(w, T().toast_addUser);
 };
 
 // One-time migration: encrypt any passwords still stored in plain text
 document.getElementById('migBtn').onclick=async()=>{
   const legacy=D.users.filter(u=>u && !isHashed(u.pass) && u.id && u.id!=='admin-default');
   if(!legacy.length){ toast(T().mig_none); return; }
+  let lastRes = null;
   for(const u of legacy){
     u.pass=hashPass(u.pass);
-    await updateUser(u.id,{password:u.pass});
+    const w = await updateUser(u.id,{password:u.pass});
+    if(!w.ok) lastRes = w;
   }
   renderUsers();
-  toast(T().mig_ok+' ('+legacy.length+')');
+  if(lastRes) writeToast(lastRes, ''); else toast(T().mig_ok+' ('+legacy.length+')');
 };
 
 document.getElementById('userBody').addEventListener('click',async e=>{
@@ -1806,7 +1900,7 @@ document.getElementById('userBody').addEventListener('click',async e=>{
     const np=document.getElementById('pwdNew').value.trim();
     if(np.length<4){ toast(T().err_short); return; }
     const tu=D.users.find(x=>x.user===pwdEditUser);
-    if(tu){ tu.pass=hashPass(np); await updateUser(tu.id,{password:tu.pass}); toast(T().pwd_changed); }
+    if(tu){ tu.pass=hashPass(np); writeToast(await updateUser(tu.id,{password:tu.pass}), T().pwd_changed); }
     pwdEditUser=null; renderUsers(); return;
   }
   const btn=e.target.closest('.del'); if(!btn) return;
@@ -1814,8 +1908,8 @@ document.getElementById('userBody').addEventListener('click',async e=>{
   if(!confirm(LANG==='ar'?'حذف هذا الزميل وجميع بياناته؟':'Delete this colleague and all their data?')) return;
   const u=D.users.find(x=>x.user===btn.dataset.u);
   D.users=D.users.filter(u=>u.user!==btn.dataset.u);
-  if(u) await delUser(u.id);
-  renderAuthUI(); toast(T().toast_delUser);
+  const w = u ? await delUser(u.id) : {ok:true};
+  renderAuthUI(); writeToast(w, T().toast_delUser);
 });
 
 async function saveUserEdit(){
@@ -1830,10 +1924,10 @@ async function saveUserEdit(){
   const oldUser=target.user;
   target.name=newName; target.user=newUser; target.role=role;
   if(oldUser===SESSION) SESSION=newUser;
-  await updateUser(target.id,{name:newName, username:newUser, role:role});
+  const w = await updateUser(target.id,{name:newName, username:newUser, role:role});
   editUserRow=null;
   renderAuthUI();
-  toast(T().u_edited);
+  writeToast(w, T().u_edited);
 }
 
 /* ============ LOGIN ============ */
@@ -1861,7 +1955,7 @@ async function doLogin(){
           if(p&&p.id&&!D.rec.some(x=>x.id===p.id)) D.rec.push(mapRec(p)); });
         SB_CONNECTED=true;
         fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
-        syncRecQueue();
+        syncAllQueues();
       }catch(e){}
     })();
     renderAuthUI(); applyLang();
@@ -2011,9 +2105,9 @@ document.getElementById('empBody').addEventListener('click',async e=>{
     em.grp=document.getElementById('edGrp').value;
     const edf=document.getElementById('edPhoto').files[0];
     if(edf){ em.photo=await fileToPhoto(edf); }
-    await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, plate:em.plate, dept:em.dept, grp:em.grp, photo:em.photo});
+    const w = await updateEmp(em.id, {ar:em.ar, en:em.en, num:em.num, phone:em.phone, plate:em.plate, dept:em.dept, grp:em.grp, photo:em.photo});
     editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
-    toast(T().emp_updated); return;
+    writeToast(w, T().emp_updated); return;
   }
   if(delBtn){
     if(!confirm(T().ask_del_emp)) return;
@@ -2024,9 +2118,9 @@ document.getElementById('empBody').addEventListener('click',async e=>{
     D.ts=(D.ts||[]).filter(t=>t.emp_id!==id);
     D.dep=(D.dep||[]).filter(d=>d.empId!==id);
     D.veh=(D.veh||[]).filter(v=>v.empId!==id);
-    await delEmp(id, gone?gone.num:'');
+    const w = await delEmp(id, gone?gone.num:'');
     editingEmpId=null; fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
-    toast(T().emp_deleted);
+    writeToast(w, T().emp_deleted);
   }
 });
 
@@ -2056,8 +2150,12 @@ document.getElementById('importFile').addEventListener('change',async e=>{
         newEmps.push(emp);
         added++;
       });
-      // Save all new employees to Supabase
-      if(newEmps.length) await Promise.all(newEmps.map(e=>saveEmp(e)));
+      // Save all new employees to Supabase (with honest failure feedback)
+      if(newEmps.length){
+        const results = await Promise.all(newEmps.map(e=>saveEmp(e)));
+        const bad = results.find(r=>!r || !r.ok);
+        if(bad){ toast(T().import_ok+' ('+added+')'); writeToast(bad, ''); fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum(); return; }
+      }
       fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
       toast(added>0 ? T().import_ok+' ('+added+')' : T().s_emp);
     }catch(err){ toast(T().err_parse); }
@@ -2248,12 +2346,12 @@ document.getElementById('addEmpBtn').onclick=async()=>{
   const photo=await fileToPhoto(pendingAddPhoto);
   const emp={id:uid(),ar,en,num,dept,phone,plate,grp,photo};
   D.emp.push(emp);
-  await saveEmp(emp);
+  const w = await saveEmp(emp);
   fillEmpSel(); renderEmps(); renderStats(); renderRecs(); renderSum();
   document.getElementById('empNameAr').value='';document.getElementById('empNameEn').value='';
   document.getElementById('empNum').value='';document.getElementById('empDept').value='';document.getElementById('empPhone').value='';document.getElementById('empPlate').value='';
   document.getElementById('empPhoto').value='';document.getElementById('empPhotoPrev').innerHTML='';pendingAddPhoto=null;
-  toast(T().toast_addEmp);
+  writeToast(w, T().toast_addEmp);
 };
 
 let pendingFile = null;
@@ -2299,8 +2397,8 @@ document.getElementById('recBody').addEventListener('click',async e=>{
   if(!confirm(T().askDel)) return;
   const id=btn.dataset.id;
   D.rec=D.rec.filter(r=>r.id!==id);
-  await delRec(id);
-  renderStats(); renderRecs(); renderSum(); toast(T().toast_del);
+  const w = await delRec(id);
+  renderStats(); renderRecs(); renderSum(); writeToast(w, T().toast_del);
 });
 
 document.getElementById('clearFilt').onclick=()=>{
@@ -2575,13 +2673,13 @@ document.getElementById('tsSaveBtn').onclick=async()=>{
   const obj={position:document.getElementById('tsPosition').value.trim(), nationality:document.getElementById('tsNationality').value.trim(), days:readTsGrid()};
   const id='ts-'+empId+'-'+m;
   const payload={id:id, emp_id:empId, month:m, position:obj.position, nationality:obj.nationality, days:obj.days};
-  const patched=await sb('timesheets','PATCH',payload,'?id=eq.'+id);
-  if(!patched||!patched.length) await sb('timesheets','POST',payload);
+  let w = await sbWrite('timesheets','PATCH',payload,'?id=eq.'+id);
+  if(!w.ok || !w.data || !w.data.length) w = await sbWrite('timesheets','POST',payload);
   const row={id:id, emp_id:empId, month:m, position:obj.position, nationality:obj.nationality, days:obj.days};
   D.ts=D.ts||[];
   const ix=D.ts.findIndex(t=>t.emp_id===empId&&t.month===m);
   if(ix>=0) D.ts[ix]=row; else D.ts.push(row);
-  toast(T().ts_saved);
+  writeToast(w, T().ts_saved);
 };
 
 /* ---- Timesheet export: user's own file is the single template ---- */
@@ -2780,14 +2878,14 @@ document.getElementById('depSaveBtn').onclick=async()=>{
   const payload={id:id, emp_id:empId, area:area, list:document.getElementById('depList').value,
     rotation:document.getElementById('depRot').value.trim()||document.getElementById('depList').value,
     status:document.getElementById('depStatus').value};
-  const patched=await sb('deployment','PATCH',payload,'?id=eq.'+id);
-  if(!patched||!patched.length) await sb('deployment','POST',payload);
+  let w = await sbWrite('deployment','PATCH',payload,'?id=eq.'+id);
+  if(!w.ok || !w.data || !w.data.length) w = await sbWrite('deployment','POST',payload);
   D.dep=D.dep||[];
   const ix=D.dep.findIndex(t=>t.id===id||t.empId===empId);
   const row={id:id, empId:empId, area:payload.area, list:payload.list, rot:payload.rotation, status:payload.status};
   if(ix>=0) D.dep[ix]=row; else D.dep.push(row);
   document.getElementById('depArea').value=''; document.getElementById('depRot').value='';
-  renderDep(); toast(T().dep_saved);
+  renderDep(); writeToast(w, T().dep_saved);
 };
 
 /* ---- Export List ---- */
@@ -2803,8 +2901,8 @@ document.getElementById('depBody').addEventListener('click',async e=>{
   const btn=e.target.closest('[data-depdel]'); if(!btn) return;
   if(!confirm(T().askDel)) return;
   D.dep=(D.dep||[]).filter(d=>d.id!==btn.dataset.depdel);
-  await sb('deployment','DELETE',null,'?id=eq.'+btn.dataset.depdel);
-  renderDep(); toast(T().toast_del);
+  const w = await sbWrite('deployment','DELETE',null,'?id=eq.'+btn.dataset.depdel);
+  renderDep(); writeToast(w, T().toast_del);
 });
 document.getElementById('depExportBtn').onclick=async()=>{
   if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
@@ -3757,25 +3855,26 @@ async function saveApprEdit(){
   x.p=val('aePhone').trim(); x.ar=val('aeAramco').trim(); x.x=val('aeArea').trim();
   x.note=val('aeNote').trim();
   const payload={emp_id:x.i, rotation:x.r, approval:apprEncode(x), phone:x.p, aramco_id:x.ar, area:x.x};
+  let w;
   if(isNew){
-    await sb('approvals','POST',payload);
+    w = await sbWrite('approvals','POST',payload);
   } else {
-    const r=await sb('approvals','PATCH',payload,'?emp_id=eq.'+encodeURIComponent(x.i));
-    if(!r||!r.length) await sb('approvals','POST',payload);
+    w = await sbWrite('approvals','PATCH',payload,'?emp_id=eq.'+encodeURIComponent(x.i));
+    if(!w.ok || !w.data || !w.data.length) w = await sbWrite('approvals','POST',payload);
   }
   document.getElementById('apprEditDlg').classList.add('hide');
   syncApprovalChange();
-  toast(isNew?L.appr_saved:L.emp_updated);
+  writeToast(w, isNew?L.appr_saved:L.emp_updated);
 }
 /* — حذف/أرشفة سجل بتأكيد مسبق — */
 async function apprDelete(id){
   const L=T();
   if(!confirm(L.ask_del_appr)) return;
   D.appr=D.appr.filter(v=>v.i!==id);
-  await sb('approvals','DELETE',null,'?emp_id=eq.'+encodeURIComponent(id));
+  const w = await sbWrite('approvals','DELETE',null,'?emp_id=eq.'+encodeURIComponent(id));
   document.getElementById('apprEditDlg').classList.add('hide');
   syncApprovalChange();
-  toast(L.appr_deleted);
+  writeToast(w, L.appr_deleted);
 }
 /* ============ ANNUAL LEAVE — إدارة الإجازات السنوية ============
    البيانات: leave-data.js (بذرة من ملف HR-F-5) + طبقة تعديلات محلية في localStorage
@@ -4419,11 +4518,12 @@ document.getElementById('vehSaveBtn').onclick=async()=>{
     rotation:document.getElementById('vehRot').value.trim()||vehRotOf(empId)};
   D.veh=D.veh||[];
   const row=mapVeh({id:id,emp_id:empId,company:payload.company,make:payload.make,model:payload.model,year:payload.year,colour:payload.colour,plate:payload.plate,date_logged:payload.date_logged,notes:payload.notes,rotation:payload.rotation});
-  if(editingVehId){ await sb('vehicles','PATCH',payload,'?id=eq.'+id);
+  let w;
+  if(editingVehId){ w = await sbWrite('vehicles','PATCH',payload,'?id=eq.'+id);
     const ix=D.veh.findIndex(t=>t.id===id); if(ix>=0) D.veh[ix]=row; editingVehId=null;
-  } else { const posted=await sb('vehicles','POST',payload); if(posted&&posted.length) D.veh.push(row); }
+  } else { D.veh.push(row); w = await sbWrite('vehicles','POST',payload); }
   ['vehMake','vehModel','vehYear','vehColour','vehPlate','vehNotes'].forEach(i=>document.getElementById(i).value='');
-  renderVeh(); toast(T().veh_saved);
+  renderVeh(); writeToast(w, T().veh_saved);
 };
 document.getElementById('vehBody').addEventListener('click',async e=>{
   const del=e.target.closest('[data-vehdel]');
@@ -4440,8 +4540,8 @@ document.getElementById('vehBody').addEventListener('click',async e=>{
   if(!del) return;
   if(!confirm(T().askDel)) return;
   D.veh=(D.veh||[]).filter(x=>x.id!==del.dataset.vehdel);
-  await sb('vehicles','DELETE',null,'?id=eq.'+del.dataset.vehdel);
-  renderVeh(); toast(T().toast_del);
+  const w = await sbWrite('vehicles','DELETE',null,'?id=eq.'+del.dataset.vehdel);
+  renderVeh(); writeToast(w, T().toast_del);
 });
 document.getElementById('vehExportBtn').onclick=async()=>{
   if(typeof ExcelJS==='undefined'){ toast('ExcelJS lib not loaded — check internet'); return; }
@@ -4562,7 +4662,11 @@ applyLang();
 renderAuthUI();
 
 // مؤشر حالة الشبكة + رفع أي حركات معلّقة فور عودة الاتصال
-window.addEventListener('online',()=>{ toast(LANG==='ar'?'✅ متصل بقاعدة البيانات':'✅ Connected to the database'); syncRecQueue(); });
+window.addEventListener('online',()=>{ toast(LANG==='ar'?'✅ متصل بقاعدة البيانات':'✅ Connected to the database'); syncAllQueues(); });
+/* — تحديث تلقائي بين الحسابات: العودة للتبويب أو كل دقيقة (بدون مقاطعة أثناء الكتابة/الحوارات) — */
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refreshFromServer(); });
+window.addEventListener('focus',()=>{ refreshFromServer(); });
+setInterval(()=>{ if(!document.hidden) refreshFromServer(); }, 60000);
 window.addEventListener('offline',()=>toast(LANG==='ar'?'⚠️ بدون اتصال — تعرض آخر بيانات':'⚠️ Offline — showing last saved data'));
 
 // BACKGROUND: try loading from Supabase (non-blocking)
@@ -4571,7 +4675,7 @@ window.addEventListener('offline',()=>toast(LANG==='ar'?'⚠️ بدون اتص�
     const _w=document.getElementById('appWrap'); if(_w)_w.classList.add('loading');
     await Promise.race([loadAll(), new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))]);
     SB_CONNECTED=true;
-    syncRecQueue();   /* ارفع أي حركات بقيت في الطابور من زيارة سابقة */
+    syncAllQueues();   /* ارفع أي حركات بقيت في الطابور من زيارة سابقة */
     // Re-render with fresh data
     if(SESSION) renderAuthUI();
     if(typeof renderGrp==='function') renderGrp();

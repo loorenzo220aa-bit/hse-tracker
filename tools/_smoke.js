@@ -346,6 +346,68 @@ setTimeout(() => {
 
     /* السيناريو الكامل (غير متزامن): حفظ والشبكة مقطوعة ← تحذير صادق + بقاء محلي،
        ثم عودة الاتصال ← رفع تلقائي وتفريغ الطابور. يُستدعى من finish(). */
+    // — الطبقة العامة للكتابة الموثوقة: إشعار صادق + طابور عام + لا محو عند فشل الجلب —
+    function runWriteLayerTest(done) {
+      try {
+        t('write-layer: helpers defined',
+          ['sbWrite', 'flushWriteQueue', 'syncWriteQueue', 'syncAllQueues', 'writeToast', 'refreshFromServer', 'wqPut']
+            .every(function (fn) { return typeof window[fn] === 'function'; }));
+        t('writeToast: success shows caller message',
+          window.writeToast({ ok: true }, 'MSG-OK-TEST') === true
+            && d.getElementById('toast').textContent === 'MSG-OK-TEST',
+          d.getElementById('toast').textContent);
+        window.writeToast({ ok: false, queued: true }, 'X');
+        const tq = d.getElementById('toast').textContent;
+        t('writeToast: queued failure is honest — no fake success',
+          tq.indexOf('قائمة الإرسال') >= 0 && tq.indexOf('MSG-OK-TEST') < 0, tq);
+        window.writeToast({ ok: false, queued: false, status: 403 }, 'X');
+        const tr = d.getElementById('toast').textContent;
+        t('writeToast: server rejection says not saved', tr.indexOf('لم يُحفظ') >= 0, tr);
+
+        // sbWrite: فشل مؤقت ← طابور عام؛ ثم الإفراغ ← إرسال فعلي
+        window.localStorage.removeItem('hse-write-queue');
+        const midFetch = window.fetch;
+        window.fetch = function () { return Promise.reject(new Error('offline (test stub)')); };
+        window.sbWrite('vehicles', 'POST', { id: 'WQ-PROBE' }).then(function (res) {
+          const wq = JSON.parse(window.localStorage.getItem('hse-write-queue') || '[]');
+          t('sbWrite offline: queued to hse-write-queue',
+            res.ok === false && res.queued === true && wq.length === 1 && wq[0].table === 'vehicles',
+            JSON.stringify(res) + ' q=' + wq.length);
+          window.fetch = function (url, init) {
+            window.__fetchCalls.push({ url: String(url), method: (init && init.method) || 'GET', body: (init && init.body) || '' });
+            return Promise.resolve({ ok: true, status: 201, text: function () { return Promise.resolve('[]'); } });
+          };
+          return window.flushWriteQueue();
+        }).then(function (n) {
+          const wq2 = JSON.parse(window.localStorage.getItem('hse-write-queue') || '[]');
+          const posts = window.__fetchCalls.filter(function (c) {
+            return c.method === 'POST' && /rest\/v1\/vehicles/.test(c.url) && String(c.body).indexOf('WQ-PROBE') >= 0;
+          });
+          t('flushWriteQueue: emptied + queued write POSTed',
+            wq2.length === 0 && n >= 1 && posts.length >= 1,
+            'q=' + wq2.length + ' n=' + n + ' posts=' + posts.length);
+          // loadAll: فشل الشبكة لا يمحو البيانات المحلية (شرط آمن للتحديث الدوري)
+          window.eval("(function(){ D.rec.push({id:'SENT-REC', empId:'X', type:'violation', date:'2026-09-01', note:'SENTINEL-KEEP', by:'t', ts:1}); D.emp.push({id:'SENT-EMP', ar:'سنتينل', en:'Sentinel', num:'SNT-1', dept:'', phone:'', plate:'', grp:'', photo:''}); })()");
+          window.fetch = function () { return Promise.reject(new Error('offline (test stub)')); };
+          return window.loadAll();
+        }).then(function () {
+          const keep = window.eval("(function(){ return D.rec.some(function(r){return r.id==='SENT-REC';}) && D.emp.some(function(e){return e.id==='SENT-EMP';}); })()");
+          t('loadAll on network failure keeps local data (no wipe)', keep === true);
+          window.fetch = midFetch;
+          // refreshFromServer: لا يقاطع أثناء الكتابة في حقل
+          const fi = d.getElementById('filtEmp');
+          if (fi) fi.focus();
+          return window.refreshFromServer();
+        }).then(function (ran) {
+          t('refreshFromServer: skipped while user is typing — no interruption', ran === false,
+            'activeElement=' + (d.activeElement && d.activeElement.id));
+          window.eval("(function(){ D.rec = D.rec.filter(function(r){ return r.id !== 'SENT-REC'; }); D.emp = D.emp.filter(function(e){ return e.id !== 'SENT-EMP'; }); fillEmpSel(); renderStats(); renderRecs(); renderSum(); })()");
+          window.localStorage.removeItem('hse-write-queue');
+          done();
+        }).catch(function (e) { bad.push('write-layer threw: ' + e.message); done(); });
+      } catch (e) { bad.push('write-layer setup threw: ' + e.message); done(); }
+    }
+
     function runRecQueueTest(done) {
       try {
         // العودة لجلسة المدير (الجلسة الحالية cryptotest العرضي)
@@ -397,6 +459,8 @@ setTimeout(() => {
                 });
                 t('flush: payload POSTed to records', posts.length >= 1, posts.length + ' calls');
               } catch (e) { bad.push('flush assertions threw: ' + e.message); }
+              // ثم اختبار الطبقة العامة للكتابة الموثوقة، ثم التنظيف
+              runWriteLayerTest(function () {
               // التنظيف واسترجاع جلسة cryptotest كما هي
               try {
                 window.eval("(function(){ D.rec = D.rec.filter(function(r){ return r.note !== 'CHECK-QUEUE-OFFLINE'; }); renderStats(); renderRecs(); renderSum(); })()");
@@ -409,6 +473,7 @@ setTimeout(() => {
                 window.doLogin();
               } catch (e) { bad.push('rec-queue cleanup threw: ' + e.message); }
               done();
+              });
             }).catch(function (e) { bad.push('flush threw: ' + e.message); done(); });
           } catch (e) { bad.push('rec-queue async threw: ' + e.message); done(); }
         }, 80);
