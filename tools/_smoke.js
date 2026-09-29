@@ -344,6 +344,22 @@ setTimeout(() => {
       return n === 0;
     })());
 
+    /* — قسم السيارات: لا خانة اسم فارغة — موظف غير موجود في employees يُقرأ من قوائم الحضور — */
+    t('empAny: name recovered from attendance roster (GRP_DATA)',
+      window.empAny('SASL-0013').en === 'HAITHAM ALI BUWASHL', window.empAny('SASL-0013').en);
+    t('empAny: unknown code falls back to the code itself (never blank)',
+      window.empAny('ZZZ-9999').en === 'ZZZ-9999', String(window.empAny('ZZZ-9999').en));
+    window.eval("(function(){ D.veh.push({id:'VEH-ORPH', empId:'SASL-0013', company:'HDEC', make:'TESTMAKE', model:'TESTMODEL', year:'2026', colour:'W', plate:'', date:'2026-09-29', notes:'', rot:'A'}); renderVeh(); })()");
+    const orphRow = [].slice.call(d.querySelectorAll('#vehBody tr'))
+      .find(function (x) { return x.textContent.indexOf('TESTMAKE') >= 0; });
+    t('vehicles: orphan row shows name + job code (never blank)',
+      !!orphRow && orphRow.cells[0].textContent.trim() === 'HAITHAM ALI BUWASHL'
+        && orphRow.cells[1].textContent.trim() === 'SASL-0013',
+      orphRow ? JSON.stringify([orphRow.cells[0].textContent, orphRow.cells[1].textContent]) : 'row missing');
+    t('vehicles: orphan kept selectable in employee dropdown (edit safe)',
+      !!d.querySelector('#vehEmp option[value="SASL-0013"]'));
+    window.eval("(function(){ D.veh = D.veh.filter(function(v){ return v.id !== 'VEH-ORPH'; }); renderVeh(); })()");
+
     /* السيناريو الكامل (غير متزامن): حفظ والشبكة مقطوعة ← تحذير صادق + بقاء محلي،
        ثم عودة الاتصال ← رفع تلقائي وتفريغ الطابور. يُستدعى من finish(). */
     // — الطبقة العامة للكتابة الموثوقة: إشعار صادق + طابور عام + لا محو عند فشل الجلب —

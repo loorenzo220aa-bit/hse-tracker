@@ -1241,7 +1241,7 @@ try{
 
 <script>
 /* ============ STATE ============ */
-let D = { users:[], emp:[], rec:[] };
+let D = { users:[], emp:[], rec:[], ts:[], dep:[], veh:[], appr:[] };
 let SESSION = null;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const esc=s=>String(s??'').replace(/[&<>"\']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2193,6 +2193,21 @@ function curMonth(){
 }
 function empName(e){ return LANG==='ar'?(e.ar||e.en):(e.en||e.ar); }
 function empById(id){ return D.emp.find(e=>e.id===id)||{}; }
+/* مرجع موظف كامل: أولاً من جدول employees، وإلا من قوائم الحضور GRP_DATA
+   (يوجد موظفون لهم مركبات لكنهم غير مُضافين لجدول الموظفين)، وإلا الكود نفسه —
+   الهدف: لا تظهر خانة اسم فارغة أبداً في قسم السيارات. */
+function empAny(id){
+  if(!id) return {};
+  const e=D.emp.find(x=>x.id===id);
+  if(e) return e;
+  const n=String(id).trim().toUpperCase();
+  const g=window.GRP_DATA||{};
+  for(const k of ['A','B','D']){
+    const hit=(g[k]||[]).find(p=>String(p&&p[0]||'').trim().toUpperCase()===n);
+    if(hit) return {id:id, en:hit[1]||id, ar:'', num:id};
+  }
+  return {id:id, en:id, ar:id, num:id};
+}
 function userNameBy(user){ const u=D.users.find(x=>x.user===user); return u?u.name:user; }
 
 function renderStats(){
@@ -4453,7 +4468,13 @@ function fillVehEmp(){
   const ph=document.createElement('option'); ph.value=''; ph.textContent=T().emp_placeholder; sel.appendChild(ph);
   sortedEmp().forEach(e=>{ const o=document.createElement('option'); o.value=e.id;
     o.textContent=((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num)+' — '+(e.num||''); sel.appendChild(o); });
-  if(cur && D.emp.find(e=>e.id===cur)) sel.value=cur;
+  /* مرجعو مركبات غير موجودين في جدول الموظفين ← خيار في القائمة
+     كي لا يُعاد تعيين المركبة لشخص آخر عند تعديل صف لا يملك موظفاً في القاعدة */
+  const orphan=[...new Set((D.veh||[]).map(v=>v.empId).filter(Boolean))]
+    .filter(id=>!D.emp.some(e=>e.id===id));
+  orphan.forEach(id=>{ const e=empAny(id); const o=document.createElement('option'); o.value=id;
+    o.textContent=((LANG==='ar'?(e.ar||e.en):(e.en||e.ar))||e.num||id)+' — '+(e.num||id); sel.appendChild(o); });
+  if(cur && (D.emp.find(e=>e.id===cur) || orphan.indexOf(cur)>=0)) sel.value=cur;
 }
 function renderVeh(){
   if(!document.getElementById('vehBody')) return;
@@ -4478,7 +4499,7 @@ function renderVeh(){
   const body=document.getElementById('vehBody'); body.innerHTML='';
   let shown=0;
   rows.forEach(v=>{
-    const e=empById(v.empId);
+    const e=empAny(v.empId);
     const hasP=(v.plate||'').trim()!=='';
     if(f==='logged'&&!hasP) return;
     if(f==='remaining'&&hasP) return;
@@ -4564,7 +4585,7 @@ document.getElementById('vehExportBtn').onclick=async()=>{
     const sumRows=[];
     rots.forEach(rot=>{
       const rows=(D.veh||[]).filter(v=>(v.rot||'(no rotation)')===rot)
-        .sort((a,b)=>{ const ea=empById(a.empId), eb=empById(b.empId);
+        .sort((a,b)=>{ const ea=empAny(a.empId), eb=empAny(b.empId);
           return ((ea.en||ea.ar||'').toUpperCase()).localeCompare((eb.en||eb.ar||'').toUpperCase()); });
       const nm=snames[rot]||rot;
       const ws=wb.addWorksheet(nm.slice(0,31));
@@ -4576,7 +4597,7 @@ document.getElementById('vehExportBtn').onclick=async()=>{
       const hh=['NO.','EMPLOYEE ID','FULL NAME','COMPANY','CAR MAKE','MODEL','YEAR','COLOUR','PLATE NO.','DATE LOGGED','NOTES'];
       hh.forEach((h,i)=>C(ws,String.fromCharCode(65+i)+'4',h,{f:F(10,1,'FFFFFFFF'),bg:STEEL,a:ctr,b:thin}));
       ws.getRow(4).height=30;
-      rows.forEach((v,i)=>{ const r=5+i; const e=empById(v.empId);
+      rows.forEach((v,i)=>{ const r=5+i; const e=empAny(v.empId);
         let nm2=(e.en||e.ar||''); if(!/[\u0600-\u06FF]/.test(nm2)) nm2=nm2.toUpperCase();
         C(ws,'A'+r,i+1,{f:F(10,0),bg:GREY,a:ctr,b:thin});
         C(ws,'B'+r,e.num||'',{f:F(10,0),bg:GREY,a:ctr,b:thin});
