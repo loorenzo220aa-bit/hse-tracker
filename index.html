@@ -1557,6 +1557,7 @@ const I18N={
     toast_addEmp:'تم تسجيل الموظف', toast_del:'تم الحذف', toast_addRec:'تم حفظ الحركة', toast_xlsx:'تم تصدير ملف Excel',
     toast_recFail:'⚠️ تعذّر رفع الحركة — بقيت محفوظة عندك وستُعاد محاولة الرفع تلقائياً', toast_recFlushed:'تم رفع الحركات المعلّقة ✅',
 toast_recReject:'⚠️ رفض الخادم حفظ الحركة — لم تُسجَّل، أعد المحاولة', badge_pending:'قيد الرفع',
+toast_saving:'⏳ جارٍ الحفظ…', toast_addRecErr:'⚠️ خطأ يمنع حفظ الحركة: ', toast_pageErr:'⚠️ خطأ غير متوقع: ',
     toast_wqFail:'⚠️ تعذّر الوصول للخادم — أُضيف إلى قائمة الإرسال وستُعاد تلقائياً', toast_wReject:'⚠️ رفض الخادم الحفظ — تحقق من البيانات والصلاحيات (لم يُحفظ)', toast_wqFlushed:'تم إرسال التعديلات المعلّقة ✅',
     toast_addUser:'تمت إضافة الزميل', toast_delUser:'تم حذف الزميل', toast_cantSelf:'لا يمكن حذف نفسك',
     empty:'لا توجد سجلات مطابقة', emptyEmp:'لا يوجد موظفون بعد — أضف موظف أولاً', emptyUsers:'لا يوجد زملاء بعد',
@@ -1673,6 +1674,7 @@ toast_recReject:'⚠️ رفض الخادم حفظ الحركة — لم تُس�
     toast_addEmp:'Employee saved', toast_del:'Deleted', toast_addRec:'Entry saved', toast_xlsx:'Excel exported',
     toast_recFail:'⚠️ Upload failed — kept on this device and will retry automatically', toast_recFlushed:'Pending entries uploaded ✅',
 toast_recReject:'⚠️ Server rejected the entry — not saved, please try again', badge_pending:'Pending upload',
+toast_saving:'Saving…', toast_addRecErr:'⚠️ Cannot save the entry: ', toast_pageErr:'⚠️ Unexpected error: ',
     toast_wqFail:'⚠️ Server unreachable — queued and will retry automatically', toast_wReject:'⚠️ Server rejected the save — check data/permissions (not saved)', toast_wqFlushed:'Queued updates sent ✅',
     toast_addUser:'Colleague added', toast_delUser:'Colleague removed', toast_cantSelf:'Cannot delete yourself',
     empty:'No matching records', emptyEmp:'No employees yet — add one first', emptyUsers:'No colleagues yet',
@@ -2396,6 +2398,7 @@ document.getElementById('recFile').addEventListener('change', e=>{
 });
 
 document.getElementById('addRecBtn').onclick=async()=>{
+  const btn=document.getElementById('addRecBtn');
   const empId=document.getElementById('recEmp').value;
   const type=document.getElementById('recType').value;
   const date=document.getElementById('recDate').value;
@@ -2408,16 +2411,32 @@ document.getElementById('addRecBtn').onclick=async()=>{
     noteData = JSON.stringify({note:note, file:{name:pendingFile.name, type:pendingFile.type, data:pendingFile.data}});
   }
   const rec={id:uid(),empId,type,date,note:noteData,by:SESSION,ts:Date.now()};
-  D.rec.push(rec);
-  const st = await saveRec(rec);   /* ok | queued | rejected — نُخبر المستخدم بالحقيقة دائماً */
-  if(st==='rejected') D.rec = D.rec.filter(x => x.id !== rec.id);   /* رفض دائم ← إزالة فورية بدل شبح يختفي لاحقاً بصمت */
-  renderStats(); renderRecs(); renderSum();
-  document.getElementById('recNote').value='';
-  document.getElementById('recDate').value=today();
-  document.getElementById('recFile').value='';
-  document.getElementById('filePreview').textContent='';
-  pendingFile=null;
-  toast(st==='ok' ? T().toast_addRec : st==='queued' ? T().toast_recFail : T().toast_recReject);
+  toast(T().toast_saving);          /* تغذية راجعة فورية: لا صمت أبداً بين الضغط والنتيجة */
+  btn.disabled=true;
+  try{
+    D.rec.push(rec);
+    const st = await saveRec(rec);   /* ok | queued | rejected — نُخبر المستخدم بالحقيقة دائماً */
+    if(st==='rejected') D.rec = D.rec.filter(x => x.id !== rec.id);   /* رفض دائم ← إزالة فورية بدل شبح يختفي لاحقاً بصمت */
+    /* ضمانة الرؤية: اقفز بفلتر الشهر إلى تاريخ الحركة + أزل أي فلتر يحجب الصف الجديد */
+    try{
+      const mp=document.getElementById('monthPicker'); const mk=monthKey(date);
+      if(mp && mp.value!==mk){ mp.value=mk; try{ localStorage.setItem('hse-last-month',mk); }catch(e){} }
+      const fe=document.getElementById('filtEmp'), ft=document.getElementById('filtType');
+      if(fe && fe.value && fe.value!==empId) fe.value='';
+      if(ft && ft.value && ft.value!==type) ft.value='';
+    }catch(e){}
+    renderStats(); renderRecs(); renderSum();
+    document.getElementById('recNote').value='';
+    document.getElementById('recDate').value=today();
+    document.getElementById('recFile').value='';
+    document.getElementById('filePreview').textContent='';
+    pendingFile=null;
+    toast(st==='ok' ? T().toast_addRec : st==='queued' ? T().toast_recFail : T().toast_recReject);
+  }catch(e){
+    D.rec = D.rec.filter(x => x.id !== rec.id);   /* فشل غير متوقع ← لا شبح محلي */
+    console.error('add rec failed:', e);
+    toast(T().toast_addRecErr + ((e && e.message) || e));
+  }finally{ btn.disabled=false; }
 };
 
 document.getElementById('recBody').addEventListener('click',async e=>{
@@ -4702,6 +4721,15 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refreshF
 window.addEventListener('focus',()=>{ refreshFromServer(); });
 setInterval(()=>{ if(!document.hidden) refreshFromServer(); }, 60000);
 window.addEventListener('offline',()=>toast(LANG==='ar'?'⚠️ بدون اتصال — تعرض آخر بيانات':'⚠️ Offline — showing last saved data'));
+/* — شبكة أمان الأخطاء: أي استثناء غير متوقع يُبلَّغ بصريًا (بلا إشعارات متكررة) بدل أن يصمت الزر — */
+let __errToastAt=0;
+function __reportErr(where, msg){
+  console.error(where+':', msg);
+  const now=Date.now();
+  if(now-__errToastAt>4000){ __errToastAt=now; try{ toast(T().toast_pageErr + msg); }catch(_){} }
+}
+window.addEventListener('error', e=>{ __reportErr('page error', (e && e.message) || 'unknown'); });
+window.addEventListener('unhandledrejection', e=>{ __reportErr('unhandled rejection', (e && e.reason && (e.reason.message || e.reason)) || 'unknown'); });
 
 // BACKGROUND: try loading from Supabase (non-blocking)
 (async function(){

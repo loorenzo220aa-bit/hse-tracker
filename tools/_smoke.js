@@ -494,11 +494,54 @@ setTimeout(() => {
                 window.localStorage.removeItem('hse-rec-queue');
               } catch (e) { bad.push('badge assertions threw: ' + e.message); }
               window.fetch = okFetch;
-              done();
+              runVisThenCrash(done);
             }).catch(function (e) { bad.push('absent flush threw: ' + e.message); window.fetch = okFetch; done(); });
           }).catch(function (e) { bad.push('flush-reject threw: ' + e.message); done(); });
         }, 80);
       } catch (e) { bad.push('reject setup threw: ' + e.message); done(); }
+    }
+
+    /* — تغذية راجعة فورية + ضمان رؤية الصف الجديد + كشف الأعطال بصرياً (5 فحوصات) — */
+    function runVisThenCrash(done) {
+      // (5-7) الضغط لا يصمت أبداً + قفز فلتر الشهر + إزالة فلتر يحجب الصف
+      try {
+        window.localStorage.removeItem('hse-rec-queue');
+        window.eval("(function(){ if(!D.emp.some(function(e){return e.id==='OTHER-EMP';})){ D.emp.push({id:'OTHER-EMP',ar:'موظف آخر',en:'Other Emp',num:'OT-001',dept:'HSE',phone:'',plate:'',grp:'',photo:''}); } fillEmpSel(); document.getElementById('filtEmp').value='OTHER-EMP'; document.getElementById('filtType').value=''; document.getElementById('monthPicker').value='2026-01'; document.getElementById('recEmp').value='REC-Q-EMP'; document.getElementById('recType').value='violation'; document.getElementById('recDate').value='2026-09-15'; document.getElementById('recNote').value='CHECK-VIS-0915'; })()");
+        d.getElementById('addRecBtn').click();
+        const tSync = d.getElementById('toast').textContent;
+        t('add: instant feedback while saving — no silent press', tSync.indexOf('جارٍ الحفظ') >= 0, JSON.stringify(tSync));
+      } catch (e) { bad.push('vis setup threw: ' + e.message); done(); return; }
+      setTimeout(function () {
+        try {
+          const mp2 = d.getElementById('monthPicker');
+          t('add: month filter jumps to record month — row always visible', mp2.value === '2026-09', 'mp=' + mp2.value);
+          t('add: blocking employee filter cleared', d.getElementById('filtEmp').value === '', 'filtEmp=' + d.getElementById('filtEmp').value);
+          t('add: new row visible in table', d.getElementById('recBody').textContent.indexOf('CHECK-VIS-0915') >= 0, 'not visible!');
+          const tt2 = d.getElementById('toast').textContent;
+          t('add: final toast = success after instant feedback', tt2.indexOf('تم حفظ الحركة') >= 0, JSON.stringify(tt2));
+          window.eval("D.rec = D.rec.filter(function(r){ return String(r.note).indexOf('CHECK-VIS')<0; }); D.emp = D.emp.filter(function(e){ return e.id!=='OTHER-EMP'; }); fillEmpSel(); document.getElementById('monthPicker').value='2026-09'; document.getElementById('filtEmp').value=''; renderStats(); renderRecs(); renderSum();");
+        } catch (e) { bad.push('vis assertions threw: ' + e.message); }
+        runCrashTest(done);
+      }, 80);
+    }
+    function runCrashTest(done) {
+      // (8-9) عطل غير متوقع داخل مسار الحفظ ← رسالة صريحة + بلا شبح + زر مفعّل
+      try {
+        const origSave = window.saveRec;
+        window.saveRec = function () { throw new Error('boom-crash-test'); };
+        const n0 = window.eval('D.rec.length');
+        d.getElementById('recNote').value = 'CHECK-CRASH';
+        d.getElementById('addRecBtn').click();
+        const tt = d.getElementById('toast').textContent;
+        t('crash: error surfaces to user — no silent failure',
+          tt.indexOf('خطأ يمنع حفظ الحركة') >= 0 && tt.indexOf('boom-crash-test') >= 0, JSON.stringify(tt));
+        t('crash: no phantom row left', window.eval('D.rec.length') === n0,
+          'n=' + window.eval('D.rec.length') + ' vs ' + n0);
+        t('crash: save button re-enabled', d.getElementById('addRecBtn').disabled === false, 'still disabled');
+        window.saveRec = origSave;
+        window.eval("localStorage.removeItem('hse-rec-queue'); renderRecs();");
+        done();
+      } catch (e) { bad.push('crash test threw: ' + e.message); done(); }
     }
 
     function runRecQueueTest(done) {
@@ -782,7 +825,7 @@ setTimeout(() => {
       } catch (e) { bad.push('month change threw: ' + e.message); }
 
       // أخطاء الشبكة المتوقعة من المحاكي لا تُعدّ عيوباً
-      const expected = ['offline (test stub)', 'blocked by policy'];   // الثاني: رفض 403 المتعمَّد في فحوصات «الرفض الصادق»
+      const expected = ['offline (test stub)', 'blocked by policy', 'boom-crash-test'];   // الثالث: العطل المتعمَّد في فحص «كشف الأعطال»
       const unexpected = errors.filter(e => !expected.some(p => e.includes(p)));
 
       console.log('\n=== PASSED (' + ok.length + ') ===');
