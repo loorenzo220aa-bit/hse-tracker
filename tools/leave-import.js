@@ -136,6 +136,20 @@ const MON = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SE
     leaves.push({ i: id, s: winStart, d, y: 'reg', w: winEnd });
   });
 
+  /* ---------- مزامنة مع ماستر MPR (tools/mpr-master.json) ----------
+   * من ليس وارداً في الماستر يُستبعد من القائمة وسجل الإجازات،
+   * والتخصص (t) يُحاذا إلى مسمى الماستر. الملف: {num, trade, dept} بلا أسماء. */
+  let mprStat = null;
+  const mprFile = path.join(__dirname, 'mpr-master.json');
+  if (fs.existsSync(mprFile)) {
+    const mpr = JSON.parse(fs.readFileSync(mprFile, 'utf8'));
+    const mById = new Map(mpr.map(x => [normId(x.num), x]));
+    mprStat = { droppedRoster: 0, droppedLeaves: 0, tradeFix: 0 };
+    for (const id of [...roster.keys()]) if (!mById.has(id)) { roster.delete(id); mprStat.droppedRoster++; }
+    for (let i = leaves.length - 1; i >= 0; i--) if (!roster.has(leaves[i].i)) { leaves.splice(i, 1); mprStat.droppedLeaves++; }
+    roster.forEach(r => { const m = mById.get(r.i); if (!m) return; const up = String(m.trade || '').toUpperCase(); if (up && r.t !== up) { r.t = up; mprStat.tradeFix++; } });
+  }
+
   /* ---------- إخراج ---------- */
   const rosterArr = [...roster.values()].sort((a, b) => a.i.localeCompare(b.i))
     .map(r => ({ ...r, t: r.t || '—' }));
@@ -194,5 +208,6 @@ const MON = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SE
   console.log('future conflicts (same trade):', conflicts.length);
   conflicts.slice(0, 8).forEach(c => console.log('   ', c));
   console.log('fixes:', JSON.stringify(stat));
+  console.log('MPR sync:', mprStat ? JSON.stringify(mprStat) : 'off (mpr-master.json مفقود)');
   console.log('written:', OUT, Math.round(fs.statSync(OUT).size / 1024) + 'KB');
 })().catch(e => { console.error('ERR', e.stack || e.message); process.exit(1); });

@@ -192,7 +192,7 @@ setTimeout(() => {
     // 4c) الإجازات السنوية (annual leave tab)
     try {
       t('leave seed injected from leave-data.js',
-        !!window.LVSEED && (window.LVSEED.roster || []).length === 101 && (window.LVSEED.leaves || []).length === 192,
+        !!window.LVSEED && (window.LVSEED.roster || []).length === 99 && (window.LVSEED.leaves || []).length === 190,
         window.LVSEED ? (window.LVSEED.roster || []).length + '/' + (window.LVSEED.leaves || []).length : 'missing');
       t('leave tab + view exist', !!d.getElementById('tabLv') && !!d.getElementById('viewLv'));
       d.getElementById('tabLv').click();
@@ -204,13 +204,13 @@ setTimeout(() => {
         !d.getElementById('lvAlert').classList.contains('hide')
         && d.getElementById('lvAlert').textContent.includes('SAFETY OFFICER'),
         JSON.stringify(d.getElementById('lvAlert').textContent.slice(0, 90)));
-      t('table: 9 columns + all 101 employees',
-        d.querySelectorAll('#lvTable thead th').length === 9 && d.querySelectorAll('#lvBody tr').length === 101,
+      t('table: 9 columns + all 99 employees',
+        d.querySelectorAll('#lvTable thead th').length === 9 && d.querySelectorAll('#lvBody tr').length === 99,
         d.querySelectorAll('#lvTable thead th').length + ' cols / ' + d.querySelectorAll('#lvBody tr').length + ' rows');
       t('status pills use house tag colors',
-        d.querySelectorAll('#lvBody .tag').length === 101
+        d.querySelectorAll('#lvBody .tag').length === 99
         && [...d.querySelectorAll('#lvBody .tag')].every(p => p.classList.contains('t-per') || p.classList.contains('t-abs') || p.classList.contains('t-wrn')));
-      t('dept filter: 8 trades + all', d.getElementById('lvDept').options.length === 9,
+      t('dept filter: 7 trades + all', d.getElementById('lvDept').options.length === 8,
         d.getElementById('lvDept').options.length + ' options');
       t('status filter: all + 3 states', d.getElementById('lvStatus').options.length === 4);
       t('dept filter narrows rows', (() => {
@@ -219,7 +219,7 @@ setTimeout(() => {
         sel.value = pick.value; sel.dispatchEvent(new window.Event('change'));
         const n = d.querySelectorAll('#lvBody tr').length;
         sel.value = ''; sel.dispatchEvent(new window.Event('change'));
-        return n > 0 && n < 101;
+        return n > 0 && n < 99;
       })());
       t('search box filters rows', (() => {
         const se = d.getElementById('lvSearch');
@@ -277,7 +277,7 @@ setTimeout(() => {
       d.getElementById('lvAddBtn').click();
       t('leave dialog opens: employee select + start/dur/end',
         !d.getElementById('lvDlg').classList.contains('hide')
-        && !!d.getElementById('lvfEmp') && d.getElementById('lvfEmp').options.length > 100
+        && !!d.getElementById('lvfEmp') && d.getElementById('lvfEmp').options.length >= 99
         && !!d.getElementById('lvfStart') && !!d.getElementById('lvfDur') && !!d.getElementById('lvfEnd'));
       t('duration auto-fills end date', (() => {
         const s = d.getElementById('lvfStart'), du = d.getElementById('lvfDur'), e = d.getElementById('lvfEnd');
@@ -301,10 +301,10 @@ setTimeout(() => {
         catch (e) { return false; }
       })());
       t('PDF export button registered', typeof d.getElementById('lvPdfBtn').onclick === 'function');
-      t('lvPdfBuild renders page (head + 4 KPIs + 101 rows + foot)', (() => {
+      t('lvPdfBuild renders page (head + 4 KPIs + 99 rows + foot)', (() => {
         const el = window.lvPdfBuild(window.lvFilterRows());
         const ok = el.classList.contains('appr-pdf')
-          && el.querySelectorAll('.appr-pdf-table tbody tr').length === 101
+          && el.querySelectorAll('.appr-pdf-table tbody tr').length === 99
           && el.querySelectorAll('.appr-pdf-kpi .stat').length === 4
           && !!el.querySelector('.appr-pdf-head') && !!el.querySelector('.appr-pdf-foot');
         el.remove();
@@ -360,19 +360,37 @@ setTimeout(() => {
 
     /* — قسم السيارات: لا خانة اسم فارغة — موظف غير موجود في employees يُقرأ من قوائم الحضور — */
     t('empAny: name recovered from attendance roster (GRP_DATA)',
-      window.empAny('SASL-0013').en === 'HAITHAM ALI BUWASHL', window.empAny('SASL-0013').en);
+      window.empAny('SASL-0606').en === 'AALI KHALID B ALOTAIBI', window.empAny('SASL-0606').en);
     t('empAny: unknown code falls back to the code itself (never blank)',
       window.empAny('ZZZ-9999').en === 'ZZZ-9999', String(window.empAny('ZZZ-9999').en));
-    window.eval("(function(){ D.veh.push({id:'VEH-ORPH', empId:'SASL-0013', company:'HDEC', make:'TESTMAKE', model:'TESTMODEL', year:'2026', colour:'W', plate:'', date:'2026-09-29', notes:'', rot:'A'}); renderVeh(); })()");
+    window.eval("(function(){ D.veh.push({id:'VEH-ORPH', empId:'SASL-0606', company:'HDEC', make:'TESTMAKE', model:'TESTMODEL', year:'2026', colour:'W', plate:'', date:'2026-09-29', notes:'', rot:'A'}); renderVeh(); })()");
     const orphRow = [].slice.call(d.querySelectorAll('#vehBody tr'))
       .find(function (x) { return x.textContent.indexOf('TESTMAKE') >= 0; });
     t('vehicles: orphan row shows name + job code (never blank)',
-      !!orphRow && orphRow.cells[0].textContent.trim() === 'HAITHAM ALI BUWASHL'
-        && orphRow.cells[1].textContent.trim() === 'SASL-0013',
+      !!orphRow && orphRow.cells[0].textContent.trim() === 'AALI KHALID B ALOTAIBI'
+        && orphRow.cells[1].textContent.trim() === 'SASL-0606',
       orphRow ? JSON.stringify([orphRow.cells[0].textContent, orphRow.cells[1].textContent]) : 'row missing');
     t('vehicles: orphan kept selectable in employee dropdown (edit safe)',
-      !!d.querySelector('#vehEmp option[value="SASL-0013"]'));
+      !!d.querySelector('#vehEmp option[value="SASL-0606"]'));
     window.eval("(function(){ D.veh = D.veh.filter(function(v){ return v.id !== 'VEH-ORPH'; }); renderVeh(); })()");
+
+    /* مزامنة ماستر MPR: قوائم الموظفين الثلاث (إجازات/حضور/دليل) مقتطعة من tools/mpr-master.json */
+    t('MPR master sync: leave + groups + staff all inside the master list', (() => {
+      try {
+        const p = require('path'), f = require('fs');
+        const norm = s => String(s || '').toUpperCase().replace(/\s+/g, '');
+        const mpr = new Set(JSON.parse(f.readFileSync(p.join(p.dirname(file), 'tools', 'mpr-master.json'), 'utf8')).map(x => norm(x.num)));
+        const lv = ((window.LVSEED && window.LVSEED.roster) || []).every(r => mpr.has(norm(r.i)));
+        const g = window.GRP_DATA || {};
+        const gr = ['A', 'B', 'D'].every(k => (g[k] || []).every(x => mpr.has(norm(x[0]))));
+        const src2 = f.readFileSync(file, 'utf8');
+        const st = ['STAFF_HDEC', 'STAFF_HEC'].every(nm => {
+          const m = src2.match(new RegExp('const ' + nm + '=(\\[[^\\n]*?\\]);'));
+          return !!m && JSON.parse(m[1]).every(s => mpr.has(norm(s.i)));
+        });
+        return lv && gr && st;
+      } catch (e) { return false; }
+    })(), 'roster/groups/staff ⊈ mpr-master.json');
 
     /* السيناريو الكامل (غير متزامن): حفظ والشبكة مقطوعة ← تحذير صادق + بقاء محلي،
        ثم عودة الاتصال ← رفع تلقائي وتفريغ الطابور. يُستدعى من finish(). */
@@ -836,15 +854,15 @@ setTimeout(() => {
 
       // 8b) groups tab (A / B / Daily)
       try {
-        t('groups data injected', !!window.GRP_DATA && (window.GRP_DATA.A || []).length === 71 && (window.GRP_DATA.B || []).length === 74 && (window.GRP_DATA.D || []).length === 54,
-          window.__grpErr ? window.__grpErr : 'A=71 B=74 D=54');
+        t('groups data injected', !!window.GRP_DATA && (window.GRP_DATA.A || []).length === 69 && (window.GRP_DATA.B || []).length === 61 && (window.GRP_DATA.D || []).length === 34,
+          window.__grpErr ? window.__grpErr : 'A=' + (window.GRP_DATA.A || []).length + ' B=' + (window.GRP_DATA.B || []).length + ' D=' + (window.GRP_DATA.D || []).length);
         t('groups tab exists', !!d.getElementById('tabGrp'));
         d.getElementById('tabGrp').click();
         t('groups view visible', !d.getElementById('viewGrp').classList.contains('hide'));
         t('groups header has 7 columns', d.querySelectorAll('#grpTable thead th').length === 7);
         t('groups stats rendered (8 cards incl. fire)', d.querySelectorAll('#grpStats .stat').length === 8,
           d.querySelectorAll('#grpStats .stat').length + ' cards');
-        t('group A rows rendered', d.querySelectorAll('#grpBody tr').length === 71,
+        t('group A rows rendered', d.querySelectorAll('#grpBody tr').length === 69,
           d.querySelectorAll('#grpBody tr').length + ' rows');
         const fdSeg = [...d.querySelectorAll('#grpSeg .gseg')].find(b => b.dataset.g === 'FD');
         const fnSeg = [...d.querySelectorAll('#grpSeg .gseg')].find(b => b.dataset.g === 'FN');
@@ -857,12 +875,12 @@ setTimeout(() => {
           'rows: ' + d.querySelectorAll('#grpBody tr').length);
         const allSeg = [...d.querySelectorAll('#grpSeg .gseg')].find(b => b.dataset.g === '');
         allSeg.click();
-        t('all groups listed together', d.querySelectorAll('#grpBody tr').length === 199,
+        t('all groups listed together', d.querySelectorAll('#grpBody tr').length === 164,
           d.querySelectorAll('#grpBody tr').length + ' rows');
-        t('every row shows a match status', d.querySelectorAll('#grpBody tr td:last-child .tag').length === 199,
+        t('every row shows a match status', d.querySelectorAll('#grpBody tr td:last-child .tag').length === 164,
           d.querySelectorAll('#grpBody tr td:last-child .tag').length + ' status pills (no employee data offline → all flagged)');
-        t('group pill in every row', d.querySelectorAll('#grpBody tr td:nth-child(2) .tag').length === 199);
-        t('daily rows get the orange group pill', d.querySelectorAll('#grpBody tr td:nth-child(2) .t-wrn').length === 54,
+        t('group pill in every row', d.querySelectorAll('#grpBody tr td:nth-child(2) .tag').length === 164);
+        t('daily rows get the orange group pill', d.querySelectorAll('#grpBody tr td:nth-child(2) .t-wrn').length === 34,
           d.querySelectorAll('#grpBody tr td:nth-child(2) .t-wrn').length + ' Daily pills');
         const inp = d.getElementById('grpSearch');
         inp.value = 'AALI KHALID';
