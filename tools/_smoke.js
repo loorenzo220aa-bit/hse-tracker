@@ -210,7 +210,7 @@ setTimeout(() => {
       t('status pills use house tag colors',
         d.querySelectorAll('#lvBody .tag').length === 101
         && [...d.querySelectorAll('#lvBody .tag')].every(p => p.classList.contains('t-per') || p.classList.contains('t-abs') || p.classList.contains('t-wrn')));
-      t('dept filter: 7 trades + all', d.getElementById('lvDept').options.length === 8,
+      t('dept filter: 8 trades + all', d.getElementById('lvDept').options.length === 9,
         d.getElementById('lvDept').options.length + ' options');
       t('status filter: all + 3 states', d.getElementById('lvStatus').options.length === 4);
       t('dept filter narrows rows', (() => {
@@ -310,16 +310,30 @@ setTimeout(() => {
         el.remove();
         return ok;
       })());
-      // مزامنة التخزين بين النوافذ (overlay يغلب البذرة ثم يعود)
-      t('storage overlay sync (apply + restore seed)', (() => {
+      // مزامنة التخزين بين النوافذ (نفس الجيل يغلب — تعديلات المتصفح سارية بين النوافذ)
+      t('storage overlay sync (same gen applies + restore seed)', (() => {
         const n0 = window.eval('LV.leaves.length');
         window.localStorage.setItem('hse-leaves-v1',
-          JSON.stringify({ roster: window.eval('LV.roster'), leaves: [], defEnt: 21 }));
+          JSON.stringify({ roster: window.eval('LV.roster'), leaves: [], defEnt: 21, gen: window.eval('LV.gen') }));
         window.dispatchEvent(Object.assign(new window.Event('storage'), { key: 'hse-leaves-v1' }));
         const cleared = window.eval('LV.leaves.length') === 0;
         window.localStorage.removeItem('hse-leaves-v1');
         window.dispatchEvent(Object.assign(new window.Event('storage'), { key: 'hse-leaves-v1' }));
         return cleared && window.eval('LV.leaves.length') === n0;
+      })());
+      // بوابة الجيل: نسخة محلية من بذرة أقدم تحل محلها البذرة الجديدة — التحديث يصل الجميع
+      t('stale local copy (old gen) replaced by fresh seed + persisted', (() => {
+        const seedN = window.eval('window.LVSEED.leaves.length');
+        window.localStorage.setItem('hse-leaves-v1',
+          JSON.stringify({ roster: [], leaves: [], defEnt: 21, gen: '2020-01-01T00:00:00Z' }));
+        window.dispatchEvent(Object.assign(new window.Event('storage'), { key: 'hse-leaves-v1' }));
+        const applied = window.eval('LV.leaves.length') === seedN;
+        let persisted = false;
+        try { persisted = JSON.parse(window.localStorage.getItem('hse-leaves-v1') || '{}').gen === window.eval('LV.gen'); } catch (e) {}
+        window.localStorage.removeItem('hse-leaves-v1');
+        window.dispatchEvent(Object.assign(new window.Event('storage'), { key: 'hse-leaves-v1' }));
+        const restored = window.eval('LV.leaves.length') === seedN;
+        return applied && persisted && restored;
       })());
       d.getElementById('tabVio').click();
     } catch (e) { bad.push('annual leave threw: ' + e.message); }

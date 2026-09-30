@@ -3936,10 +3936,16 @@ function lvLoad(){
   const seed=window.LVSEED||{roster:[],leaves:[],defEnt:21,gen:''};
   let st=null;
   try{ st=JSON.parse(localStorage.getItem(LV_STORE)||'null'); }catch(e){}
-  if(st&&Array.isArray(st.roster)&&Array.isArray(st.leaves)){
-    LV={roster:st.roster, leaves:st.leaves, defEnt:Number(st.defEnt)||Number(seed.defEnt)||21, gen:st.gen||seed.gen||''};
+  const stOK=!!(st&&Array.isArray(st.roster)&&Array.isArray(st.leaves));
+  const sameGen=stOK&&st.gen===(seed.gen||'');
+  if(sameGen){
+    LV={roster:st.roster, leaves:st.leaves, defEnt:Number(st.defEnt)||Number(seed.defEnt)||21, gen:st.gen};
   } else {
+    /* بوابة الجيل: نسخة محلية من بذرة أقدم (أو بلا جيل) ← تحل محلها البذرة الجديدة،
+       فلا يبقى أحد على بيانات قديمة بعد تحديث الملف. تُحفظ مرة واحدة فقط بعد الاستبدال
+       (بلا حلقة أحداث storage بين النوافذ). النسخة بنفس الجيل تغلب: تعديلات المتصفح سارية. */
     LV={roster:lvClone(seed.roster||[]), leaves:lvClone(seed.leaves||[]), defEnt:Number(seed.defEnt)||21, gen:seed.gen||''};
+    if(stOK) lvPersist();
   }
   /* معرّف ثابت لكل إجازة (للتعديل/الحذف) — مشتق من الحقول فيبقى مستقراً بين عمليات التحميل */
   const seen={};

@@ -23,7 +23,16 @@ const txt = v => {
   }
   return v;
 };
-const ds = v => { const s = txt(v); return (s instanceof Date) ? s.toISOString().slice(0, 10) : String(s).slice(0, 10); };
+const ds = v => {
+  const s = txt(v);
+  if (s instanceof Date) return s.toISOString().slice(0, 10);
+  const str = String(s == null ? '' : s).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+  /* نصوص منسوخة من Excel: "Sun Jun 29 2025 03:00:00 GMT+0300 (Arabian Standard Time)" */
+  const p = Date.parse(str);
+  if (str && !isNaN(p)) return new Date(p).toISOString().slice(0, 10);
+  return str.slice(0, 10);
+};
 const isD = s => /^\d{4}-\d{2}-\d{2}$/.test(s);
 const dayDiff = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 864e5);
 const addDays = (s, n) => new Date(new Date(s + 'T00:00:00Z').getTime() + n * 864e5).toISOString().slice(0, 10);
@@ -52,9 +61,11 @@ const MON = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SE
     if (r === 1) return;
     const g = c => txt(row.getCell(c).value);
     const idc = normId(g(1) || g(2));
-    if (idc) cur = idc;
+    /* المعرّف القديم يبقى سارياً: صفوف القمامة (مثل ".") لا تقطع كتلة الموظف */
+    if (idc && ID_RE.test(idc)) cur = idc;
+    else if (idc) stat.junk.push('Sheet1 R' + r + ':' + idc);
     const name = String(g(3) || '').trim();
-    if (!cur || !ID_RE.test(cur)) { if (idc) stat.junk.push('Sheet1 R' + r + ':' + idc); return; }
+    if (!cur || !ID_RE.test(cur)) return;
     if (name && !roster.has(cur)) roster.set(cur, { i: cur, n: name, t: String(g(6) || '').trim(), e: DEF_ENT });
     const dep = ds(g(11)), arr = ds(g(12));
     if (!isD(dep) || !isD(arr) || !roster.has(cur)) return;
@@ -66,26 +77,35 @@ const MON = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SE
     leaves.push({ i: cur, s: a, d, y: typeCode(g(13)) });
   });
 
-  /* ---------- ML: مخطط الإجازات القادمة ---------- */
+  /* ---------- ML: مخطط الإجازات القادمة ----------
+   * تخطيطان مدعومان (كشف تلقائي من أول صف بيانات):
+   *   قديم (2025): col1=?, id=2, name=3, natid=4, part=5, trade=6, TO(نهاية)=7, should(بداية)=8, days=9, range=10
+   *   جديد (2026.09.29): id=1, name=2, natid=3, part=4, trade=5, TO(نهاية)=6, should(بداية)=7, days=8, range=9, STATUS=10
+   * natid (رقم وطني) لا يُقرأ نهائياً — خصوصية. */
   const ml = wb.getWorksheet('ML ');
+  const newLayout = ID_RE.test(normId(txt(ml.getRow(5).getCell(1).value)));
+  const COL = newLayout
+    ? { id: 1, name: 2, trade: 5, end: 6, start: 7, days: 8, rng: 9 }
+    : { id: 2, name: 3, trade: 6, end: 7, start: 8, days: 9, rng: 10 };
   const seenML = new Set();
   ml.eachRow({ includeEmpty: false }, (row, r) => {
     if (r < 5) return;
     const g = c => txt(row.getCell(c).value);
-    const id = normId(g(2));
+    const id = normId(g(COL.id));
     if (!id) return;
     if (!ID_RE.test(id)) { stat.junk.push('ML R' + r + ':' + id); return; }
     if (seenML.has(id)) stat.dupML++;
     seenML.add(id);
-    const name = String(g(3) || '').trim();
-    const trade = String(g(6) || '').trim();
-    const winStart = ds(g(8)), winEnd = ds(g(7));
+    const name = String(g(COL.name) || '').trim();
+    const trade = String(g(COL.trade) || '').trim();
+    let winStart = ds(g(COL.start)), winEnd = ds(g(COL.end));
     if (!roster.has(id)) roster.set(id, { i: id, n: name, t: trade, e: DEF_ENT });
     else if (trade && !roster.get(id).t) roster.get(id).t = trade;
-    const daysTxt = String(g(9) || '');
+    const daysTxt = String(g(COL.days) || '');
     const daysNum = parseInt(daysTxt, 10);
-    const rng = String(g(10) || '').trim();
+    const rng = String(g(COL.rng) || '').trim();
     if (!isD(winStart) || !isD(winEnd)) return;
+    if (winEnd < winStart) { const t2 = winStart; winStart = winEnd; winEnd = t2; stat.invWin = (stat.invWin || 0) + 1; }   /* نافذة معكوسة ← تبديل */
 
     if (rng) {
       // نطاق فعلي: "21 NOV - 11 DEC" بدون سنة — نستنتج أقرب سنة لبداية النافذة
@@ -123,13 +143,17 @@ const MON = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SE
 
   const gen = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
   const body =
-    '/* leave-data.js — بيانات الإجازات السنوية (تُولّد عبر tools/leave-import.js من ملف HR-F-5 Vacation Form HSE.xlsx)\n' +
+    '/* leave-data.js — بيانات الإجازات السنوية (تُولّد عبر tools/leave-import.js من ملف ' + path.basename(F) + ')\n' +
     ' * الحقول: roster[] = {i: رقم وظيفي, n: اسم, t: التخصص (القسم), e: الاستحقاق السنوي بالأيام}\n' +
     ' *         leaves[] = {i, s: تاريخ البداية, d: المدة بالأيام, y: نوع (reg/emg/dth/mrg), w: نهاية النافذة (اختياري)}\n' +
     ' * لا يحتوي أرقاماً وطنية أو هويات أو هواتف. التعديل يُعاد توليد الأداة — التغييرات اليدوية تُحفظ في المتصفح.\n' +
     ' */\n' +
     'window.LVSEED = ' + JSON.stringify({ gen, defEnt: DEF_ENT, roster: rosterArr, leaves: leavesOut }, null, 0) + ';\n';
   fs.writeFileSync(OUT, body, 'utf8');
+
+  /* ---------- فحص خصوصية على الخرج الفعلي ---------- */
+  const leaks = (body.match(/\b\d{10}\b/g) || []).concat(body.match(/\b05\d{8}\b/g) || []);
+  if (leaks.length) { console.error('PRIVACY FAIL — رقم وطني/هاتف في الخرج:', leaks.slice(0, 5)); process.exit(2); }
 
   /* ---------- إحصاءات للتحقق ---------- */
   const byYear = {}, byType = {}, future = [], onNow = [];
