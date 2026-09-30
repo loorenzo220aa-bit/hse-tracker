@@ -554,8 +554,62 @@ setTimeout(() => {
         t('crash: save button re-enabled', d.getElementById('addRecBtn').disabled === false, 'still disabled');
         window.saveRec = origSave;
         window.eval("localStorage.removeItem('hse-rec-queue'); renderRecs();");
-        done();
+        runExportTests(done);
       } catch (e) { bad.push('crash test threw: ' + e.message); done(); }
+    }
+    function runExportTests(done) {
+      // — تصدير الملخص الشهري: النطاق + فكّ الملاحظة/المستند + بناء PDF + الزران (4 فحوصات) —
+      try {
+        const probe = window.eval(`(function(){
+          var out={};
+          try{
+            var m=curMonth();
+            D.emp.push({id:'VIO-TMP-EMP', ar:'موظف النطاق', en:'Scope Emp', num:'VIO-900', dept:'HSE', phone:'', plate:'', grp:'', photo:''});
+            var e0=D.emp[D.emp.length-1];
+            var e1=sortedEmp().filter(function(x){ return x.id!=='VIO-TMP-EMP'; })[0]||null;
+            var b1=e1?sumData(m).map[e1.id].vio:0;
+            D.rec.push({id:'svo-1', empId:e0.id, type:'violation', date:m+'-11', note:'vio t1', by:SESSION, ts:Date.now()});
+            D.rec.push({id:'svo-2', empId:e0.id, type:'violation', date:m+'-12', note:'vio t2', by:SESSION, ts:Date.now()});
+            if(e1) D.rec.push({id:'svo-3', empId:e1.id, type:'absence', date:m+'-13', note:'abs t', by:SESSION, ts:Date.now()});
+            var rows=sumVioRows(m).rows, r0=null;
+            rows.forEach(function(x){ if(x.e.id===e0.id) r0=x; });
+            out.scope = !!r0 && r0.o.vio===2
+              && rows.every(function(x){ return x.o.vio>0; })
+              && !rows.some(function(x){ return x.e.id!==e0.id && x.o.vio>b1; });
+            out.n=rows.length;
+            var host=recPdfBuild();
+            if(host){
+              out.head=!!host.querySelector('.rsum-head');
+              out.foot=!!host.querySelector('.appr-pdf-foot');
+              out.sumRows=host.querySelectorAll('.rsum-sec tbody tr').length;
+              out.emps=host.querySelectorAll('.rsum-emp').length;
+              out.vios=host.querySelectorAll('.rsum-vio').length;
+              host.parentNode && host.parentNode.removeChild(host);
+            }
+          }catch(ex){ out.err=ex.message; }
+          D.rec=D.rec.filter(function(r){ return r.id!=='svo-1'&&r.id!=='svo-2'&&r.id!=='svo-3'; });
+          D.emp=D.emp.filter(function(e){ return e.id!=='VIO-TMP-EMP'; });
+          return JSON.stringify(out);
+        })()`);
+        const o = JSON.parse(probe);
+        t('export scope: only employees with violations — desc, absence-only excluded',
+          !o.err && o.scope, JSON.stringify(o));
+        t('export pdf builder: head + foot + summary rows + employee blocks + violation cards',
+          !o.err && o.head && o.foot && o.sumRows === o.n && o.emps === o.n && o.vios >= 2, JSON.stringify(o));
+        const pn = window.eval("recNoteObj({note:JSON.stringify({note:'ملاحظة', file:{name:'e.jpg', type:'image/jpeg', data:'data:image/jpeg;base64,AAA'}})})");
+        const pa = window.eval("recNoteObj({note:'نص عادي'})");
+        t('export recNoteObj: JSON note splits text vs file (no base64 leak to cells)',
+          pn && pn.note === 'ملاحظة' && pn.file && pn.file.name === 'e.jpg' && pa.note === 'نص عادي' && !pa.file,
+          JSON.stringify({pn:pn, pa:pa}));
+        const x0 = window.XLSX; let cerr = '';
+        try { window.XLSX = undefined; d.getElementById('exportBtn').click(); }
+        catch (ex) { cerr = ex.message; } finally { window.XLSX = x0; }
+        const et = d.getElementById('toast').textContent;
+        t('export excel: never silent — no throw, honest toast (lib/empty/success)',
+          !cerr && et.length > 0, cerr || JSON.stringify(et));
+        t('export pdf button wired', typeof d.getElementById('recPdfBtn').onclick === 'function');
+        done();
+      } catch (e) { bad.push('export tests threw: ' + e.message); done(); }
     }
 
     function runRecQueueTest(done) {

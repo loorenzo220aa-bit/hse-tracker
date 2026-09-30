@@ -213,6 +213,28 @@
   .appr-pdf .appr-days.soon{color:#b45309; font-weight:800;}
   .appr-pdf-foot{margin-top:12px; padding-top:7px; border-top:1px solid #e2e8f0;
     font-size:11px; color:#94a3b8; display:flex; justify-content:space-between;}
+  /* — كتل تقرير المخالفات الشهري (PDF): ترويسة/ملخص/أدلة — */
+  .appr-pdf .rsum-sec{margin-bottom:12px;}
+  .appr-pdf .rsum-sec h3{font-size:15px; color:#0369a1; margin:0 0 8px; display:flex; align-items:center; gap:8px;}
+  .appr-pdf .rsum-emp{display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:linear-gradient(135deg,#0f172a,#1e3a8a); color:#fff; border-radius:12px;
+    padding:9px 14px; margin:14px 0 8px; font-weight:800; font-size:14px; page-break-inside:avoid;}
+  .appr-pdf .rsum-emp .re-no{width:30px; height:30px; border-radius:50%; background:#f43f5e;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900;}
+  .appr-pdf .rsum-emp .re-sub{font-weight:600; font-size:12px; color:#cbd5e1;}
+  .appr-pdf .rsum-emp .re-badge{margin-inline-start:auto; background:#fff; color:#be123c;
+    border-radius:99px; padding:3px 12px; font-size:12px; font-weight:900;}
+  .appr-pdf .rsum-vio{border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px;
+    margin-bottom:8px; background:#fff; page-break-inside:avoid;}
+  .appr-pdf .rsum-vio .rv-top{display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    font-size:12px; color:#64748b; margin-bottom:6px;}
+  .appr-pdf .rsum-vio .rv-note{font-size:13px; color:#0f172a; white-space:pre-wrap; word-break:break-word;
+    background:#f8fafc; border:1px dashed #e2e8f0; border-radius:8px; padding:8px 10px; margin-bottom:8px;}
+  .appr-pdf .rsum-att{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;}
+  .appr-pdf .rsum-att img{max-height:150px; max-width:250px; border-radius:8px; border:1px solid #e2e8f0; display:block;}
+  .appr-pdf .rsum-att .rf{display:flex; align-items:center; gap:6px; background:#f0f9ff; border:1px solid #bae6fd;
+    color:#0369a1; border-radius:99px; padding:5px 12px; font-size:12px; font-weight:700;
+    max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .appr-alert-item{display:flex; gap:10px; align-items:flex-start; width:100%; text-align:start; background:#fff;
       border:none; border-bottom:1px solid var(--line); padding:11px 8px; cursor:pointer; font-family:inherit; transition:.15s;}
   .appr-alert-item:hover{background:#fff1f2;}
@@ -996,7 +1018,11 @@ try{
 
   <div class="card">
     <h2><span class="ic">📊</span><span data-i="t_sum">ملخص شهري للموظفين</span></h2>
-    <div style="margin-bottom:12px;"><button class="btn btn-green" id="exportBtn">📥 <span data-i="export">تصدير Excel</span></button></div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <button class="btn btn-green" id="exportBtn">📥 <span data-i="export">تصدير Excel</span></button>
+      <button class="btn btn-acc" id="recPdfBtn">🧾 <span data-i="exp_pdf">تصدير PDF (بالمستندات)</span></button>
+      <span style="font-size:12px;color:var(--mut);" data-i="exp_scope_vio">النطاق: الموظفون ذوو المخالفات فقط</span>
+    </div>
     <details class="coll">
       <summary>📊 <span data-i="sum_list">الملخص التفصيلي</span> (<span id="sumCountLbl">0</span>)</summary>
     <div class="tbl-holder" style="margin-top:0;">
@@ -1555,6 +1581,12 @@ const I18N={
     t_sum:'ملخص شهري للموظفين', foot:'نظام متابعة HSE — هيونداي للهندسة والإنشاءات (Hyundai E&C)',
     home_stats:'📊 نظرة عامة', home_actions:'⚡ الوصول السريع',
     toast_addEmp:'تم تسجيل الموظف', toast_del:'تم الحذف', toast_addRec:'تم حفظ الحركة', toast_xlsx:'تم تصدير ملف Excel',
+    exp_pdf:'🧾 تصدير PDF (بالمستندات)', exp_scope_vio:'النطاق: الموظفون ذوو المخالفات فقط',
+    exp_nolib:'تعذّر تحميل مكتبة Excel — تحقق من الاتصال', exp_fail:'تعذّر التصدير',
+    rec_noVio:'لا توجد مخالفات مسجّلة في هذا الشهر',
+    rec_pdf_building:'جارٍ بناء PDF…', rec_pdf_done:'تم بناء ملف PDF ✅', rec_pdf_fail:'تعذّر بناء PDF',
+    exp_sum_sec:'📊 ملخص المخالفات', exp_ev_sec:'📎 الأدلة والمستندات المرفقة',
+    exp_kpi_emp:'موظفون مخالفون', exp_kpi_vio:'مخالفات', exp_kpi_att:'مستندات مرفقة',
     toast_recFail:'⚠️ تعذّر رفع الحركة — بقيت محفوظة عندك وستُعاد محاولة الرفع تلقائياً', toast_recFlushed:'تم رفع الحركات المعلّقة ✅',
 toast_recReject:'⚠️ رفض الخادم حفظ الحركة — لم تُسجَّل، أعد المحاولة', badge_pending:'قيد الرفع',
 toast_saving:'⏳ جارٍ الحفظ…', toast_addRecErr:'⚠️ خطأ يمنع حفظ الحركة: ', toast_pageErr:'⚠️ خطأ غير متوقع: ',
@@ -1672,6 +1704,12 @@ toast_saving:'⏳ جارٍ الحفظ…', toast_addRecErr:'⚠️ خطأ يمن
     t_sum:'Monthly Employee Summary', foot:'HSE Tracker — Hyundai Engineering & Construction',
     home_stats:'📊 Overview', home_actions:'⚡ Quick access',
     toast_addEmp:'Employee saved', toast_del:'Deleted', toast_addRec:'Entry saved', toast_xlsx:'Excel exported',
+    exp_pdf:'🧾 PDF export (with attachments)', exp_scope_vio:'Scope: employees with violations only',
+    exp_nolib:'Excel lib unavailable — check connection', exp_fail:'Export failed',
+    rec_noVio:'No violations recorded this month',
+    rec_pdf_building:'Building PDF…', rec_pdf_done:'PDF built ✅', rec_pdf_fail:'PDF build failed',
+    exp_sum_sec:'📊 Violations summary', exp_ev_sec:'📎 Evidence & attached documents',
+    exp_kpi_emp:'Employees w/ violations', exp_kpi_vio:'Violations', exp_kpi_att:'Attachments',
     toast_recFail:'⚠️ Upload failed — kept on this device and will retry automatically', toast_recFlushed:'Pending entries uploaded ✅',
 toast_recReject:'⚠️ Server rejected the entry — not saved, please try again', badge_pending:'Pending upload',
 toast_saving:'Saving…', toast_addRecErr:'⚠️ Cannot save the entry: ', toast_pageErr:'⚠️ Unexpected error: ',
@@ -2483,30 +2521,250 @@ paintThemeBtn();
 function today(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
 
 /* ============ EXPORT ============ */
-document.getElementById('exportBtn').onclick=()=>{
-  const m=curMonth();
-  const recs=D.rec.filter(r=>monthKey(r.date)===m).sort((a,b)=>a.date.localeCompare(b.date));
+/* ============ الملخص الشهري (تصدير Excel + PDF) — النطاق: من عليهم مخالفات فقط ============
+   الدرس من الحقل: الملاحظة قد تكون JSON بمرفق base64 (113KB+) → كانت Excel تقذف
+   «Text length must not exceed 32767 characters» ويصمت الزر. الآن: JSON يُفكّ،
+   الملاحظة تُقرأ نصاً (بحد أقصى للخلية)، المستند يخرج باسمه في Excel،
+   وصوره تُضمَّن فعلياً في PDF مع ترتيب تنازلي حسب عدد المخالفات. */
+function recNoteObj(r){
+  const raw=String((r&&r.note)||'');
+  try{ const o=JSON.parse(raw);
+    if(o&&typeof o==='object') return {note:String(o.note||''), file:(o.file&&o.file.data)?o.file:null};
+  }catch(e){}
+  return {note:raw, file:null};
+}
+function sumData(m){
+  const recs=D.rec.filter(r=>monthKey(r.date)===m);
   const map={}; D.emp.forEach(e=>map[e.id]={vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0});
   recs.forEach(r=>{ const o=map[r.empId]; if(!o) return;
-    if(r.type==='violation')o.vio++;else if(r.type==='absence')o.abs++;else if(r.type==='permission')o.per++;else if(r.type==='warning')o.wrn++;else if(r.type==='sick')o.sick++;else o.oth++;o.tot++;});
-  const a=[];a.push([T().title]); a.push([LANG==='ar'?'الشهر':'Month', m]); a.push([]);
-  const hh=LANG==='ar'?['الموظف','الرقم الوظيفي','القسم','مخالفات','غيابات','استأذانات','إنذارات','سكليف','أخرى','الإجمالي']
-                    :['Employee','Job No.','Department','Violations','Absences','Permits','Warnings','Sick Leave','Others','Total'];
-  a.push(hh);
-  sortedEmp().forEach(e=>{ const o=map[e.id]||{vio:0,abs:0,per:0,wrn:0,sick:0,oth:0,tot:0};
-    a.push([empName(e),e.num||'',e.dept||'',o.vio,o.abs,o.per,o.wrn,o.sick,o.oth,o.tot]);});
-  a.push([]); a.push([]);
-  a.push(LANG==='ar'?['التاريخ','الموظف','الرقم الوظيفي','النوع','سجّله','الملاحظة']
-                    :['Date','Employee','Job No.','Type','Recorded by','Note']);
-  const tmap=LANG==='ar'?{violation:'مخالفة',absence:'غياب',permission:'استئذان',warning:'إنذار',sick:'سكليف',other:'أخرى'}
-                       :{violation:'Violation',absence:'Absence',permission:'Permit',warning:'Warning',sick:'Sick Leave',other:'Other'};
-  recs.forEach(r=>{ const e=empById(r.empId);
-    a.push([r.date, empName(e), e.num||'', tmap[r.type]||r.type, userNameBy(r.by), r.note]); });
-  const ws=XLSX.utils.aoa_to_sheet(a);
-  ws['!cols']=[{wch:22},{wch:14},{wch:14},{wch:12},{wch:12},{wch:12},{wch:10},{wch:12}];
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Report');
-  XLSX.writeFile(wb,'HSE_Report_'+m+'.xlsx');
-  toast(T().toast_xlsx);
+    if(r.type==='violation')o.vio++; else if(r.type==='absence')o.abs++; else if(r.type==='permission')o.per++;
+    else if(r.type==='warning')o.wrn++; else if(r.type==='sick')o.sick++; else o.oth++; o.tot++; });
+  return {recs:recs, map:map};
+}
+/* نطاق التصدير: الموظفون الذين عليهم مخالفات — تنازلياً بعدد المخالفات ثم بالاسم */
+function sumVioRows(m){
+  const sd=sumData(m);
+  const rows=sortedEmp().filter(e=>(sd.map[e.id]||{vio:0}).vio>0)
+    .map(e=>({e:e, o:sd.map[e.id]}));
+  rows.sort((a,b)=> (b.o.vio-a.o.vio) || String(empName(a.e)).localeCompare(String(empName(b.e))));
+  return {recs:sd.recs, map:sd.map, rows:rows};
+}
+function monthLabelHuman(m){
+  const p=String(m||'').split('-'); if(p.length<2) return String(m||'');
+  const y=+p[0], mo=+p[1]-1; if(!(y>0)||mo<0||mo>11) return String(m);
+  try{ return new Date(Date.UTC(y,mo,1)).toLocaleDateString(LANG==='ar'?'ar-EG':'en-US',
+    {month:'long', year:'numeric', timeZone:'UTC'}); }catch(e){ return String(m); }
+}
+document.getElementById('exportBtn').onclick=()=>{
+  const L=T(), m=curMonth();
+  try{
+    const {recs, rows}=sumVioRows(m);
+    if(!rows.length){ toast(L.rec_noVio); return; }
+    if(typeof XLSX==='undefined'){ toast(L.exp_nolib); return; }
+    const vioRecs=recs.filter(r=>r.type==='violation').sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    const today=new Date().toISOString().slice(0,10);
+    const vioTotal=rows.reduce((s,x)=>s+x.o.vio,0);
+    const attN=vioRecs.filter(r=>recNoteObj(r).file).length;
+    const AR=LANG==='ar';
+    /* الورقة 1 — الملخص (من عليهم مخالفات فقط، ترتيب تنازلي) */
+    const a=[];
+    a.push([L.t_list+' · '+(AR?'الملخص الشهري للمخالفات':'Monthly Violations Summary')]);
+    a.push([L.lbl_month, monthLabelHuman(m)]);
+    a.push([L.appr_pdf_date, today]);
+    a.push([L.exp_kpi_emp, rows.length, L.exp_kpi_vio, vioTotal, L.exp_kpi_att, attN]);
+    a.push([]);
+    a.push(['#', AR?'الرقم الوظيفي':'Job No.', AR?'الموظف':'Employee', AR?'القسم':'Department',
+      AR?'مخالفات':'Violations', AR?'إنذارات':'Warnings', AR?'غيابات':'Absences', AR?'استأذانات':'Permits',
+      AR?'سكليف':'Sick', AR?'أخرى':'Others', AR?'الإجمالي':'Total']);
+    rows.forEach((x,i)=>{ const e=x.e, o=x.o;
+      a.push([i+1, e.num||'', empName(e), e.dept||'', o.vio, o.wrn, o.abs, o.per, o.sick, o.oth, o.tot]); });
+    const ws=XLSX.utils.aoa_to_sheet(a);
+    ws['!cols']=[{wch:4},{wch:14},{wch:28},{wch:16},{wch:10},{wch:10},{wch:10},{wch:12},{wch:9},{wch:8},{wch:9}];
+    ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:10}}];
+    /* الورقة 2 — تفاصيل المخالفات: نص الملاحظة فقط + اسم المستند (لا base64 أبداً) */
+    const a2=[];
+    a2.push([L.t_list+' · '+(AR?'تفاصيل المخالفات':'Violation Details')]);
+    a2.push([L.lbl_month, monthLabelHuman(m)]);
+    a2.push([]);
+    a2.push(['#', AR?'التاريخ':'Date', AR?'الرقم الوظيفي':'Job No.', AR?'الموظف':'Employee', AR?'القسم':'Department',
+      AR?'النوع':'Type', AR?'سجّله':'Recorded by', AR?'الملاحظة':'Note', AR?'المستند':'Attachment']);
+    vioRecs.forEach((r,i)=>{ const e=empById(r.empId), nf=recNoteObj(r);
+      a2.push([i+1, r.date||'', (e&&e.num)||'', empName(e), (e&&e.dept)||'', typeName(r.type), userNameBy(r.by),
+        (nf.note||'').slice(0,30000), nf.file?String(nf.file.name||'file'):'—']); });
+    const ws2=XLSX.utils.aoa_to_sheet(a2);
+    ws2['!cols']=[{wch:4},{wch:12},{wch:14},{wch:28},{wch:16},{wch:11},{wch:18},{wch:60},{wch:28}];
+    ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:8}}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, AR?'الملخص':'Summary');
+    XLSX.utils.book_append_sheet(wb, ws2, AR?'المخالفات':'Violations');
+    XLSX.writeFile(wb, 'HSE_Violations_'+m+'.xlsx');
+    toast(L.toast_xlsx+' · '+(AR?'موظفون: ':'Employees: ')+rows.length);
+  }catch(e){ toast('⚠️ '+L.exp_fail+(e&&e.message?' ('+e.message+')':'')); }
+};
+/* — بناء تقرير PDF: ترويسة ومؤشرات + جدول الملخص + بطاقات الأدلة (صورة مضمّنة/حبّة ملف) — */
+function recPdfBuild(){
+  const L=T(), m=curMonth(), today=new Date().toISOString().slice(0,10);
+  const {recs, rows}=sumVioRows(m);
+  if(!rows.length) return null;
+  const AR=LANG==='ar';
+  const byEmp={};
+  recs.filter(r=>r.type==='violation')
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
+    .forEach(r=>{ (byEmp[r.empId]=byEmp[r.empId]||[]).push(r); });
+  let attN=0; recs.forEach(r=>{ if(r.type==='violation'&&recNoteObj(r).file) attN++; });
+  const vioTotal=rows.reduce((s,x)=>s+x.o.vio,0);
+  const el=document.createElement('div');
+  el.className='appr-pdf rsum-pdf';
+  let h='<div class="rsum-head">'
+    +'<div class="appt"><span class="appt-ic">🚨</span>'+esc(L.t_list)+' · '+(AR?'الملخص الشهري للمخالفات':'Monthly Violations Summary')
+      +'<span style="font-size:14px;color:#94a3b8;font-weight:700;">· HSE Tracker</span></div>'
+    +'<div class="appr-pdf-meta">'
+      +esc(L.lbl_month)+': <b>'+esc(monthLabelHuman(m))+'</b> · '
+      +esc(L.appr_pdf_date)+': <b>'+today+'</b> · '
+      +esc(L.exp_scope_vio)+'</div>'
+    +'<div class="appr-pdf-kpi">'
+      +'<div class="stat"><div class="k">'+esc(L.exp_kpi_emp)+'</div><div class="v" style="color:#0ea5e9;">'+rows.length+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.exp_kpi_vio)+'</div><div class="v" style="color:#f43f5e;">'+vioTotal+'</div></div>'
+      +'<div class="stat"><div class="k">'+esc(L.exp_kpi_att)+'</div><div class="v" style="color:#10b981;">'+attN+'</div></div>'
+    +'</div></div>';
+  h+='<div class="rsum-body">';
+  /* قسم 1 — جدول الملخص (كتلة واحدة تُقسَّم داخلياً إن طال) */
+  h+='<div class="rsum-sec"><h3>📊 '+esc(L.exp_sum_sec)+'</h3>'
+    +'<table class="appr-pdf-table"><thead><tr>'
+    +'<th>#</th><th>'+esc(AR?'الموظف':'Employee')+'</th><th>'+esc(AR?'الرقم الوظيفي':'Job No.')+'</th>'
+    +'<th>'+esc(AR?'القسم':'Department')+'</th><th>'+esc(AR?'مخالفات':'Violations')+'</th>'
+    +'<th>'+esc(AR?'إنذارات':'Warnings')+'</th><th>'+esc(AR?'غيابات':'Absences')+'</th>'
+    +'<th>'+esc(AR?'استأذانات':'Permits')+'</th><th>'+esc(AR?'سكليف':'Sick')+'</th>'
+    +'<th>'+esc(AR?'أخرى':'Others')+'</th><th>'+esc(AR?'الإجمالي':'Total')+'</th>'
+    +'</tr></thead><tbody>';
+  rows.forEach((x,i)=>{ const e=x.e, o=x.o;
+    h+='<tr><td class="idx">'+(i+1)+'</td><td><b>'+esc(empName(e))+'</b></td><td class="ltr">'+esc(e.num||'—')+'</td>'
+      +'<td>'+esc(e.dept||'—')+'</td>'
+      +'<td style="color:#be123c;font-weight:900;">'+o.vio+'</td><td style="color:#b45309;font-weight:700;">'+o.wrn+'</td>'
+      +'<td style="color:#1d4ed8;font-weight:700;">'+o.abs+'</td><td style="color:#047857;font-weight:700;">'+o.per+'</td>'
+      +'<td style="color:#0284c7;font-weight:700;">'+o.sick+'</td><td>'+o.oth+'</td><td><b>'+o.tot+'</b></td></tr>'; });
+  h+='</tbody></table></div>';
+  /* قسم 2 — الأدلة: موظف (شريط) ثم بطاقة لكل مخالفة مرتبة زمنياً */
+  h+='<div class="rsum-sec"><h3>📎 '+esc(L.exp_ev_sec)+'</h3></div>';
+  rows.forEach((x,i)=>{
+    const e=x.e, list=byEmp[e.id]||[];
+    if(!list.length) return;
+    h+='<div class="rsum-emp"><span class="re-no">'+(i+1)+'</span>'
+      +'<span>'+esc(empName(e))+'</span>'
+      +'<span class="re-sub">'+esc(e.num||'')+(e.dept?' · '+esc(e.dept):'')+'</span>'
+      +'<span class="re-badge">'+x.o.vio+' '+(AR?'مخالفة':'violations')+'</span></div>';
+    list.forEach(r=>{
+      const nf=recNoteObj(r);
+      h+='<div class="rsum-vio">'
+        +'<div class="rv-top"><span class="tag t-vio">'+esc(typeName(r.type))+'</span>'
+        +'<b style="color:#0f172a;">'+esc(r.date||'')+'</b>'
+        +'<span>'+(AR?'سجّله: ':'Recorded by: ')+esc(userNameBy(r.by))+'</span></div>';
+      const note=String(nf.note||'');
+      if(note) h+='<div class="rv-note">'+esc(note.slice(0,2000))+(note.length>2000?'…':'')+'</div>';
+      if(nf.file){
+        const isImg=/^image\//.test(String(nf.file.type||''))||/\.(png|jpe?g|gif|webp|bmp)$/i.test(String(nf.file.name||''));
+        h+='<div class="rsum-att">'
+          +(isImg?'<img src="'+esc(nf.file.data)+'" alt="'+esc(nf.file.name||'file')+'">'
+                 :'<span class="rf">📎 '+esc(nf.file.name||'file')+'</span>')
+          +'</div>';
+      }
+      h+='</div>';
+    });
+  });
+  h+='</div>';
+  h+='<div class="appr-pdf-foot"><span>HSE Tracker · '+esc(L.t_list)+'</span>'
+    +'<span>'+esc(L.appr_pdf_date)+': '+today+'</span></div>';
+  el.innerHTML=h;
+  return el;
+}
+/* — عرض كتلي: ترويسة+تذييل يتكرران، تقسيم الجدول الطويل على صفوف، ومنع أيتام ترويسات الموظفين — */
+async function recPdfRender(host, filename, doneMsg){
+  if(typeof window.jspdf==='undefined') await apprLoadLib('jspdf.umd.min.js');
+  if(typeof window.html2canvas==='undefined') await apprLoadLib('html2canvas.min.js');
+  const J=window.jspdf&&window.jspdf.jsPDF;
+  if(!J||!window.html2canvas) throw new Error('PDF lib');
+  document.body.appendChild(host);
+  const head=host.querySelector('.rsum-head');
+  const foot=host.querySelector('.appr-pdf-foot');
+  const bodyEl=host.querySelector('.rsum-body');
+  if(!bodyEl||!bodyEl.children.length){ host.remove(); throw new Error('no rows'); }
+  const PW=1100, PWmm=281, PHmm=194;
+  const cs=getComputedStyle(host);
+  const padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+  const pagePx=Math.floor(PHmm/PWmm*PW);
+  const fixed=padY+(head?head.offsetHeight:0)+(foot?foot.offsetHeight:0);
+  const budget=Math.max(300, pagePx-fixed);
+  /* (أ) كتلة أكبر من الصفحة وليست جدولاً ← تُبتلع كما هي؛ إن كانت جدولاً ← تُقسَّم على صفوف */
+  const blocks=[];
+  Array.prototype.slice.call(bodyEl.children).forEach(bl=>{
+    if(bl.offsetHeight<=budget||!bl.querySelector('table')){ blocks.push(bl); return; }
+    const tbl=bl.querySelector('table'), h3=bl.querySelector('h3'), th=tbl.tHead;
+    const trs=Array.prototype.slice.call(tbl.tBodies[0].rows);
+    const cap=Math.max(60, budget-(h3?h3.offsetHeight:0)-56);
+    const mk=rowsPart=>{
+      const c=document.createElement('div'); c.className='rsum-sec';
+      if(h3) c.appendChild(h3.cloneNode(true));
+      const t2=document.createElement('table'); t2.className=tbl.className;
+      if(th) t2.appendChild(th.cloneNode(true));
+      const tb2=document.createElement('tbody');
+      rowsPart.forEach(r=>tb2.appendChild(r.cloneNode(true)));
+      t2.appendChild(tb2); c.appendChild(t2); return c;
+    };
+    let cur=[], ch=0;
+    trs.forEach(r=>{
+      const rh=r.offsetHeight;
+      if(cur.length&&ch+rh>cap){ blocks.push(mk(cur)); cur=[]; ch=0; }
+      cur.push(r); ch+=rh;
+    });
+    if(cur.length) blocks.push(mk(cur));
+  });
+  /* (ب) تقسيم الكتل على صفحات — ترويسة موظف لا تبقى آخر كتلة وحدها في الصفحة */
+  const pages=[]; let cur=[], h2=0;
+  for(let i=0;i<blocks.length;i++){
+    const bl=blocks[i], bh=bl.offsetHeight;
+    const orphan=((bl.classList.contains('rsum-emp')||bl.classList.contains('rsum-sec'))
+      &&cur.length&&h2+bh+((i+1<blocks.length)?blocks[i+1].offsetHeight:0)>budget);
+    if(orphan||(cur.length&&h2+bh>budget)){ pages.push(cur); cur=[]; h2=0; }
+    cur.push(bl); h2+=bh;
+  }
+  if(cur.length) pages.push(cur);
+  host.remove();
+  /* (ج) التقاط كل صفحة → PDF عرضي A4 مع رقم صفحة (أرقام فقط — خط jsPDF بلا محارف عربية) */
+  const pdf=new J({unit:'mm', format:'a4', orientation:'landscape', compress:true});
+  for(let pi=0;pi<pages.length;pi++){
+    const pg=document.createElement('div');
+    pg.className='appr-pdf rsum-pdf';
+    if(head) pg.appendChild(head.cloneNode(true));
+    const bd=document.createElement('div'); bd.className='rsum-body';
+    pages[pi].forEach(b=>bd.appendChild(b.cloneNode(true)));
+    pg.appendChild(bd);
+    if(foot) pg.appendChild(foot.cloneNode(true));
+    document.body.appendChild(pg);
+    const cv=await window.html2canvas(pg,{scale:2, backgroundColor:'#ffffff', logging:false, windowWidth:PW});
+    pg.remove();
+    const img=cv.toDataURL('image/jpeg',0.93);
+    const w=PWmm, hh=Math.min(PHmm, PWmm*cv.height/cv.width);
+    if(pi>0) pdf.addPage('a4','landscape');
+    pdf.addImage(img,'JPEG',8,8,w,hh);
+    pdf.setFontSize(9); pdf.setTextColor(140);
+    pdf.text((pi+1)+' / '+pages.length,289,205,{align:'right'});
+  }
+  const blob=pdf.output('blob');
+  const a=document.createElement('a'), url=URL.createObjectURL(blob);
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },2000);
+  toast(doneMsg);
+}
+document.getElementById('recPdfBtn').onclick=async()=>{
+  const L=T(), btn=document.getElementById('recPdfBtn'), old=btn.innerHTML;
+  try{
+    btn.disabled=true; btn.innerHTML='⏳ '+esc(L.rec_pdf_building);
+    const host=recPdfBuild();
+    if(!host){ toast(L.rec_noVio); return; }
+    await recPdfRender(host, 'HSE_Violations_'+curMonth()+'.pdf', L.rec_pdf_done);
+  }catch(e){ toast('⚠️ '+L.rec_pdf_fail+(e&&e.message?' ('+e.message+')':'')); }
+  finally{ btn.disabled=false; btn.innerHTML=old; }
 };
 
 
