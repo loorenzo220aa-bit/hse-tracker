@@ -2,7 +2,7 @@
    - التنقّل: الشبكة أولاً، ومع انقطاع النت يرجع آخر نسخة مخزّنة
    - باقي الملفات (JS/CSS/قوالب Excel): الذاكرة أولاً + تحديث بالخلفية
    - Supabase: لا يُخزَّن أبداً (بيانات وجلسة مباشرة)                       */
-const CACHE = 'hse-tracker-v6';
+const CACHE = 'hse-tracker-v7';
 const PRE = [
   './',
   'index.html',

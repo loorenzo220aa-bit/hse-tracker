@@ -787,6 +787,55 @@ setTimeout(() => {
       // تكامل عبر التبويبات: حالة الاعتماد على بطاقات الموظفين + شارة الميدان في القروبات
       t('staff cards carry approval status pill', d.querySelectorAll('#staffGrid .staff-st').length > 0,
         d.querySelectorAll('#staffGrid .staff-st').length + ' pills');
+      // ربط أرقام اللوحات بالأسماء المطابقة (تبويب الموظفين)
+      try {
+        const plt = JSON.parse(window.eval(`(function(){
+          D.emp=D.emp||[]; D.veh=D.veh||[];
+          const bakE=D.emp.slice(), bakV=D.veh.slice();
+          try {
+            D.emp.push({id:'SASL-9991',num:'SASL-9991',ar:'موظف اللوحة',en:'PLATE LINK EMP',dept:'Safety Officer',phone:'',plate:'',grp:'',photo:''});
+            D.veh.push({id:'VEH-PLT-1',empId:'SASL-9991',company:'HDEC',make:'Toyota',model:'Hiace',year:'2026',colour:'W',plate:'7777 P P P',date:'',notes:'',rot:'A'});
+            D.emp.push({id:'SASL-9992',num:'SASL-9992',ar:'يدوي',en:'MANUAL PLATE EMP',dept:'Fireman',phone:'',plate:'6543 M M M',grp:'',photo:''});
+            D.veh.push({id:'VEH-PLT-2',empId:'SASL-9992',company:'HDEC',make:'Nissan',model:'Patrol',year:'2025',colour:'B',plate:'1111 Z Z Z',date:'',notes:'',rot:'A'});
+            D.emp.push({id:'SASL-9993',num:'SASL-9993',ar:'مركبتان',en:'TWO PLATE EMP',dept:'Rigger III',phone:'',plate:'',grp:'',photo:''});
+            D.veh.push({id:'VEH-PLT-3',empId:'SASL-9993',company:'HDEC',make:'Kia',model:'Pregio',year:'2024',colour:'W',plate:'2222 K K K',date:'',notes:'',rot:'A'});
+            D.veh.push({id:'VEH-PLT-4',empId:'SASL-9993',company:'HDEC',make:'Hyundai',model:'H1',year:'2023',colour:'S',plate:'3333 H H H',date:'',notes:'',rot:'A'});
+            renderEmps();
+            const rows=[...document.querySelectorAll('#empBody tr')];
+            const cellOf=function(num){ const r=rows.find(x=>(x.textContent||'').indexOf(num)>=0); return r?([...r.children][5]||{textContent:''}).textContent.trim():'ROW-MISSING'; };
+            const linked=cellOf('SASL-9991'), manual=cellOf('SASL-9992'), multi=cellOf('SASL-9993');
+            renderStaff();
+            const card=(document.querySelector('#staffGrid .staff-card[data-num="SASL-9991"]')||{textContent:''}).textContent;
+            openEmpDlg('SASL-9991');
+            const dlg=(document.getElementById('empDlgBody')||{textContent:''}).textContent;
+            closeEmpDlg();
+            bindBrandSearch();
+            const g=document.getElementById('globalSearch');
+            g.value='7777 P'; g.dispatchEvent(new Event('input'));
+            const gs=(document.getElementById('gsResults')||{textContent:''}).textContent;
+            g.value=''; g.dispatchEvent(new Event('input'));
+            const inp=document.getElementById('staffSearch');
+            inp.value='7777 p p p'; inp.dispatchEvent(new Event('input'));
+            const staffCnt=(document.getElementById('staffCount')||{textContent:''}).textContent;
+            inp.value=''; inp.dispatchEvent(new Event('input'));
+            let editPh='', editVal='?', editFound=false;
+            const eb=document.querySelector('#empBody [data-edit="SASL-9991"]');
+            if(eb){ eb.click(); const p=document.getElementById('edPlate'); editFound=!!p; if(p){editPh=p.placeholder; editVal=p.value;} const cb=document.getElementById('cancelEditBtn'); if(cb) cb.click(); }
+            return JSON.stringify({linked:linked, manual:manual, multi:multi,
+              cardOk:card.indexOf('7777 P P P')>=0, dlgOk:dlg.indexOf('7777 P P P')>=0,
+              gsOk:gs.indexOf('SASL-9991')>=0, staffCnt:staffCnt,
+              editFound:editFound, editPh:editPh, editVal:editVal});
+          } finally { D.emp=bakE; D.veh=bakV; renderEmps(); renderStaff(); }
+        })()`));
+        t('employees table links vehicle plate to matching name', plt.linked === '7777 P P P', JSON.stringify(plt));
+        t('manual plate in the employee record wins over the link', plt.manual === '6543 M M M', JSON.stringify(plt));
+        t('employee with two vehicles shows both plates', plt.multi === '2222 K K K, 3333 H H H', JSON.stringify(plt));
+        t('staff card carries the linked plate', plt.cardOk === true, JSON.stringify(plt));
+        t('employee dialog shows the linked plate', plt.dlgOk === true, JSON.stringify(plt));
+        t('global search finds the name by plate number', plt.gsOk === true, JSON.stringify(plt));
+        t('staff search matches on plate', /^1 \//.test(plt.staffCnt || ''), plt.staffCnt);
+        t('edit form keeps the link live (empty value, plate as placeholder)', plt.editFound && plt.editPh === '7777 P P P' && plt.editVal === '', JSON.stringify(plt));
+      } catch (e) { bad.push('plate link: ' + e.message); }
       try {
         const gl = JSON.parse(window.eval(`(function(){
           const bak=D.dep;

@@ -345,6 +345,7 @@
   .staff-name{font-size:13px;font-weight:800;line-height:1.35;min-height:36px;}
   .staff-pos{font-size:11px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;max-height:2.6em;line-height:1.3;}
   .staff-id{display:inline-block;margin-top:6px;font-size:11px;font-weight:800;color:#047857;background:var(--green-bg);padding:2px 9px;border-radius:8px;direction:ltr;}
+  .staff-plate{display:inline-block;margin-top:6px;font-size:11px;font-weight:800;color:#0369a1;background:#e0f2fe;padding:2px 9px;border-radius:8px;direction:ltr;}
   .mut{}
   details.coll{margin-top:16px;background:var(--card2);border:2px solid var(--line);border-radius:14px;overflow:hidden;}
   details.coll summary{cursor:pointer;list-style:none;padding:13px 16px;font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px;}
@@ -2125,12 +2126,12 @@ function renderEmps(){
   sortedEmp().forEach(e=>{
     const tr=document.createElement('tr');
     if(editingEmpId===e.id){
-      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="'+(LANG==='ar'?'عربي':'Arabic')+'"></td><td><select id="edGrp" style="width:90px;direction:ltr"><option value="HDEC">HDEC</option><option value="HEC">HEC</option></select><input type="file" id="edPhoto" accept="image/*" style="margin-top:6px;font-size:11px;max-width:130px;"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
+      tr.innerHTML='        <td><input id="edAr" value="'+esc(e.ar||'')+'" placeholder="'+(LANG==='ar'?'عربي':'Arabic')+'"></td><td><select id="edGrp" style="width:90px;direction:ltr"><option value="HDEC">HDEC</option><option value="HEC">HEC</option></select><input type="file" id="edPhoto" accept="image/*" style="margin-top:6px;font-size:11px;max-width:130px;"></td>        <td><input id="edEn" value="'+esc(e.en||'')+'" placeholder="English"></td>        <td><input id="edNum" value="'+esc(e.num||'')+'" style="width:110px"></td>        <td><input id="edPhone" value="'+esc(e.phone||'')+'" style="width:110px"></td><td><input id="edPlate" value="'+esc(e.plate||'')+'" placeholder="'+esc(vehPlateOf(e))+'" style="width:110px"></td>        <td><input id="edDept" value="'+esc(e.dept||'')+'"></td>        <td>          <button class="btn btn-sm btn-green" id="saveEditBtn">💾 '+esc(T().save_edit)+'</button>          <button class="btn btn-sm" id="cancelEditBtn">✖ '+esc(T().cancel_edit)+'</button>        </td>';
     } else {
       const nm=empName(e);
       const thumb=e.photo?'<img src="'+e.photo+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-inline-end:6px;">':'';
       const gbadge='<span class="tag '+(empGroup(e)==='HEC'?'t-user':'t-admin')+'" style="direction:ltr;">'+esc(empGroup(e))+'</span>';
-      tr.innerHTML='<td>'+thumb+esc(nm)+'</td><td>'+gbadge+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td>'+esc(e.plate||'')+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm edit-only" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del edit-only" data-del="'+e.id+'">🗑</button>        </td>';
+      tr.innerHTML='<td>'+thumb+esc(nm)+'</td><td>'+gbadge+'</td><td>'+esc(e.ar||'')+'</td><td>'+esc(e.num||'')+'</td>        <td>'+esc(e.phone||'')+'</td><td style="direction:ltr;">'+esc(vehPlateOf(e))+'</td><td>'+esc(e.dept||'')+'</td>        <td>          <button class="btn btn-sm edit-only" data-edit="'+e.id+'">✏️ '+esc(T().edit)+'</button>          <button class="del edit-only" data-del="'+e.id+'">🗑</button>        </td>';
     }
     body.appendChild(tr);
   });
@@ -2219,7 +2220,7 @@ document.getElementById('exportEmpBtn').onclick=()=>{
   const hh=LANG==='ar'?['الاسم العربي','الاسم الإنجليزي','الرقم الوظيفي','المجموعة','رقم الهاتف','رقم لوحة المركبة','القسم / المهنة']
                       :['Arabic Name','English Name','Job No.','Group','Phone','Vehicle Plate No.','Department'];
   a.push(hh);
-  sortedEmp().forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',empGroup(e),e.phone||'',e.plate||'',e.dept||'']));
+  sortedEmp().forEach(e=>a.push([e.ar||'',e.en||'',e.num||'',empGroup(e),e.phone||'',vehPlateOf(e),e.dept||'']));
   const ws=XLSX.utils.aoa_to_sheet(a);
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Employees');
   XLSX.writeFile(wb,'Employees_list.xlsx');
@@ -2257,6 +2258,23 @@ function empAny(id){
     if(hit) return {id:id, en:hit[1]||id, ar:'', num:id};
   }
   return {id:id, en:id, ar:id, num:id};
+}
+/* ربط لوحة المركبة بالاسم المطابق — تبويب الموظفين
+   مصدرها قسم السيارات: كل مركبة empId تطابق id/num الموظف (مع توحيد الأحرف والمسافات).
+   اللوحة اليدوية في سجل الموظف تسبق الربط، والخانة تتبع أي تعديل في تبويب
+   السيارات فوراً — لا نسخة مخزّنة تتجمد. */
+function vehPlateOf(e){
+  if(!e) return '';
+  const manual=String(e.plate||'').trim();
+  const keys=[e.id,e.num].map(x=>String(x||'').toUpperCase().replace(/\s+/g,'')).filter(Boolean);
+  const plates=[];
+  (D.veh||[]).forEach(v=>{
+    const k=String(v.empId||'').toUpperCase().replace(/\s+/g,'');
+    if(keys.indexOf(k)<0) return;
+    const p=String(v.plate||'').trim();
+    if(p && plates.indexOf(p)<0) plates.push(p);
+  });
+  return manual||plates.join(', ');
 }
 function userNameBy(user){ const u=D.users.find(x=>x.user===user); return u?u.name:user; }
 
@@ -2885,10 +2903,10 @@ function renderStaff(){
     return de?{...s,ar:de.ar||''}:s;
   });
   const haveIds=new Set(st.map(s=>(s.i||'').replace(/\s/g,'').toUpperCase()));
-  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP&&!haveIds.has((e.num||'').replace(/\s/g,'').toUpperCase())).map(e=>({n:(e.en||e.num||''),ar:e.ar||'',p:e.dept||'',i:e.num||'',u:e.photo||null,f:null}));
+  const dyn=D.emp.filter(e=>empGroup(e)===STAFF_GROUP&&!haveIds.has((e.num||'').replace(/\s/g,'').toUpperCase())).map(e=>({n:(e.en||e.num||''),ar:e.ar||'',p:e.dept||'',i:e.num||'',u:e.photo||null,f:null,plate:e.plate||''}));
   const list=st.concat(dyn).sort((a,b)=>String(a.n||'').localeCompare(String(b.n||''),'en'));
   const q=STAFF_Q.trim().toLowerCase();
-  const items=list.filter(s=>!q||s.n.toLowerCase().includes(q)||s.i.toLowerCase().includes(q)||s.p.toLowerCase().includes(q)||(s.ar||'').includes(q));
+  const items=list.filter(s=>!q||s.n.toLowerCase().includes(q)||s.i.toLowerCase().includes(q)||s.p.toLowerCase().includes(q)||(s.ar||'').includes(q)||vehPlateOf({id:s.i,num:s.i,plate:s.plate||''}).toLowerCase().includes(q));
   document.getElementById('staffCount').textContent=items.length+' / '+list.length;
   document.getElementById('subHdec').classList.toggle('active', STAFF_GROUP==='HDEC');
   document.getElementById('subHec').classList.toggle('active', STAFF_GROUP==='HEC');
@@ -2907,6 +2925,7 @@ function renderStaff(){
     const photo=src?'<div class="staff-init">'+esc(staffInitials(s.n))+'</div><img src="'+src+'" alt="'+esc(s.n)+'" loading="lazy" onload="this.classList.add(\'ld\')" onerror="this.remove()">'
                    :'<div class="staff-init">'+esc(staffInitials(s.n))+'</div>';
     const ap=apprByNum(s.i);
+    const pl=vehPlateOf({id:s.i,num:s.i,plate:s.plate||''});
     let apSt='';
     if(ap){
       apSt='<div class="staff-st"><span class="tag st '+apprTagCls(ap.s)+'" title="'+esc(apprFullText(ap.s))+'">'
@@ -2915,7 +2934,7 @@ function renderStaff(){
     div.innerHTML='<div class="staff-photo">'+photo+'</div>'+
       '<div class="staff-info"><div class="staff-name">'+esc(s.n)+'</div>'+
       '<div class="staff-pos">'+esc(s.p)+'</div>'+apSt+
-      '<span class="staff-id">'+esc(s.i)+'</span></div>';
+      '<span class="staff-id">'+esc(s.i)+'</span>'+(pl?'<span class="staff-plate">🚗 '+esc(pl)+'</span>':'')+'</div>';
     grid.appendChild(div);
   });
 }
@@ -2937,7 +2956,7 @@ function openEmpDlg(num, photoSrc){
   const recs=e?(D.rec||[]).filter(r=>r.empId===e.id&&monthKey(r.date)===m):[];
   const c=t=>recs.filter(r=>r.type===t).length;
   const nmEn=e?(e.en||''):'', nmAr=e?(e.ar||''):'';
-  const pos=e?(e.dept||''):'', phone=e?(e.phone||''):'', plate=e?(e.plate||''):'';
+  const pos=e?(e.dept||''):'', phone=e?(e.phone||''):'', plate=e?vehPlateOf(e):'';
   const grp=e?empGroup(e):STAFF_GROUP;
   const LBL=LANG==='ar'?{g:'المجموعة',p:'القسم / المهنة',ph:'رقم الهاتف',pl:'رقم اللوحة',na:'—',ms:'حركات الشهر الحالي',v:'مخالفات',a:'غيابات',pm:'استئذانات',w:'إنذارات',sk:'سكليف'}
     :{g:'Group',p:'Department',ph:'Phone',pl:'Plate No.',na:'—',ms:'Current month records',v:'Violations',a:'Absences',pm:'Permits',w:'Warnings',sk:'Sick'};
@@ -5112,7 +5131,7 @@ function bindBrandSearch(){
     if(q.length<2){ box.classList.remove("show"); box.innerHTML=""; return; }
     const out=[];
     (D.emp||[]).forEach(function(e){
-      const hay=((e.ar||"")+" "+(e.en||"")+" "+(e.num||"")+" "+(e.dept||"")+" "+(e.phone||"")).toLowerCase();
+      const hay=((e.ar||"")+" "+(e.en||"")+" "+(e.num||"")+" "+(e.dept||"")+" "+(e.phone||"")+" "+vehPlateOf(e)).toLowerCase();
       if(hay.indexOf(q)>-1) out.push({ic:"👤", t:empName(e), s:(e.dept||"—")+" • "+(e.num||""), v:"viewEmp"});
     });
     (D.rec||[]).forEach(function(r){
