@@ -192,7 +192,7 @@ setTimeout(() => {
     // 4c) الإجازات السنوية (annual leave tab)
     try {
       t('leave seed injected from leave-data.js',
-        !!window.LVSEED && (window.LVSEED.roster || []).length === 99 && (window.LVSEED.leaves || []).length === 190,
+        !!window.LVSEED && (window.LVSEED.roster || []).length === 206 && (window.LVSEED.leaves || []).length === 190,
         window.LVSEED ? (window.LVSEED.roster || []).length + '/' + (window.LVSEED.leaves || []).length : 'missing');
       t('leave tab + view exist', !!d.getElementById('tabLv') && !!d.getElementById('viewLv'));
       d.getElementById('tabLv').click();
@@ -204,13 +204,13 @@ setTimeout(() => {
         !d.getElementById('lvAlert').classList.contains('hide')
         && d.getElementById('lvAlert').textContent.includes('SAFETY OFFICER'),
         JSON.stringify(d.getElementById('lvAlert').textContent.slice(0, 90)));
-      t('table: 9 columns + all 99 employees',
-        d.querySelectorAll('#lvTable thead th').length === 9 && d.querySelectorAll('#lvBody tr').length === 99,
+      t('table: 9 columns + all 206 employees',
+        d.querySelectorAll('#lvTable thead th').length === 9 && d.querySelectorAll('#lvBody tr').length === 206,
         d.querySelectorAll('#lvTable thead th').length + ' cols / ' + d.querySelectorAll('#lvBody tr').length + ' rows');
       t('status pills use house tag colors',
-        d.querySelectorAll('#lvBody .tag').length === 99
+        d.querySelectorAll('#lvBody .tag').length === 206
         && [...d.querySelectorAll('#lvBody .tag')].every(p => p.classList.contains('t-per') || p.classList.contains('t-abs') || p.classList.contains('t-wrn')));
-      t('dept filter: 7 trades + all', d.getElementById('lvDept').options.length === 8,
+      t('dept filter: 10 trades + all', d.getElementById('lvDept').options.length === 11,
         d.getElementById('lvDept').options.length + ' options');
       t('status filter: all + 3 states', d.getElementById('lvStatus').options.length === 4);
       t('dept filter narrows rows', (() => {
@@ -219,7 +219,7 @@ setTimeout(() => {
         sel.value = pick.value; sel.dispatchEvent(new window.Event('change'));
         const n = d.querySelectorAll('#lvBody tr').length;
         sel.value = ''; sel.dispatchEvent(new window.Event('change'));
-        return n > 0 && n < 99;
+        return n > 0 && n < 206;
       })());
       t('search box filters rows', (() => {
         const se = d.getElementById('lvSearch');
@@ -277,7 +277,7 @@ setTimeout(() => {
       d.getElementById('lvAddBtn').click();
       t('leave dialog opens: employee select + start/dur/end',
         !d.getElementById('lvDlg').classList.contains('hide')
-        && !!d.getElementById('lvfEmp') && d.getElementById('lvfEmp').options.length >= 99
+        && !!d.getElementById('lvfEmp') && d.getElementById('lvfEmp').options.length >= 206
         && !!d.getElementById('lvfStart') && !!d.getElementById('lvfDur') && !!d.getElementById('lvfEnd'));
       t('duration auto-fills end date', (() => {
         const s = d.getElementById('lvfStart'), du = d.getElementById('lvfDur'), e = d.getElementById('lvfEnd');
@@ -301,10 +301,10 @@ setTimeout(() => {
         catch (e) { return false; }
       })());
       t('PDF export button registered', typeof d.getElementById('lvPdfBtn').onclick === 'function');
-      t('lvPdfBuild renders page (head + 4 KPIs + 99 rows + foot)', (() => {
+      t('lvPdfBuild renders page (head + 4 KPIs + 206 rows + foot)', (() => {
         const el = window.lvPdfBuild(window.lvFilterRows());
         const ok = el.classList.contains('appr-pdf')
-          && el.querySelectorAll('.appr-pdf-table tbody tr').length === 99
+          && el.querySelectorAll('.appr-pdf-table tbody tr').length === 206
           && el.querySelectorAll('.appr-pdf-kpi .stat').length === 4
           && !!el.querySelector('.appr-pdf-head') && !!el.querySelector('.appr-pdf-foot');
         el.remove();
@@ -518,7 +518,7 @@ setTimeout(() => {
               // (4) شارة «قيد الرفع» على الصف المعلّق
               try {
                 window.localStorage.removeItem('hse-rec-queue');
-                window.eval("(function(){ var r={id:'badge-1',empId:'REC-Q-EMP',type:'violation',date:'2026-09-15',note:'CHECK-BADGE',by:'admin',ts:Date.now()}; D.rec.push(r); recQueuePut({id:r.id,emp_id:r.empId,type:r.type,date:r.date,note:r.note,by_user:r.by,ts:r.ts}); renderRecs(); })()");
+                window.eval("(function(){ document.getElementById('filtEmp').value=''; document.getElementById('filtType').value=''; var r={id:'badge-1',empId:'REC-Q-EMP',type:'violation',date:curMonth()+'-15',note:'CHECK-BADGE',by:'admin',ts:Date.now()}; D.rec.push(r); recQueuePut({id:r.id,emp_id:r.empId,type:r.type,date:r.date,note:r.note,by_user:r.by,ts:r.ts}); renderRecs(); })()");
                 const btxt = d.getElementById('recBody').textContent;
                 t('pending badge shows «قيد الرفع» on queued row',
                   btxt.indexOf('قيد الرفع') >= 0 && btxt.indexOf('CHECK-BADGE') >= 0, btxt.slice(0, 80));
@@ -805,6 +805,23 @@ setTimeout(() => {
       t('deployment no-location box rendered', !!nlBox);
       t('no-location box hidden when nobody unassigned (offline: 0 employees)', !!nlBox && nlBox.classList.contains('hide'));
       try {
+        const nlInfo = JSON.parse(window.eval(`(function(){
+          const bakE=D.emp, bakD=D.dep;
+          try {
+            D.dep=[{id:'nl-1',empId:'KEEP-1',area:'SRU 1',list:'A',rot:'A',status:'Active'}];
+            D.emp=[
+              {id:'KEEP-1',num:'KEEP-1',ar:'',en:'DEPLOYED ONE',dept:'Safety Officer',phone:'',plate:'',grp:'',photo:''},
+              {id:'LOOSE-1',num:'LOOSE-1',ar:'',en:'UNASSIGNED ONE',dept:'Safety Officer',phone:'',plate:'',grp:'',photo:''},
+              {id:'LOOSE-2',num:'LOOSE-2',ar:'',en:'UNASSIGNED TWO',dept:'Rigger III',phone:'',plate:'',grp:'',photo:''}
+            ];
+            renderDep();
+            const nl=document.getElementById('depNoLoc');
+            return JSON.stringify({rows: nl?nl.querySelectorAll('tbody tr').length:-1});
+          } finally { D.emp=bakE; D.dep=bakD; renderDep(); }
+        })()`));
+        t('no-location list = every employee missing a deployment row', nlInfo.rows === 2, nlInfo.rows + ' rows (expected 2)');
+      } catch (e) { bad.push('no-location list: ' + e.message); }
+      try {
         // معالجة زر «تعيين»: يملأ نموذج التوزيع ويرشد لاختيار المنطقة
         const sel = d.getElementById('depEmp');
         sel.innerHTML = '<option value="syn-1">Synthetic — SYN-1</option>';
@@ -854,7 +871,7 @@ setTimeout(() => {
 
       // 8b) groups tab (A / B / Daily)
       try {
-        t('groups data injected', !!window.GRP_DATA && (window.GRP_DATA.A || []).length === 69 && (window.GRP_DATA.B || []).length === 61 && (window.GRP_DATA.D || []).length === 34,
+        t('groups data injected', !!window.GRP_DATA && (window.GRP_DATA.A || []).length === 69 && (window.GRP_DATA.B || []).length === 74 && (window.GRP_DATA.D || []).length === 34,
           window.__grpErr ? window.__grpErr : 'A=' + (window.GRP_DATA.A || []).length + ' B=' + (window.GRP_DATA.B || []).length + ' D=' + (window.GRP_DATA.D || []).length);
         t('groups tab exists', !!d.getElementById('tabGrp'));
         d.getElementById('tabGrp').click();
@@ -875,13 +892,37 @@ setTimeout(() => {
           'rows: ' + d.querySelectorAll('#grpBody tr').length);
         const allSeg = [...d.querySelectorAll('#grpSeg .gseg')].find(b => b.dataset.g === '');
         allSeg.click();
-        t('all groups listed together', d.querySelectorAll('#grpBody tr').length === 164,
+        t('all groups listed together', d.querySelectorAll('#grpBody tr').length === 177,
           d.querySelectorAll('#grpBody tr').length + ' rows');
-        t('every row shows a match status', d.querySelectorAll('#grpBody tr td:last-child .tag').length === 164,
+        t('every row shows a match status', d.querySelectorAll('#grpBody tr td:last-child .tag').length === 177,
           d.querySelectorAll('#grpBody tr td:last-child .tag').length + ' status pills (no employee data offline → all flagged)');
-        t('group pill in every row', d.querySelectorAll('#grpBody tr td:nth-child(2) .tag').length === 164);
+        t('group pill in every row', d.querySelectorAll('#grpBody tr td:nth-child(2) .tag').length === 177);
         t('daily rows get the orange group pill', d.querySelectorAll('#grpBody tr td:nth-child(2) .t-wrn').length === 34,
           d.querySelectorAll('#grpBody tr td:nth-child(2) .t-wrn').length + ' Daily pills');
+        try {
+          const ngInfo = JSON.parse(window.eval(`(function(){
+            const bakE=D.emp;
+            try {
+              D.emp=[
+                {id:'NG-T1',num:'NG-T1',ar:'',en:'GHOST NG EMP',dept:'Rigger III',phone:'',plate:'',grp:'',photo:''},
+                {id:'NG-T2',num:'NG-T2',ar:'',en:'SECOND GHOST EMP',dept:'Fireman',phone:'',plate:'',grp:'',photo:''}
+              ];
+              renderGrp();
+              const seg=[...document.querySelectorAll('#grpSeg .gseg')].find(b=>b.dataset.g==='NG');
+              if(!seg) return JSON.stringify({seg:false});
+              seg.click();
+              const rows=document.querySelectorAll('#grpBody tr').length;
+              const cards=[...document.querySelectorAll('#grpStats .stat')];
+              const v=(cards.length?cards[cards.length-1].querySelector('.v').textContent:'').trim();
+              const cell=document.querySelector('#grpBody tr td:nth-child(3)');
+              return JSON.stringify({seg:true,rows:rows,stat:v,nameOk:!!cell&&cell.textContent.indexOf('GHOST NG EMP')>=0});
+            } finally { D.emp=bakE; renderGrp(); const allSeg=[...document.querySelectorAll('#grpSeg .gseg')].find(b=>b.dataset.g===''); if(allSeg) allSeg.click(); }
+          })()`));
+          t('no-group segment exists in the groups bar', ngInfo.seg === true, JSON.stringify(ngInfo));
+          t('no-group list = every employee outside all groups', ngInfo.rows === 2, ngInfo.rows + ' rows (expected 2)');
+          t('no-group stat card mirrors the list', ngInfo.stat === '2', 'stat=' + ngInfo.stat);
+          t('no-group row shows the employee name', ngInfo.nameOk === true, JSON.stringify(ngInfo));
+        } catch (e) { bad.push('no-group list: ' + e.message); }
         const inp = d.getElementById('grpSearch');
         inp.value = 'AALI KHALID';
         inp.dispatchEvent(new window.Event('input'));

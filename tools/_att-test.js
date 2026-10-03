@@ -64,11 +64,12 @@ const t = (name, cond, extra) => { cond ? pass++ : fail.push(name + (extra ? ' â
   t('zip entry set identical', JSON.stringify(nd) === JSON.stringify(od), 'orig=' + od.length + ' out=' + nd.length);
   t('sheet name kept for B', ws.name === 'TTENDANCE SHEET GROUP B', ws.name);
   t('first name written', ws.getCell('E12').value === b.names[0], JSON.stringify(ws.getCell('E12').value));
-  t('last name written (row 72)', ws.getCell('E72').value === b.names[60], JSON.stringify(ws.getCell('E72').value));
-  t('all 61 names written', b.names.every((n, i) => ws.getCell('E' + (12 + i)).value === n));
+  t('61st name still lands at template row 72', ws.getCell('E72').value === b.names[60], JSON.stringify(ws.getCell('E72').value));
+  t('all 74 names written', b.names.every((n, i) => ws.getCell('E' + (12 + i)).value === n));
   t('header row untouched', ws.getCell('E11').value === 'NAME OF EMPLOYEE');
   t('serials 1..50 untouched', [1, 25, 50].every((v, k) => ws.getCell('D' + (12 + [0, 24, 49][k])).value === v));
   t('serials continue past row 61', ws.getCell('D62').value === 51 && ws.getCell('D72').value === 61, 'D62=' + ws.getCell('D62').value + ' D72=' + ws.getCell('D72').value);
+  t('serials written for rows beyond the template (62..74)', ws.getCell('D73').value === 62 && ws.getCell('D85').value === 74, 'D73=' + ws.getCell('D73').value + ' D85=' + ws.getCell('D85').value);
   t('merges count unchanged', (ws.model.merges || []).length === 411, (ws.model.merges || []).length);
   const e12 = ws.getCell('E12');
   t('name cell keeps template style (Arial 11 + border)',
@@ -88,9 +89,9 @@ const t = (name, cond, extra) => { cond ? pass++ : fail.push(name + (extra ? ' â
 
   // workbook.xml checks (print area + defined names)
   const wbXml = await b.zip.file('xl/workbook.xml').async('string');
-  t('Print_Area extended to row 72', wbXml.includes('$D$1:$N$72'), (wbXml.match(/\$D\$1:\$N\$\d+/) || [])[0]);
+  t('Print_Area extended to last B row (85 for 74 names)', wbXml.includes('$D$1:$N$85'), (wbXml.match(/\$D\$1:\$N\$\d+/) || [])[0]);
   t('autofilter range left untouched', wbXml.includes('$D$11:$N$61'));
-  t('defined names still point at the sheet name', wbXml.includes("'TTENDANCE SHEET GROUP B'!$D$1:$N$72"));
+  t('defined names still point at the sheet name', wbXml.includes("'TTENDANCE SHEET GROUP B'!$D$1:$N$85"));
 
   // embedded assets must survive byte-for-byte
   const outZip = await JSZip.loadAsync(fs.readFileSync(b.file));

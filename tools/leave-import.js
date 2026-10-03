@@ -148,6 +148,15 @@ const MON = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SE
     for (const id of [...roster.keys()]) if (!mById.has(id)) { roster.delete(id); mprStat.droppedRoster++; }
     for (let i = leaves.length - 1; i >= 0; i--) if (!roster.has(leaves[i].i)) { leaves.splice(i, 1); mprStat.droppedLeaves++; }
     roster.forEach(r => { const m = mById.get(r.i); if (!m) return; const up = String(m.trade || '').toUpperCase(); if (up && r.t !== up) { r.t = up; mprStat.tradeFix++; } });
+    /* تغطية كاملة: كل موظفي الماستر داخل roster — من لم تشمله أوراق الملف
+       يُضاف باسم الماستر ومهنته واستحقاق افتراضي (21 يوماً) فتساوي القوائم جميعها عدّ الماستر */
+    mprStat.rosterAdded = 0;
+    mpr.forEach(x => {
+      const id = normId(x.num);
+      if (!id || roster.has(id)) return;
+      roster.set(id, { i: id, n: String(x.en || id).trim() || id, t: String(x.trade || '').trim().toUpperCase() || '—', e: DEF_ENT });
+      mprStat.rosterAdded++;
+    });
   }
 
   /* ---------- إخراج ---------- */
