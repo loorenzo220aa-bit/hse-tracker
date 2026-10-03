@@ -885,6 +885,83 @@ setTimeout(() => {
         abtn.remove(); sel.innerHTML = '';
       } catch (e) { bad.push('assign handler threw: ' + e.message); }
 
+      // قادة الموقع: تيم ليدر فوق ومساعده تحته لكل منطقة + اختيار قابل للتعديل
+      try {
+        const leads = JSON.parse(window.eval(`(function(){
+          const bakE=D.emp, bakD=D.dep, ia0=window.isAdmin; window.isAdmin=function(){return true;};
+          try {
+            D.emp=[
+              {id:'TL-N1',num:'TL-N1',ar:'',en:'LEAD ONE',dept:'Safety Officer',phone:'',plate:'',grp:'',photo:''},
+              {id:'TL-N2',num:'TL-N2',ar:'',en:'LEAD TWO',dept:'Safety Officer',phone:'',plate:'',grp:'',photo:''},
+              {id:'TL-N3',num:'TL-N3',ar:'',en:'THREE',dept:'Fireman',phone:'',plate:'',grp:'',photo:''},
+              {id:'TL-N4',num:'TL-N4',ar:'',en:'FOUR',dept:'Fireman',phone:'',plate:'',grp:'',photo:''}
+            ];
+            D.dep=[
+              {id:'tl-g1',empId:'TL-N1',area:'ZZ LEAD SITE',list:'A',rot:'A',status:'TL'},
+              {id:'tl-g2',empId:'TL-N2',area:'ZZ LEAD SITE',list:'A',rot:'A',status:'ATL'},
+              {id:'tl-g3',empId:'TL-N3',area:'ZZ LEAD SITE',list:'B',rot:'B',status:'Active'},
+              {id:'tl-g4',empId:'TL-N4',area:'ZZ LEAD SITE',list:'B',rot:'B',status:'Active'}
+            ];
+            renderDep();
+            const find=function(){ return [...document.querySelectorAll('#depBody details')].find(x=>(x.querySelector('summary')||{textContent:''}).textContent.indexOf('ZZ LEAD SITE')>=0); };
+            const sec=find();
+            if(!sec) return JSON.stringify({err:'section missing'});
+            const trs=[...sec.querySelectorAll('tbody tr')].filter(x=>!x.querySelector('td[colspan]'));
+            const names=trs.map(x=>(x.children[1].textContent||'').trim());
+            const badges=trs.map(x=>((x.children[6]||{}).textContent||'').trim());
+            const tlSel=sec.querySelector('select[data-tl]'), atSel=sec.querySelector('select[data-atl]');
+            return JSON.stringify({names:names,badges:badges,picks:(tlSel?1:0)+(atSel?1:0),
+              tlVal:tlSel?tlSel.value:'', atVal:atSel?atSel.value:''});
+          } finally { window.isAdmin=ia0; D.emp=bakE; D.dep=bakD; renderDep(); }
+        })()`));
+        t('site has leader selectors (admin)', leads.picks === 2, JSON.stringify(leads));
+        t('team leader first, assistant second, the rest below',
+          leads.names && leads.names.length === 4 && leads.names[0] === 'LEAD ONE'
+          && leads.names[1] === 'LEAD TWO' && leads.names[2] === 'THREE', JSON.stringify(leads.names));
+        t('leader selectors pre-filled from stored roles', leads.tlVal === 'tl-g1' && leads.atVal === 'tl-g2',
+          JSON.stringify({tl: leads.tlVal, at: leads.atVal}));
+        t('leader rows show role badges', (leads.badges[0]||'').indexOf('تيم ليدر')>=0 && (leads.badges[1]||'').indexOf('مساعد')>=0,
+          JSON.stringify(leads.badges));
+      } catch (e) { bad.push('site leaders render: ' + e.message); }
+      try {
+        const chg = JSON.parse(window.eval(`(function(){
+          const bakE=D.emp, bakD=D.dep, ia0=window.isAdmin; window.isAdmin=function(){return true;};
+          try {
+            D.emp=[
+              {id:'TL-N1',num:'TL-N1',ar:'',en:'LEAD ONE',dept:'Safety Officer',phone:'',plate:'',grp:'',photo:''},
+              {id:'TL-N2',num:'TL-N2',ar:'',en:'LEAD TWO',dept:'Safety Officer',phone:'',plate:'',grp:'',photo:''},
+              {id:'TL-N3',num:'TL-N3',ar:'',en:'THREE',dept:'Fireman',phone:'',plate:'',grp:'',photo:''},
+              {id:'TL-N4',num:'TL-N4',ar:'',en:'FOUR',dept:'Fireman',phone:'',plate:'',grp:'',photo:''}
+            ];
+            D.dep=[
+              {id:'tl-g1',empId:'TL-N1',area:'ZZ LEAD SITE',list:'A',rot:'A',status:'TL'},
+              {id:'tl-g2',empId:'TL-N2',area:'ZZ LEAD SITE',list:'A',rot:'A',status:'ATL'},
+              {id:'tl-g3',empId:'TL-N3',area:'ZZ LEAD SITE',list:'B',rot:'B',status:'Active'},
+              {id:'tl-g4',empId:'TL-N4',area:'ZZ LEAD SITE',list:'B',rot:'B',status:'Active'}
+            ];
+            renderDep();
+            const find=function(){ return [...document.querySelectorAll('#depBody details')].find(x=>(x.querySelector('summary')||{textContent:''}).textContent.indexOf('ZZ LEAD SITE')>=0); };
+            const sec=find();
+            const tlSel=sec&&sec.querySelector('select[data-tl]');
+            if(!tlSel) return JSON.stringify({err:'no tl select'});
+            tlSel.value='tl-g3';
+            tlSel.dispatchEvent(new Event('change',{bubbles:true}));
+            const st=D.dep.slice().sort((a,b)=>a.id<b.id?-1:1).map(x=>x.id+':'+x.status).join(',');
+            const sec2=find();
+            const trs2=[...sec2.querySelectorAll('tbody tr')].filter(x=>!x.querySelector('td[colspan]'));
+            const first=((trs2[0]||{children:[{}]}).children[1]||{textContent:''}).textContent.trim();
+            const toastTxt=(document.getElementById('toast')||{textContent:''}).textContent;
+            const tlSel2=sec2.querySelector('select[data-tl]');
+            return JSON.stringify({st:st, first:first, toast:toastTxt, tl2:tlSel2?tlSel2.value:''});
+          } finally { window.isAdmin=ia0; D.emp=bakE; D.dep=bakD; renderDep(); }
+        })()`));
+        t('changing the team leader updates roles (new set, old cleared)',
+          /tl-g1:Active/.test(chg.st||'') && /tl-g3:TL/.test(chg.st||''), JSON.stringify(chg));
+        t('new team leader renders at the top', chg.first === 'THREE', JSON.stringify(chg));
+        t('selector follows the stored role after change', chg.tl2 === 'tl-g3', JSON.stringify(chg));
+        t('leader change confirmed with toast', /قادة الموقع/.test(chg.toast||''), JSON.stringify(chg.toast));
+      } catch (e) { bad.push('site leader change: ' + e.message); }
+
       // ربط القروبات بالتوزيع — deployment هو مصدر الحقيقة
       try {
         const link = JSON.parse(window.eval(`(function(){
